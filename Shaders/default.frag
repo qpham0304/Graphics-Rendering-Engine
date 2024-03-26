@@ -6,7 +6,6 @@ in vec3 normal;
 in vec3 updatedPos;
 
 out vec4 FragColor;
-// out vec3 col;
 
 uniform vec4 lightColor;
 uniform vec3 lightPos;

@@ -138,6 +138,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\skybox.cpp" />
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\DrawShape.cpp" />
     <ClCompile Include="src\EBO.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="Headers\Triangle.h" />
     <ClInclude Include="Headers\VAO.h" />
     <ClInclude Include="Headers\VBO.h" />
+    <ClInclude Include="Headers\skybox.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />
@@ -186,6 +188,8 @@
     <None Include="Shaders\light.vert" />
     <None Include="Shaders\model.frag" />
     <None Include="Shaders\model.vert" />
+    <None Include="Shaders\skybox.frag" />
+    <None Include="Shaders\skybox.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png" />

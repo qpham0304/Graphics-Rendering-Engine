@@ -1,5 +1,7 @@
 #include "model.h"
 
+unsigned int TextureFromFile(const char* path, const std::string& directory);
+
 Model::Model(const char* path)
 {
     loadModel(path);
@@ -73,6 +75,25 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         else
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
             vertices.push_back(vertex);
+
+        if (scene->mNumMaterials > mesh->mMaterialIndex)
+        {
+            const auto& mat = scene->mMaterials[mesh->mMaterialIndex];
+            aiColor4D diffuse;
+            if (AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
+            {
+                vertex.color = glm::vec4(diffuse.r, diffuse.g, diffuse.b, diffuse.a);
+            }
+
+            if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
+            {
+                vertex.useDiffuseTexture = 1.f;
+            }
+            else
+            {
+                vertex.useDiffuseTexture = 0.f;
+            }
+        }
     }
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
@@ -104,11 +125,52 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     {
         aiString str;
         mat->GetTexture(type, i, &str);
-        Texture texture(str.C_Str(), "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE);
-        //texture.id = TextureFromFile(str.C_Str(), directory);
-        //texture.type = typeName;
-        //texture.path = str;
-        textures.push_back(texture);
+        // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
+        bool skip = false;
+        for (unsigned int j = 0; j < textures.size(); j++)
+        {
+            if (std::strcmp(textures[j].path.data(), str.C_Str()) == 0)
+            {
+                textures.push_back(textures[j]);
+                skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
+                break;
+            }
+        }
+        if (!skip)
+        {   // if texture hasn't been loaded already, load it
+            Texture texture(str.C_Str(), typeName.c_str(), directory.c_str());
+            textures.push_back(texture);
+            textures.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+        }
     }
     return textures;
 }
+
+struct Material {
+    glm::vec3 Diffuse;
+    glm::vec3 Specular;
+    glm::vec3 Ambient;
+    float Shininess;
+};
+
+Material loadMaterial(aiMaterial* mat) {
+    Material material;
+    aiColor3D color(0.f, 0.f, 0.f);
+    float shininess;
+
+    mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+    material.Diffuse = glm::vec3(color.r, color.b, color.g);
+
+    mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
+    material.Ambient = glm::vec3(color.r, color.b, color.g);
+
+    mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
+    material.Specular = glm::vec3(color.r, color.b, color.g);
+
+    mat->Get(AI_MATKEY_SHININESS, shininess);
+    material.Shininess = shininess;
+
+    return material;
+}
+
+
