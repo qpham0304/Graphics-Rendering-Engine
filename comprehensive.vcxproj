@@ -90,6 +90,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <NoEntryPoint>false</NoEntryPoint>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -119,6 +120,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <NoEntryPoint>false</NoEntryPoint>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,10 +140,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\skybox.cpp" />
-    <ClCompile Include="src\camera.cpp" />
-    <ClCompile Include="src\DrawShape.cpp" />
-    <ClCompile Include="src\EBO.cpp" />
+    <ClCompile Include="src\apps\skybox\skyboxApp.cpp" />
+    <ClCompile Include="src\graphics\core\skybox.cpp" />
+    <ClCompile Include="src\graphics\core\camera.cpp" />
+    <ClCompile Include="src\graphics\DrawShape.cpp" />
+    <ClCompile Include="src\graphics\core\EBO.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_opengl2.cpp" />
@@ -151,17 +154,16 @@
     <ClCompile Include="Libraries\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="Libraries\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="Libraries\include\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\main_test.cpp" />
-    <ClCompile Include="src\Mesh.cpp" />
-    <ClCompile Include="src\Model.cpp" />
-    <ClCompile Include="src\Plane.cpp" />
-    <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\stb.cpp" />
-    <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\Triangle.cpp" />
-    <ClCompile Include="src\VAO.cpp" />
-    <ClCompile Include="src\VBO.cpp" />
+    <ClCompile Include="src\apps\test_imgui\main_test.cpp" />
+    <ClCompile Include="src\graphics\core\Mesh.cpp" />
+    <ClCompile Include="src\graphics\core\Model.cpp" />
+    <ClCompile Include="src\graphics\core\Plane.cpp" />
+    <ClCompile Include="src\graphics\core\Shader.cpp" />
+    <ClCompile Include="src\graphics\core\stb.cpp" />
+    <ClCompile Include="src\graphics\core\Texture.cpp" />
+    <ClCompile Include="src\graphics\Triangle.cpp" />
+    <ClCompile Include="src\graphics\core\VAO.cpp" />
+    <ClCompile Include="src\graphics\core\VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\camera.h" />
@@ -182,6 +184,8 @@
     <ResourceCompile Include="comprehensive.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\cubemap.frag" />
+    <None Include="Shaders\cubemap.vert" />
     <None Include="Shaders\default.frag" />
     <None Include="Shaders\default.vert" />
     <None Include="Shaders\light.frag" />

@@ -9,7 +9,6 @@ class Skybox
 {
 public:
 	GLuint ID;
-	char* path;
 
 
 	Skybox(std::vector<std::string> faces);

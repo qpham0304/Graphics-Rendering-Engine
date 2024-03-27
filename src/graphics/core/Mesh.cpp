@@ -47,6 +47,7 @@ void Mesh::setup()
     glEnableVertexAttribArray(8);
     glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, useDiffuseTexture));
     
+    
     glBindVertexArray(0);
 }
 
@@ -92,8 +93,6 @@ void Mesh::Draw(Shader& shader, Camera& camera)
     // draw mesh
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-
-    // Unbind
     glBindVertexArray(0);
 
     // always good practice to set everything back to defaults once configured.

@@ -12,7 +12,9 @@ public:
 	GLuint unit;
 	std::string path;
 
+	//TODO: manually set the texture flipped for each constructor, refactor to accept a bool 
 	Texture();
+	Texture(const char* path);
 	Texture(const char* path, const char* texType, const std::string& directory);
 	Texture(const char* image, const char* texType, GLuint slot, GLenum format, GLenum pixelType);
 

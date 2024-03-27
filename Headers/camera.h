@@ -30,7 +30,10 @@ public:
 	glm::vec3 position = defaultPosition;
 	glm::vec3 orientation = defaultOrientation;
 	glm::vec3 up = defaultUp;
-	glm::mat4 mvp;
+
+
+	glm::mat4 view;
+	glm::mat4 projection;
 
 	bool firstClick = true;
 	bool shiftPressed = false;

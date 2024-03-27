@@ -13,10 +13,6 @@ Camera::Camera(float width, float height, glm::vec3 position)
 
 void Camera::cameraViewUpdate()
 {
-
-	glm::mat4 view = glm::mat4(1.0f);
-	glm::mat4 projection = glm::mat4(1.0f);
-
 	float currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
@@ -24,12 +20,11 @@ void Camera::cameraViewUpdate()
 
 	view = glm::lookAt(position, position + orientation, up);
 	projection = glm::perspective(glm::radians(fov), (float)width / (float)height, nearPlane, farPlane);
-	mvp = projection * view;
 }
-
 
 void Camera::cameraViewObject(GLuint shaderID, const char* uniform)
 {
+	glm::mat4 mvp = projection * view;
 	GLuint uniformLocation = glGetUniformLocation(shaderID, uniform);
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(mvp));
 }

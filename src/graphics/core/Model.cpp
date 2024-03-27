@@ -1,7 +1,5 @@
 #include "model.h"
 
-unsigned int TextureFromFile(const char* path, const std::string& directory);
-
 Model::Model(const char* path)
 {
     loadModel(path);
