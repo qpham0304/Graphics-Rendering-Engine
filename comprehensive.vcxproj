@@ -140,7 +140,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\apps\skybox\skyboxApp.cpp" />
+    <ClCompile Include="src\apps\comprehensive\main.cpp" />
     <ClCompile Include="src\graphics\core\skybox.cpp" />
     <ClCompile Include="src\graphics\core\camera.cpp" />
     <ClCompile Include="src\graphics\DrawShape.cpp" />
@@ -190,6 +190,8 @@
     <None Include="Shaders\default.vert" />
     <None Include="Shaders\light.frag" />
     <None Include="Shaders\light.vert" />
+    <None Include="Shaders\material.frag" />
+    <None Include="Shaders\material.vert" />
     <None Include="Shaders\model.frag" />
     <None Include="Shaders\model.vert" />
     <None Include="Shaders\skybox.frag" />

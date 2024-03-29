@@ -47,6 +47,5 @@ void main()
 
 */
 
-    vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
     FragColor = texture(diffuse0, uv);
 }

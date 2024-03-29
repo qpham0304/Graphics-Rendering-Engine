@@ -72,7 +72,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         }
         else
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
-            vertices.push_back(vertex);
+        vertices.push_back(vertex);
 
         if (scene->mNumMaterials > mesh->mMaterialIndex)
         {

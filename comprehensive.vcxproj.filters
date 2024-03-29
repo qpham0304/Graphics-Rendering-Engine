@@ -93,7 +93,7 @@
     <ClCompile Include="src\graphics\core\skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\skybox\skyboxApp.cpp">
+    <ClCompile Include="src\apps\comprehensive\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -154,6 +154,8 @@
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\cubemap.vert" />
     <None Include="Shaders\cubemap.frag" />
+    <None Include="Shaders\material.frag" />
+    <None Include="Shaders\material.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

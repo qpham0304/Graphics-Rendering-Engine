@@ -21,10 +21,12 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
-void Rotate(float lastFrame, float rotationAngle, glm::mat4 matrix, Shader& shader);
+void Rotate(glm::mat4 matrix, Shader& shader);
 static const std::string DIR = "";
 static const unsigned width = 1024;
 static const unsigned height = 728;
+float lastFrame = 0;
+float rotationAngle = 0;
 Camera* cameraController = nullptr;
 
 // Vertices coordinates
@@ -380,13 +382,11 @@ int main() {
 
 	Camera camera(width, height, glm::vec3(0.0f, 0.5f, 3.0f));
 
-	float lastFrame = 0;
-	float rotationAngle = 0;
 
 	std::vector<std::tuple<Mesh, Shader>> meshes = {
-	std::make_tuple(pyramid, shaderProgram),
-	std::make_tuple(plane, planeShader),
-	std::make_tuple(cube, cubeShader),
+		std::make_tuple(pyramid, shaderProgram),
+		std::make_tuple(plane, planeShader),
+		std::make_tuple(cube, cubeShader),
 	};
 
 	std::vector<std::tuple<Model, Shader>> models = {
@@ -413,10 +413,14 @@ int main() {
 		glBindVertexArray(0);
 		//glDepthFunc(GL_LESS); // set depth function back to default
 
+		int count = 0;
 		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
 			Mesh m = std::get<0>(tuple);
 			Shader s = std::get<1>(tuple);
 			m.Draw(s, camera);
+			if(count == 0)
+				Rotate(pyramidModel, shaderProgram);
+			count++;
 		}
 
 		for (const std::tuple<Model, Shader>& tuple : models) {
@@ -459,7 +463,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void Rotate(float lastFrame, float rotationAngle, glm::mat4 matrix, Shader& shader) {
+void Rotate(glm::mat4 matrix, Shader& shader) {
 	float currentFrame = glfwGetTime();
 	float deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;

@@ -7,6 +7,7 @@ Texture::Texture()
 
 Texture::Texture(const char* path)
 {
+	this->type = "diffuse";
 	glGenTextures(1, &ID);
 
 	int width, height, nrComponents;
@@ -47,7 +48,7 @@ Texture::Texture(const char* path, const char* texType, const std::string& direc
 	glGenTextures(1, &ID);
 
 	int width, height, nrComponents;
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(false); //TODO: some obj textures are flipped
 	unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
 	if (!data)
 	{

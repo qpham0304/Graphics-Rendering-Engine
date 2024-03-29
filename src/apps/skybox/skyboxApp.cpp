@@ -19,16 +19,19 @@
 #include <skybox.h>
 
 
-
-
 unsigned int loadTexture(const char* path);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
-void Rotate(float lastFrame, float rotationAngle, glm::mat4 matrix, Shader& shader);
+void Rotate(glm::mat4 matrix, Shader& shader);
 static const unsigned width = 1024;
 static const unsigned height = 728;
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
+
+float lastFrame = 0;
+float rotationAngle = 0;
+float deltaTime = 0;
+
 
 // camera
 Camera camera(width, height, glm::vec3(0.0f, 0.0f, 3.0f));
@@ -225,10 +228,11 @@ int main() {
 	glm::mat4 objMatrix = glm::mat4(1.0f);
 	objMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
 	objMatrix = glm::translate(objMatrix, glm::vec3(-3.0f, 10.0f, -3.0f));
+	objMatrix = glm::rotate(objMatrix, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 	modelShader.Activate();
 	glUniformMatrix4fv(glGetUniformLocation(modelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(objMatrix));
 	// glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	Model ourModel("Models/planet/planet.obj");
+	Model ourModel("Models/cube/cube.obj");
 
 	// cube VAO
 	unsigned int cubeVAO, cubeVBO;
@@ -277,9 +281,6 @@ int main() {
 	glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
 	glUniformMatrix4fv(glGetUniformLocation(skyboxShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
 
-	float lastFrame = 0;
-	float rotationAngle = 0;
-	float deltaTime = 0;
 
 	std::vector<std::tuple<Mesh, Shader>> meshes = {
 		std::make_tuple(cube, cubeShader),
@@ -307,6 +308,7 @@ int main() {
 			Shader s = std::get<1>(tuple);
 			m.Draw(s, camera);
 		}
+		//Rotate(objMatrix, modelShader);
 
 		for (const std::tuple<Model, Shader>& tuple : models) {
 			Model m = std::get<0>(tuple);
@@ -325,18 +327,8 @@ int main() {
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture.ID);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//Rotate(lastFrame, rotationAngle, glm::mat4(1.0f), shader);
 		glBindVertexArray(0);
-
-		// cubes mesh
-		shader.setMat4("model", model);
-		shader.setMat4("view", viewMatrix);
-		shader.setMat4("projection", projection);
-		glBindVertexArray(cubeVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture.ID);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
 
 		// draw skybox as last
 		viewMatrix = glm::mat4(glm::mat3(camera.view));	 // remove translation from the view matrix
@@ -379,7 +371,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 
-void Rotate(float lastFrame, float rotationAngle, glm::mat4 matrix, Shader& shader) {
+void Rotate(glm::mat4 matrix, Shader& shader) {
 	float currentFrame = glfwGetTime();
 	float deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;

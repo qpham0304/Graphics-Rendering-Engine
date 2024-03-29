@@ -78,36 +78,19 @@ vec4 directionalLight() {
 
 void main()
 {
-	//TODO: hard coded condition for now, find a better way to do condition
-	bool flag = true;
-	if(flag) {
-		FragColor = texture(diffuse0, uv);
-	}
+	float ambient = 0.20f;
+	float specularLight = 0.50f;
 
-	else if(!flag) {
-		float r = 127/255.0;
-		float g = 127/255.0;
-		float b = 127/255.0;
-		float a = 255/255.0;
-		FragColor = vec4(r, g, b, a);
-	}
-	
-	else {
-		float ambient = 0.20f;
-		float specularLight = 0.50f;
+	vec3 norm = normalize(normal);
+	vec3 lightDirection = normalize(lightPos - updatedPos);
+	float diffuse = max(dot(norm, lightDirection), 0.0f);
 
-		vec3 norm = normalize(normal);
-		vec3 lightDirection = normalize(lightPos - updatedPos);
-		float diffuse = max(dot(norm, lightDirection), 0.0f);
+	vec3 viewDirection = normalize(camPos - updatedPos);
+	vec3 reflectionDirection = reflect(-lightDirection, norm);
+	float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
+	float specular = specAmount * specularLight;
 
-		vec3 viewDirection = normalize(camPos - updatedPos);
-		vec3 reflectionDirection = reflect(-lightDirection, norm);
-		float specAmount = pow(max(dot(viewDirection, reflectionDirection), 0.0f), 16);
-		float specular = specAmount * specularLight;
-
-		FragColor = pointLight();
-		// FragColor = directionalLight();
-		// FragColor = spotLight();
-	
-	}
+	FragColor = pointLight();
+	// FragColor = directionalLight();
+	FragColor = spotLight();
 }

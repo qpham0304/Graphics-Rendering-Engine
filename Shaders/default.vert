@@ -17,7 +17,7 @@ void main()
 {
 	color = aColor;
 	uv = vertexUV;
-	normal = aNormal;
+	normal = mat3(transpose(inverse(matrix))) * aNormal;
 	updatedPos = (matrix * vec4(pos,1)).xyz;
 	gl_Position = mvp * vec4(updatedPos, 1);
 }
