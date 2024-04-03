@@ -93,7 +93,10 @@
     <ClCompile Include="src\graphics\core\skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\comprehensive\main.cpp">
+    <ClCompile Include="src\graphics\core\DepthMap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\shadow-map\shadowMapApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -137,6 +140,9 @@
     <ClInclude Include="Headers\skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\DepthMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -156,6 +162,8 @@
     <None Include="Shaders\cubemap.frag" />
     <None Include="Shaders\material.frag" />
     <None Include="Shaders\material.vert" />
+    <None Include="Shaders\shadowMap.vert" />
+    <None Include="Shaders\shadowMap.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

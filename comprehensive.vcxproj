@@ -140,7 +140,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\apps\comprehensive\main.cpp" />
+    <ClCompile Include="src\apps\shadow-map\shadowMapApp.cpp" />
+    <ClCompile Include="src\graphics\core\DepthMap.cpp" />
     <ClCompile Include="src\graphics\core\skybox.cpp" />
     <ClCompile Include="src\graphics\core\camera.cpp" />
     <ClCompile Include="src\graphics\DrawShape.cpp" />
@@ -167,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\camera.h" />
+    <ClInclude Include="Headers\DepthMap.h" />
     <ClInclude Include="Headers\DrawShape.h" />
     <ClInclude Include="Headers\EBO.h" />
     <ClInclude Include="Headers\Mesh.h" />
@@ -194,6 +196,8 @@
     <None Include="Shaders\material.vert" />
     <None Include="Shaders\model.frag" />
     <None Include="Shaders\model.vert" />
+    <None Include="Shaders\shadowMap.frag" />
+    <None Include="Shaders\shadowMap.vert" />
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\skybox.vert" />
   </ItemGroup>
