@@ -73,25 +73,6 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         else
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
         vertices.push_back(vertex);
-
-        if (scene->mNumMaterials > mesh->mMaterialIndex)
-        {
-            const auto& mat = scene->mMaterials[mesh->mMaterialIndex];
-            aiColor4D diffuse;
-            if (AI_SUCCESS == aiGetMaterialColor(mat, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
-            {
-                vertex.color = glm::vec4(diffuse.r, diffuse.g, diffuse.b, diffuse.a);
-            }
-
-            if (mat->GetTextureCount(aiTextureType_DIFFUSE) > 0)
-            {
-                vertex.useDiffuseTexture = 1.f;
-            }
-            else
-            {
-                vertex.useDiffuseTexture = 0.f;
-            }
-        }
     }
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)

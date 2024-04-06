@@ -17,9 +17,9 @@
 #include <Mesh.h>
 #include "model.h"
 #include <skybox.h>
+#include "../../graphics/components/SkyboxComponent.h"
 
 
-unsigned int loadTexture(const char* path);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
 void Rotate(glm::mat4 matrix, Shader& shader);
@@ -224,7 +224,7 @@ int main() {
 	glUniform3f(glGetUniformLocation(cubeShader.ID, "camPos"), camera.position.x, camera.position.x, camera.position.x);
 
 
-	Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
+	Shader modelShader("Shaders/cubemap.vert", "Shaders/cubemap.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
 	objMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
 	objMatrix = glm::translate(objMatrix, glm::vec3(-3.0f, 10.0f, -3.0f));
@@ -232,9 +232,11 @@ int main() {
 	modelShader.Activate();
 	glUniformMatrix4fv(glGetUniformLocation(modelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(objMatrix));
 	// glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	Model ourModel("Models/cube/cube.obj");
+	modelShader.setInt("texture1", 0);
+	Model ourModel("Models/planet/planet.obj");
 
 	// cube VAO
+	Texture texture("Textures/squish.png");
 	unsigned int cubeVAO, cubeVBO;
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
@@ -246,40 +248,13 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	
-
-	//skybox
-	std::vector<std::string> faces = {
-		"Textures/skybox/right.jpg",
-		"Textures/skybox/left.jpg",
-		"Textures/skybox/top.jpg",
-		"Textures/skybox/bottom.jpg",
-		"Textures/skybox/front.jpg",
-		"Textures/skybox/back.jpg"
-	};
-
-	//// skybox VAO
-	unsigned int skyboxVAO, skyboxVBO;
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-	glBindVertexArray(skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
-	// load textures
-	// -------------
-	Texture texture("Textures/squish.png");
-	Skybox skybox(faces);
-
 	// shader configuration
 	// --------------------
 	shader.Activate();
 	shader.setInt("texture1", 0);
 
-	skyboxShader.Activate();
-	glUniform1i(glGetUniformLocation(skyboxShader.ID, "skybox"), 0);
-	glUniformMatrix4fv(glGetUniformLocation(skyboxShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	SkyboxComponent skybox;
+	skybox.setUniform();
 
 
 	std::vector<std::tuple<Mesh, Shader>> meshes = {
@@ -299,9 +274,10 @@ int main() {
 		// camera inputs
 		camera.processInput(window);
 		camera.cameraViewUpdate();
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+		glm::mat4 projection = camera.projection;
 		glm::mat4 viewMatrix = camera.view;
 		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 mvp = projection * viewMatrix;
 
 		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
 			Mesh m = std::get<0>(tuple);
@@ -316,13 +292,17 @@ int main() {
 			m.Draw(s, camera);
 		}
 
+		modelShader.Activate();
+		modelShader.setMat4("model", objMatrix);
+		modelShader.setMat4("mvp", mvp);
+		modelShader.setVec3("camPos", camera.position);
+		ourModel.Draw(modelShader, camera);
 
 		// cubes
 		shader.Activate();
 		shader.setMat4("model", model);
-		shader.setMat4("view", viewMatrix);
-		shader.setMat4("projection", projection);
-		shader.setVec3("cameraPos", camera.position);
+		shader.setMat4("mvp", mvp);
+		shader.setVec3("camPos", camera.position);
 		glBindVertexArray(cubeVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture.ID);
@@ -330,20 +310,8 @@ int main() {
 		//Rotate(lastFrame, rotationAngle, glm::mat4(1.0f), shader);
 		glBindVertexArray(0);
 
-		// draw skybox as last
-		viewMatrix = glm::mat4(glm::mat3(camera.view));	 // remove translation from the view matrix
-		glDepthFunc(GL_LEQUAL);				// change depth function so depth test passes when values are equal to depth buffer's content
-		skyboxShader.Activate();
-		glUniformMatrix4fv(glGetUniformLocation(skyboxShader.ID, "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(skyboxShader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-		// skybox cube
-		glBindVertexArray(skyboxVAO);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.ID);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-		glDepthFunc(GL_LESS); // set depth function back to default
+		skybox.render(camera);
 
 		processProgramInput(window);
 		glfwSwapBuffers(window);

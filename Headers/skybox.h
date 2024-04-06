@@ -9,6 +9,8 @@ class Skybox
 {
 public:
 	GLuint ID;
+	GLuint skyboxVAO;
+	GLuint skyboxVBO;
 
 
 	Skybox(std::vector<std::string> faces);

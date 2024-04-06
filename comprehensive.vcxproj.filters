@@ -39,13 +39,13 @@
     <ClCompile Include="src\graphics\core\VBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\Triangle.cpp">
+    <ClCompile Include="src\graphics\components\Triangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\core\EBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\DrawShape.cpp">
+    <ClCompile Include="src\graphics\components\DrawShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\core\stb.cpp">
@@ -84,9 +84,6 @@
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>externals</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\test_imgui\main_test.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\core\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -96,7 +93,16 @@
     <ClCompile Include="src\graphics\core\DepthMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\shadow-map\shadowMapApp.cpp">
+    <ClCompile Include="src\graphics\components\PlaneComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\ImGuiController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\skybox\skyboxApp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\components\SkyboxComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -141,6 +147,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\DepthMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\components\PlaneComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\ImGuiController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\components\SkyboxComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

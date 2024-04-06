@@ -140,11 +140,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\apps\shadow-map\shadowMapApp.cpp" />
+    <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
+    <ClCompile Include="src\apps\skybox\skyboxApp.cpp" />
+    <ClCompile Include="src\gui\ImGuiController.cpp" />
+    <ClCompile Include="src\graphics\components\PlaneComponent.cpp" />
     <ClCompile Include="src\graphics\core\DepthMap.cpp" />
     <ClCompile Include="src\graphics\core\skybox.cpp" />
     <ClCompile Include="src\graphics\core\camera.cpp" />
-    <ClCompile Include="src\graphics\DrawShape.cpp" />
+    <ClCompile Include="src\graphics\components\DrawShape.cpp" />
     <ClCompile Include="src\graphics\core\EBO.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_glfw.cpp" />
@@ -155,14 +158,13 @@
     <ClCompile Include="Libraries\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="Libraries\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="Libraries\include\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\apps\test_imgui\main_test.cpp" />
     <ClCompile Include="src\graphics\core\Mesh.cpp" />
     <ClCompile Include="src\graphics\core\Model.cpp" />
     <ClCompile Include="src\graphics\core\Plane.cpp" />
     <ClCompile Include="src\graphics\core\Shader.cpp" />
     <ClCompile Include="src\graphics\core\stb.cpp" />
     <ClCompile Include="src\graphics\core\Texture.cpp" />
-    <ClCompile Include="src\graphics\Triangle.cpp" />
+    <ClCompile Include="src\graphics\components\Triangle.cpp" />
     <ClCompile Include="src\graphics\core\VAO.cpp" />
     <ClCompile Include="src\graphics\core\VBO.cpp" />
   </ItemGroup>
@@ -181,6 +183,9 @@
     <ClInclude Include="Headers\VAO.h" />
     <ClInclude Include="Headers\VBO.h" />
     <ClInclude Include="Headers\skybox.h" />
+    <ClInclude Include="src\graphics\components\SkyboxComponent.h" />
+    <ClInclude Include="src\gui\ImGuiController.h" />
+    <ClInclude Include="src\graphics\components\PlaneComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

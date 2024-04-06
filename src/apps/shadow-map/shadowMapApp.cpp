@@ -12,7 +12,9 @@
 #include "texture.h"
 #include "camera.h"
 #include "Triangle.h"
-#include "imgui/imgui.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 #include <vector>
 #include <Mesh.h>
 #include "model.h"
@@ -26,12 +28,17 @@ static const std::string DIR = "";
 static const unsigned width = 1024;
 static const unsigned height = 728;
 float lastFrame = 0;
+float lastTime = 0;
 unsigned int frameCounter = 0;
 float rotationAngle = 0;
 float angle = 0.0f;
 float radius = 1.0f;
 float angularSpeed = 0.01f;
 Camera* cameraController = nullptr;
+glm::mat4 tmpMatrix;
+
+bool debug = false;
+
 
 // Vertices coordinates
 std::vector<Vertex> vertices =
@@ -120,10 +127,10 @@ struct Light {
 	glm::vec3 specular;
 };
 
-unsigned int quadVAO = 0;
-unsigned int quadVBO;
 void renderQuad()
 {
+	unsigned int quadVAO = 0;
+	unsigned int quadVBO;
 	if (quadVAO == 0)
 	{
 		float quadVertices[] = {
@@ -149,6 +156,23 @@ void renderQuad()
 	glBindVertexArray(0);
 }
 
+void setupDearImGui(GLFWwindow* window, ImGuiIO& io) {
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsLight();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+	ImGui::GetStyle().ScaleAllSizes(1);
+}
 
 int main() {
 	glfwInit();
@@ -219,7 +243,7 @@ int main() {
 
 	//plane
 	std::vector<Texture> planeTextures = {
-		Texture("Textures/wood.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE),
+		Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE),
 		Texture("Textures/planksSpec.png", "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE)
 	};
 	Shader planeShader(vertPath.c_str(), fragPath.c_str());
@@ -237,8 +261,7 @@ int main() {
 	Shader modelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
 	objMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
-	objMatrix = glm::translate(objMatrix, glm::vec3(12.0f, 0.0f, 0.0f));
-	objMatrix = glm::rotate(objMatrix, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	objMatrix = glm::translate(objMatrix, glm::vec3(12.0f, -1.0f, 0.0f));
 	modelShader.Activate();
 	glUniformMatrix4fv(glGetUniformLocation(modelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(objMatrix));
 	glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
@@ -283,7 +306,7 @@ int main() {
 	unsigned int shadowMapFBO;
 	glGenFramebuffers(1, &shadowMapFBO);
 
-	unsigned int SHADOW_WIDTH = width * 4, SHADOW_HEIGHT = height * 4;
+	unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	unsigned int shadowMap;
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
@@ -303,23 +326,6 @@ int main() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	float near_plane = 1.0f, far_plane = 12.5f;
-	//glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	//glm::mat4 lightView = glm::lookAt(
-	//	lightPos,
-	//	glm::vec3(0.0f, 0.0f, 0.0f),
-	//	glm::vec3(0.0f, 1.0f, 0.0f)
-	//);
-	//glm::mat4 lightSpaceMatrix = lightProjection * lightView; 
-
-	// Matrices needed for the light's perspective
-	//glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	//glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	//glm::mat4 lightProjection = orthgonalProjection * lightView;
-
-	//shadowMapShader.Activate();
-	//glUniformMatrix4fv(glGetUniformLocation(shadowMapShader.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-
-
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 	glm::mat4 lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
@@ -327,42 +333,108 @@ int main() {
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO io;
+	setupDearImGui(window, io);
+
+	bool show_demo_window = false;
+	bool show_style_editor = false;
+	bool show_debug_window = false;
+	bool camera_control_enabled = true;
+
+	float ambient = 2.0f;
+	glm::vec3 move(0.0f, 0.0f, 0.0f);
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
-		float currentFrame = glfwGetTime();
-		float timeDiff = currentFrame - lastFrame;
+		// Start the Dear ImGui frame
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		static int counter = 0;
+		// main window
+		ImGui::Begin("Another Window", &show_demo_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+
+		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
+
+		if (ImGui::Button("Button"))
+			counter++;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", counter);
+
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		
+		ImGui::Text("Hello from another window!");
+		ImGui::Checkbox("Debug Mode", &debug);
+		ImGui::SameLine();
+		ImGui::Checkbox("Show debug window", &show_debug_window);
+		ImGui::SameLine();
+		ImGui::Checkbox("Camera control", &camera_control_enabled);
+		ImGui::End();
+
+		if (show_style_editor)
+			ImGui::ShowStyleEditor();
+		if (show_debug_window) {
+			ImGui::Begin("Debug Window");
+			{
+				// Using a Child allow to fill all the space of the window.
+				// It also alows customization
+				ImGui::BeginChild("Debug Window");
+				// Get the size of the child (i.e. the whole draw size of the windows).
+				ImVec2 wsize = ImGui::GetWindowSize();
+				// invert the V from the UV.
+				ImGui::Image((ImTextureID)shadowMap, wsize, ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::EndChild();
+			}
+			ImGui::End();
+		}
+
+
+		// Rendering
+		ImGui::Render();
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		float currentTime = glfwGetTime();
+		float timeDiff = currentTime - lastTime;
 		frameCounter++;
 
 		if (timeDiff >= 1/2) {
 			std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
 			std::string ms = std::to_string((timeDiff / frameCounter) * 1000);
-			std::string updatedTitle = "OpenGL Engine - " + FPS + "FPS / " + ms + "ms";
+			std::string updatedTitle = "Graphic Engine - " + FPS + "FPS / " + ms + "ms";
 			glfwSetWindowTitle(window, updatedTitle.c_str());
-			lastFrame = currentFrame;
+			lastTime = currentTime;
 			frameCounter = 0;
 		}
 
-		bool debug = false;
+
 		// camera inputs
-		camera.processInput(window);
-		camera.cameraViewUpdate();
+		if (camera_control_enabled) {
+			camera.processInput(window);
+			camera.cameraViewUpdate();
+		}
 
 		framebuffer_size_callback(window, width, height);
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+
 		// render scene from light's point of view
-		shadowMapShader.Activate();
-		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
-
-
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glActiveTexture(GL_TEXTURE0);
 
-		shadowMapShader.setMat4("matrix", pyramidModel);
+		shadowMapShader.Activate();
+		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
+		shadowMapShader.setMat4("matrix", tmpMatrix);
 		pyramid.Draw(shadowMapShader, camera);
 		shadowMapShader.setMat4("matrix", planeModel);
 		plane.Draw(shadowMapShader, camera);
@@ -392,33 +464,36 @@ int main() {
 		//camera.view = lightView;
 		//camera.projection = lightProjection;
 
-		//angle += angularSpeed;
-		//lightPos = glm::vec3(
-		//	(lightPos.x + radius * cos(angle)) * 0.6,
-		//	lightPos.y,
-		//	(lightPos.z + radius * sin(angle)) * 0.6
-		//);
-		//lightModel = glm::translate(lightModel, lightPos);
-		//lightShader.Activate();
-		//glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(lightModel));
-
-
+		angle += angularSpeed;
+		move = glm::vec3(
+			(move.x + radius * cos(angle)) * 0.01,
+			move.y,
+			(move.z + radius * sin(angle)) * 0.01
+		);
+		lightModel = glm::translate(lightModel, move);
+		lightShader.Activate();
+		glUniformMatrix4fv(glGetUniformLocation(lightShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(lightModel));
 
 		glActiveTexture(GL_TEXTURE0 + 2);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
+
 
 		int count = 0;
 		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
 			Mesh m = std::get<0>(tuple);
 			Shader s = std::get<1>(tuple);
 			s.Activate();
+			glCullFace(GL_FRONT);
 			s.setMat4("lightProjection", lightSpaceMatrix);
+			s.setFloat("ambientIntensity", ambient);
 			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
 			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			glCullFace(GL_BACK);
 			m.Draw(s, camera);
-			//if (count == 0) {
-			//	Rotate(pyramidModel, shaderProgram);
-			//}
+			if (count == 0) {
+				pyramidModel = glm::translate(pyramidModel, move);
+				Rotate(pyramidModel, shaderProgram);
+			}
 			count++;
 		}
 
@@ -427,9 +502,12 @@ int main() {
 			Model m = std::get<0>(tuple);
 			Shader s = std::get<1>(tuple);
 			s.Activate();
+			glCullFace(GL_FRONT);
 			s.setMat4("lightProjection", lightSpaceMatrix);
+			s.setFloat("ambientIntensity", ambient);
 			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
 			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			glCullFace(GL_BACK);
 			m.Draw(s, camera);
 			count++;
 		}
@@ -439,20 +517,26 @@ int main() {
 		lightVAO.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
+
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		processProgramInput(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	// Delete window before ending the program
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwDestroyWindow(window);
-	// Terminate GLFW before ending the program
 	glfwTerminate();
 	return 0;
 }
 
 void processProgramInput(GLFWwindow* window)
 {
+	//glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS ? debug = true : debug = false;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 	if (glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS)
@@ -476,8 +560,9 @@ void Rotate(glm::mat4 matrix, Shader& shader) {
 	float rotationSpeed = 1;
 	rotationAngle += deltaTime * rotationSpeed;
 
-	glm::mat4 rotationMatrix = glm::rotate(matrix, rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+	matrix = glm::rotate(matrix, rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
+	tmpMatrix = matrix;
+	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
 
 }
 

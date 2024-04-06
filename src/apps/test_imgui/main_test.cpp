@@ -35,7 +35,7 @@ void setupDearImGui(GLFWwindow* window, ImGuiIO& io) {
 
 
 // Main code
-int m(int, char**)
+int main(int, char**)
 {
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
