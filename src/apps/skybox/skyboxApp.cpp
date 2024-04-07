@@ -1,20 +1,8 @@
 #include <iostream>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <stb/stb_image.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <math.h>
 #include "shader.h"
-#include "VAO.h"
-#include "VBO.h"
-#include "EBO.h"
-#include "texture.h"
 #include "camera.h"
-#include "Triangle.h"
 #include "imgui/imgui.h"
 #include <vector>
-#include <Mesh.h>
 #include "model.h"
 #include <skybox.h>
 #include "../../graphics/components/SkyboxComponent.h"
@@ -318,10 +306,8 @@ int main() {
 		glfwPollEvents();
 	}
 
-	// Delete window before ending the program
-	glfwDestroyWindow(window);
-	// Terminate GLFW before ending the program
-	glfwTerminate();
+	glfwDestroyWindow(window);	// Delete window before ending the program
+	glfwTerminate();			// Terminate GLFW before ending the program
 	return 0;
 }
 

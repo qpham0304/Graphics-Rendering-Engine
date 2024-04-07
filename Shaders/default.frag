@@ -12,6 +12,7 @@ uniform vec4 lightColor;
 uniform vec3 lightPos;
 uniform vec3 camPos;
 uniform float ambientIntensity;
+uniform int sampleRadius = 5;
 
 uniform sampler2D diffuse0;
 uniform sampler2D diffuse1;
@@ -31,7 +32,6 @@ float calcShadow() {
 	//shadow = (currentDepth > closestDepth + bias ) ? 1.0 : 0.0; 
 	
 	// Smoothens out the shadows
-	int sampleRadius = 5;
 	vec2 pixelSize = 1.0 / textureSize(shadowMap, 0);
 	for(int y = -sampleRadius; y <= sampleRadius; y++)
 	{
@@ -165,20 +165,19 @@ void main()
 {
     vec3 color = texture(diffuse0, uv).rgb;
     vec3 normal = normalize(normal);
-    vec3 lightColor = vec3(0.3);
     // ambient
-    vec3 ambient = ambientIntensity * lightColor;
+    vec3 ambient = ambientIntensity * lightColor.xyz;
     // diffuse
     vec3 lightDir = normalize(lightPos - updatedPos);
     float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = diff * lightColor;
+    vec3 diffuse = diff * lightColor.xyz;
     // specular
     vec3 viewDir = normalize(camPos - updatedPos);
     vec3 reflectDir = reflect(-lightDir, normal);
     float spec = 0.0;
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
-    vec3 specular = spec * lightColor;    
+    vec3 specular = spec * lightColor.xyz;    
     // calculate shadow
     float shadow = calcShadow();                      
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    

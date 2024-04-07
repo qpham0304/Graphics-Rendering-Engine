@@ -61,11 +61,11 @@ SkyboxComponent::SkyboxComponent()
 	shaderProgram_ptr.reset(new Shader("Shaders/skybox.vert", "Shaders/skybox.frag"));
 
 	//// skybox VAO
-	GLuint skyboxVBO;
-	glGenVertexArrays(1, &skyboxVAO);
-	glGenBuffers(1, &skyboxVBO);
-	glBindVertexArray(skyboxVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+	GLuint VBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -79,7 +79,7 @@ void SkyboxComponent::setUniform()
 }
 
 // should draw skybox last
-void SkyboxComponent::render(Camera camera)
+void SkyboxComponent::render(Camera& camera)
 {
 	glm::mat4 projection = camera.projection;
 	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.view));	 // remove translation from the view matrix
@@ -91,7 +91,7 @@ void SkyboxComponent::render(Camera camera)
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram_ptr->ID, "projection"), 1, GL_FALSE, glm::value_ptr(camera.projection));
 
 	// skybox cube
-	glBindVertexArray(skyboxVAO);
+	glBindVertexArray(VAO);
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->ID);
 	glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -99,10 +99,13 @@
     <ClCompile Include="src\gui\ImGuiController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\skybox\skyboxApp.cpp">
+    <ClCompile Include="src\graphics\components\SkyboxComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\components\SkyboxComponent.cpp">
+    <ClCompile Include="src\graphics\components\Component.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\animation\animationApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -156,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\components\SkyboxComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\components\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

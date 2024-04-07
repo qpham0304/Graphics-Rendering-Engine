@@ -14,6 +14,7 @@ out vec4 fragPosLight;
 uniform mat4 mvp;
 uniform mat4 matrix;
 uniform mat4 lightProjection;
+uniform mat4 normalMap;
 
 void main()
 {

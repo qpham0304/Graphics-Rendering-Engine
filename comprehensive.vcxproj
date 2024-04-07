@@ -140,8 +140,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\apps\animation\animationApp.cpp" />
+    <ClCompile Include="src\graphics\components\Component.cpp" />
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
-    <ClCompile Include="src\apps\skybox\skyboxApp.cpp" />
     <ClCompile Include="src\gui\ImGuiController.cpp" />
     <ClCompile Include="src\graphics\components\PlaneComponent.cpp" />
     <ClCompile Include="src\graphics\core\DepthMap.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="src\graphics\core\VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\graphics\components\Component.h" />
     <ClInclude Include="Headers\camera.h" />
     <ClInclude Include="Headers\DepthMap.h" />
     <ClInclude Include="Headers\DrawShape.h" />
