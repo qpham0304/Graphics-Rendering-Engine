@@ -1,11 +1,13 @@
 #include "camera.h"
 
-Camera::Camera(float width, float height, glm::vec3 position)
+Camera::Camera(float width, float height, glm::vec3 position, glm::vec3 orientation)
 {
 	this->width = width;
 	this->height = height;
 	this->position = position;
 	this->defaultPosition = position;
+	this->defaultOrientation = orientation;
+	this->orientation = orientation;
 	this->lastX = width / 2;
 	this->lastY = height / 2;
 }

@@ -48,4 +48,5 @@ void main()
 */
 
     FragColor = texture(diffuse0, uv);
+    FragColor = color;
 }

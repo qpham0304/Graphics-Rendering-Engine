@@ -79,6 +79,14 @@
     <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -107,6 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -137,12 +146,16 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\apps\animation\animationApp.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
+    <ClCompile Include="src\graphics\core\Animation.cpp" />
+    <ClCompile Include="src\graphics\core\Animator.cpp" />
+    <ClCompile Include="src\graphics\core\Bone.cpp" />
     <ClCompile Include="src\gui\ImGuiController.cpp" />
     <ClCompile Include="src\graphics\components\PlaneComponent.cpp" />
     <ClCompile Include="src\graphics\core\DepthMap.cpp" />
@@ -170,6 +183,10 @@
     <ClCompile Include="src\graphics\core\VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Animation.h" />
+    <ClInclude Include="Headers\Animator.h" />
+    <ClInclude Include="Headers\assimp_glm_helpers.h" />
+    <ClInclude Include="Headers\Bone.h" />
     <ClInclude Include="src\graphics\components\Component.h" />
     <ClInclude Include="Headers\camera.h" />
     <ClInclude Include="Headers\DepthMap.h" />
@@ -205,6 +222,8 @@
     <None Include="Shaders\model.vert" />
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\shadowMap.vert" />
+    <None Include="Shaders\skeletonModel.frag" />
+    <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\skybox.vert" />
   </ItemGroup>

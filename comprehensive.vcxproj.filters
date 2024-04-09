@@ -108,6 +108,15 @@
     <ClCompile Include="src\apps\animation\animationApp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\core\Bone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\Animation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\Animator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\VAO.h">
@@ -164,6 +173,18 @@
     <ClInclude Include="src\graphics\components\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Headers\Animation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Animator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\assimp_glm_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Bone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -185,6 +206,8 @@
     <None Include="Shaders\material.vert" />
     <None Include="Shaders\shadowMap.vert" />
     <None Include="Shaders\shadowMap.frag" />
+    <None Include="Shaders\skeletonModel.frag" />
+    <None Include="Shaders\skeletonModel.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

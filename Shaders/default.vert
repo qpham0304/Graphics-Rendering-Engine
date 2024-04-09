@@ -4,6 +4,10 @@ layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 aColor;
 layout (location = 2) in vec2 vertexUV;
 layout (location = 3) in vec3 aNormal;
+// layout (location = 4) in vec3 tangent;
+// layout (location = 5) in vec3 bitangent;
+layout (location = 6) in ivec4 boneIds;
+layout (location = 7) in vec4 weights;
 
 out vec3 color;
 out vec2 uv;
