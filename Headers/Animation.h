@@ -41,10 +41,10 @@ private:
 	void ReadMissingBones(const aiAnimation* animation, Model& model);
 
 	void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);
-	float m_Duration;
+	float m_Duration = 0.0f;
 	int m_TicksPerSecond;
-	std::vector<Bone> m_Bones;
-	AssimpNodeData m_RootNode;
+	std::vector<Bone> m_Bones;	// joint animations
+	AssimpNodeData m_RootNode;	// joint transformation
 	std::map<std::string, BoneInfo> m_BoneInfoMap;
 };
 

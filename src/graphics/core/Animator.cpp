@@ -18,6 +18,8 @@ void Animator::UpdateAnimation(float dt)
 	{
 		m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
 		m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+
+		//set transform for all the joints
 		CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
 	}
 }
@@ -30,18 +32,18 @@ void Animator::PlayAnimation(Animation* pAnimation)
 
 void Animator::CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform)
 {
-	std::cout << node->name << '\n';
 	std::string nodeName = node->name;
 	glm::mat4 nodeTransform = node->transformation;
 
 	Bone* Bone = m_CurrentAnimation->FindBone(nodeName);
 
-	if (Bone)
+	if (Bone)	//bone space transform for each bone
 	{
 		Bone->Update(m_CurrentTime);
 		nodeTransform = Bone->GetLocalTransform();
 	}
 
+	// convert from bone space to model space
 	glm::mat4 globalTransformation = parentTransform * nodeTransform;
 
 	auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
@@ -52,6 +54,7 @@ void Animator::CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 pare
 		m_FinalBoneMatrices[index] = globalTransformation * offset;
 	}
 
+	// recursive call for all children joints
 	for (int i = 0; i < node->childrenCount; i++)
 		CalculateBoneTransform(&node->children[i], globalTransformation);
 }

@@ -5,7 +5,7 @@
 #include <vector>
 #include "model.h"
 #include <skybox.h>
-#include "../../graphics/components/SkyboxComponent.h"
+#include "../../graphics/components/headers/SkyboxComponent.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);

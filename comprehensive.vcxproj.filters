@@ -45,9 +45,6 @@
     <ClCompile Include="src\graphics\core\EBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\components\DrawShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\core\stb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -117,6 +114,9 @@
     <ClCompile Include="src\graphics\core\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\components\ModelComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\VAO.h">
@@ -140,9 +140,6 @@
     <ClInclude Include="Headers\EBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\DrawShape.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -161,16 +158,16 @@
     <ClInclude Include="Headers\DepthMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\components\PlaneComponent.h">
+    <ClInclude Include="src\graphics\components\headers\PlaneComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\ImGuiController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\components\SkyboxComponent.h">
+    <ClInclude Include="src\graphics\components\headers\SkyboxComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\components\Component.h">
+    <ClInclude Include="src\graphics\components\headers\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Animation.h">
@@ -183,6 +180,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\Bone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\components\headers\ModelComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -208,6 +208,8 @@
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\skeletonModel.frag" />
     <None Include="Shaders\skeletonModel.vert" />
+    <None Include="Shaders\cellshadedModel.vert" />
+    <None Include="Shaders\cellshadedModel.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

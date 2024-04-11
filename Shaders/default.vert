@@ -19,13 +19,40 @@ uniform mat4 mvp;
 uniform mat4 matrix;
 uniform mat4 lightProjection;
 uniform mat4 normalMap;
+uniform bool hasAnimation = true;
+
+
+const int MAX_BONES = 100;
+const int MAX_BONE_INFLUENCE = 4;
+uniform mat4 finalBonesMatrices[MAX_BONES];
+
 
 void main()
 {
 	color = aColor;
 	uv = vertexUV;
 	normal = mat3(transpose(inverse(matrix))) * aNormal;
-	updatedPos = (matrix * vec4(pos,1)).xyz;
+
+	vec4 totalPosition = vec4(0.0f);
+    for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
+    {
+        if(boneIds[i] == -1) 
+            continue;
+        if(boneIds[i] >= MAX_BONES) 
+        {
+            totalPosition = vec4(pos,1.0f);
+            break;
+        }
+        vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f);
+        totalPosition += localPosition * weights[i];
+        vec3 localNormal = mat3(finalBonesMatrices[boneIds[i]]) * normal;
+    }
+
+    
+    int condition = int(hasAnimation);
+    totalPosition = condition * totalPosition + (1 - condition) * vec4(pos, 1.0f);
+
+	updatedPos = (matrix * totalPosition).xyz;
 	fragPosLight = lightProjection * vec4(updatedPos, 1.0f);
 	gl_Position = mvp * vec4(updatedPos, 1);
 }

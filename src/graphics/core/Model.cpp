@@ -2,8 +2,8 @@
 
 Model::Model(const char* path)
 {
-    std::cout << path << '\n';
     loadModel(path);
+    std::cout << "load model success " << path << '\n';
 }
 
 void Model::Draw(Shader& shader, Camera& camera)
@@ -167,7 +167,6 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
     auto& boneInfoMap = m_BoneInfoMap;
     int& boneCount = m_BoneCounter;
 
-    std::cout << mesh->HasBones() << ": " << mesh->mNumBones << "\n";
     for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
     {
 

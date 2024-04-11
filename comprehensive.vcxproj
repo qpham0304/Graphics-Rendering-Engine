@@ -150,6 +150,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\apps\animation\animationApp.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
@@ -161,7 +162,6 @@
     <ClCompile Include="src\graphics\core\DepthMap.cpp" />
     <ClCompile Include="src\graphics\core\skybox.cpp" />
     <ClCompile Include="src\graphics\core\camera.cpp" />
-    <ClCompile Include="src\graphics\components\DrawShape.cpp" />
     <ClCompile Include="src\graphics\core\EBO.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_glfw.cpp" />
@@ -187,10 +187,10 @@
     <ClInclude Include="Headers\Animator.h" />
     <ClInclude Include="Headers\assimp_glm_helpers.h" />
     <ClInclude Include="Headers\Bone.h" />
-    <ClInclude Include="src\graphics\components\Component.h" />
+    <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
+    <ClInclude Include="src\graphics\components\headers\Component.h" />
     <ClInclude Include="Headers\camera.h" />
     <ClInclude Include="Headers\DepthMap.h" />
-    <ClInclude Include="Headers\DrawShape.h" />
     <ClInclude Include="Headers\EBO.h" />
     <ClInclude Include="Headers\Mesh.h" />
     <ClInclude Include="Headers\model.h" />
@@ -202,14 +202,16 @@
     <ClInclude Include="Headers\VAO.h" />
     <ClInclude Include="Headers\VBO.h" />
     <ClInclude Include="Headers\skybox.h" />
-    <ClInclude Include="src\graphics\components\SkyboxComponent.h" />
+    <ClInclude Include="src\graphics\components\headers\SkyboxComponent.h" />
     <ClInclude Include="src\gui\ImGuiController.h" />
-    <ClInclude Include="src\graphics\components\PlaneComponent.h" />
+    <ClInclude Include="src\graphics\components\headers\PlaneComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\cellshadedModel.frag" />
+    <None Include="Shaders\cellshadedModel.vert" />
     <None Include="Shaders\cubemap.frag" />
     <None Include="Shaders\cubemap.vert" />
     <None Include="Shaders\default.frag" />

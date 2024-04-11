@@ -7,11 +7,29 @@ Animation::Animation(const std::string& animationPath, Model* model)
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     assert(scene && scene->mRootNode);
-    auto animation = scene->mAnimations[0];
+
+    for (unsigned int i = 0; i < scene->mNumAnimations; ++i) {
+        aiAnimation* animation = scene->mAnimations[i];
+        std::cout << "Animation Name: " << i << " " << animation->mName.C_Str() << std::endl;
+    }
+    std::cout << "animations load success: " << scene->mNumAnimations << '\n';
+
+    //TODO: hard coded for now, do something for multiple animations loading dynamically(swap animation at run time)
+    aiAnimation* animation = nullptr;
+
+    int index = 6;
+    if (scene->mNumAnimations > index)
+        animation = scene->mAnimations[index];
+    else
+        animation = scene->mAnimations[0];
+
     m_Duration = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
     ReadHierarchyData(m_RootNode, scene->mRootNode);
     ReadMissingBones(animation, *model);
+
+
+
 }
 
 Animation::~Animation()
