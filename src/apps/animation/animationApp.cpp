@@ -7,15 +7,19 @@
 #include <vector>
 #include <Mesh.h>
 #include <model.h>
-#include "../../graphics/components/SkyboxComponent.h"
+#include <Animation.h>
+#include <Animator.h>
+#include "../../graphics/components/headers/SkyboxComponent.h"
+#include <chrono>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
 void Rotate(glm::mat4 matrix, Shader& shader);
 static const std::string DIR = "";
-unsigned width = 1024;
-unsigned height = 728;
+unsigned int width = 1024;
+unsigned int height = 728;
 float lastFrame = 0;
+float lf = 0;
 float lastTime = 0;
 unsigned int frameCounter = 0;
 float rotationAngle = 0;
@@ -25,10 +29,9 @@ float angularSpeed = 0.01f;
 Camera* cameraController = nullptr;
 glm::mat4 tmpMatrix;
 
-Camera camera(width, height, glm::vec3(0.0f, 0.5f, 3.0f));
+Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
-
 
 
 std::vector<Vertex> planeVertices =
@@ -119,6 +122,9 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 
+	auto start = std::chrono::high_resolution_clock::now();
+
+
 	//plane
 	std::vector<Texture> planeTextures = {
 		Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE),
@@ -149,6 +155,9 @@ int main() {
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 aruObjMatrix = glm::mat4(1.0f);
+
+	//Note: Animation doesn't work with scaling matrix right now 
+	//so don't scale them out of proportion or shit's gonna get yeet
 	aruObjMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	aruObjMatrix = glm::translate(aruObjMatrix, glm::vec3(-5.0f, 0.25f, 0.0f));
 	aruModelShader.Activate();
@@ -156,7 +165,22 @@ int main() {
 	glUniform4f(glGetUniformLocation(aruModelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(aruModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(aruModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	Model aruModel("Models/aru/aru.gltf");
+	Model aruModel("Models/aru/edited/aru_edited.gltf");
+	Animation aru_animation("Models/aru/edited/aru_edited.gltf", &aruModel);
+	Animator aru_animator(&aru_animation);
+
+	//Shader vampireModelShader("Shaders/skeletonModel.vert", "Shaders/skeletonModel.frag");
+	//glm::mat4 vampireObjMatrix = glm::mat4(1.0f);
+	//vampireObjMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
+	//vampireObjMatrix = glm::translate(vampireObjMatrix, glm::vec3(-2.0f*100, 0.0f*100, 2.0f*100));
+	//vampireModelShader.Activate();
+	//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(vampireObjMatrix));
+	//glUniform4f(glGetUniformLocation(vampireModelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+	//Model vampireModel("Models/vampire/dancing_vampire.dae");
+	//Animation animation("Models/vampire/dancing_vampire.dae", &vampireModel);
+	//Animator animator(&animation);
 
 	SkyboxComponent skybox;
 	skybox.setUniform();
@@ -167,7 +191,8 @@ int main() {
 
 	std::vector<std::tuple<Model, Shader>> models = {
 		std::make_tuple(ourModel, modelShader),
-		std::make_tuple(aruModel, aruModelShader),
+		//std::make_tuple(aruModel, aruModelShader),
+		//std::make_tuple(vampireModel, vampireModelShader),
 	};
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
@@ -216,6 +241,13 @@ int main() {
 
 	float ambient = 0.5f;
 	int sampleRadius = 2.0f;
+
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = end - start;
+	std::cout << "-----Time taken to load objects: " << duration.count() << " seconds-----\n";
+
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -229,6 +261,8 @@ int main() {
 
 		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+		ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
+		ImGui::SliderFloat3("camera position", &camera.orientation[0], 0.0f, 20.0f);
 
 		if (ImGui::Button("+"))
 			sampleRadius++;
@@ -245,7 +279,7 @@ int main() {
 		ImGui::SameLine();
 		ImGui::Checkbox("Show debug window", &show_debug_window);
 		ImGui::SameLine();
-		ImGui::Checkbox("Camera control", &camera_control_enabled);
+		ImGui::Checkbox("Camera lock", &camera_control_enabled);
 		ImGui::ColorEdit4("Text Color", &lightColor[0]);
 
 		ImGui::End();
@@ -313,8 +347,17 @@ int main() {
 		shadowMapShader.setMat4("matrix", planeModel);
 		plane.Draw(shadowMapShader, camera);
 		shadowMapShader.setMat4("matrix", objMatrix);
+		shadowMapShader.setBool("hasAnimation", false);
 		ourModel.Draw(shadowMapShader, camera);
+		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
+		//aruModel.Draw(shadowMapShader, camera);
+		//shadowMapShader.setMat4("matrix", vampireObjMatrix);
+		//vampireModel.Draw(shadowMapShader, camera);
+
+		auto aru_transforms_shadow = aru_animator.GetFinalBoneMatrices();
+		for (int i = 0; i < aru_transforms_shadow.size(); ++i)
+			shadowMapShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms_shadow[i]);
 		aruModel.Draw(shadowMapShader, camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -333,6 +376,14 @@ int main() {
 		glActiveTexture(GL_TEXTURE0 + 2);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
 
+
+		float cf = glfwGetTime();
+		float dt = cf - lf;
+		lf = cf;
+		//animator.UpdateAnimation(dt);
+		aru_animator.UpdateAnimation(dt);
+
+
 		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
 			Mesh m = std::get<0>(tuple);
 			Shader s = std::get<1>(tuple);
@@ -341,6 +392,7 @@ int main() {
 			s.setMat4("lightProjection", lightSpaceMatrix);
 			s.setInt("sampleRadius", sampleRadius);
 			s.setFloat("ambientIntensity", ambient);
+			aruModelShader.setBool("hasAnimation", false);
 			s.setVec4("lightColor", lightColor);
 			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
 			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
@@ -358,12 +410,50 @@ int main() {
 			s.setVec4("lightColor", lightColor);
 			s.setInt("sampleRadius", sampleRadius);
 			s.setFloat("ambientIntensity", ambient);
+			aruModelShader.setBool("hasAnimation", false);
 			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
 			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 			glUniform3f(glGetUniformLocation(s.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
 			glCullFace(GL_BACK);
+			
+			//auto transforms = animator.GetFinalBoneMatrices();
+			//for (int i = 0; i < transforms.size(); ++i)
+			//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+			//
 			m.Draw(s, camera);
 		}
+
+		aruModelShader.Activate();
+		aruModelShader.setMat4("lightProjection", lightSpaceMatrix);
+		aruModelShader.setVec4("lightColor", lightColor);
+		aruModelShader.setInt("sampleRadius", sampleRadius);
+		aruModelShader.setFloat("ambientIntensity", ambient);
+		aruModelShader.setBool("hasAnimation", true);
+		glUniform1i(glGetUniformLocation(aruModelShader.ID, "shadowMap"), 2);
+		glUniform3f(glGetUniformLocation(aruModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(aruModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+
+		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
+		for (int i = 0; i < aru_transforms.size(); ++i)
+			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
+		aruModel.Draw(aruModelShader, camera);
+
+
+		//vampireModelShader.Activate();
+		//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+		//vampireModelShader.setMat4("lightProjection", lightSpaceMatrix);
+		//vampireModelShader.setVec4("lightColor", lightColor);
+		//vampireModelShader.setInt("sampleRadius", sampleRadius);
+		//vampireModelShader.setFloat("ambientIntensity", ambient);
+		//glUniform1i(glGetUniformLocation(vampireModelShader.ID, "shadowMap"), 2);
+		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+
+		//auto transforms = animator.GetFinalBoneMatrices();
+		//for (int i = 0; i < transforms.size(); ++i)
+		//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+		//vampireModel.Draw(vampireModelShader, camera);
+
 
 		skybox.render(camera);
 

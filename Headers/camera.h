@@ -27,8 +27,8 @@ private:
 	glm::vec3 defaultUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
 public:
-	glm::vec3 position = defaultPosition;
-	glm::vec3 orientation = defaultOrientation;
+	glm::vec3 position;
+	glm::vec3 orientation;
 	glm::vec3 up = defaultUp;
 
 
@@ -57,7 +57,7 @@ public:
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
 
-	Camera(float width, float height, glm::vec3 position);
+	Camera(float width, float height, glm::vec3 position, glm::vec3 orientation);
 	void cameraViewUpdate();
 	void cameraViewObject(GLuint shaderID, const char* uniform);
 	void processInput(GLFWwindow* window);
