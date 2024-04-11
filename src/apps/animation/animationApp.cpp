@@ -83,6 +83,7 @@ void setupDearImGui(GLFWwindow* window, ImGuiIO& io) {
 	io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
@@ -169,31 +170,8 @@ int main() {
 	Animation aru_animation("Models/aru/edited/aru_edited.gltf", &aruModel);
 	Animator aru_animator(&aru_animation);
 
-	//Shader vampireModelShader("Shaders/skeletonModel.vert", "Shaders/skeletonModel.frag");
-	//glm::mat4 vampireObjMatrix = glm::mat4(1.0f);
-	//vampireObjMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
-	//vampireObjMatrix = glm::translate(vampireObjMatrix, glm::vec3(-2.0f*100, 0.0f*100, 2.0f*100));
-	//vampireModelShader.Activate();
-	//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(vampireObjMatrix));
-	//glUniform4f(glGetUniformLocation(vampireModelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	//Model vampireModel("Models/vampire/dancing_vampire.dae");
-	//Animation animation("Models/vampire/dancing_vampire.dae", &vampireModel);
-	//Animator animator(&animation);
-
 	SkyboxComponent skybox;
 	skybox.setUniform();
-
-	std::vector<std::tuple<Mesh, Shader>> meshes = {
-		std::make_tuple(plane, planeShader),
-	};
-
-	std::vector<std::tuple<Model, Shader>> models = {
-		std::make_tuple(ourModel, modelShader),
-		//std::make_tuple(aruModel, aruModelShader),
-		//std::make_tuple(vampireModel, vampireModelShader),
-	};
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
@@ -237,6 +215,7 @@ int main() {
 	bool show_style_editor = false;
 	bool show_debug_window = false;
 	bool camera_control_enabled = true;
+	bool face_culling_enabled = true;
 	bool debug = false;
 
 	float ambient = 0.5f;
@@ -281,6 +260,7 @@ int main() {
 		ImGui::SameLine();
 		ImGui::Checkbox("Camera lock", &camera_control_enabled);
 		ImGui::ColorEdit4("Text Color", &lightColor[0]);
+		ImGui::Checkbox("Enable face culling", &face_culling_enabled);
 
 		ImGui::End();
 
@@ -351,9 +331,6 @@ int main() {
 		ourModel.Draw(shadowMapShader, camera);
 		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
-		//aruModel.Draw(shadowMapShader, camera);
-		//shadowMapShader.setMat4("matrix", vampireObjMatrix);
-		//vampireModel.Draw(shadowMapShader, camera);
 
 		auto aru_transforms_shadow = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms_shadow.size(); ++i)
@@ -363,6 +340,16 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// reset viewport
+		//if (face_culling_enabled) {
+		//	glEnable(GL_DEPTH_TEST);
+		//	glEnable(GL_CULL_FACE);
+		//	glCullFace(GL_BACK);
+		//	glFrontFace(GL_CCW);
+		//}
+		//else {
+		//	glDisable(GL_CULL_FACE);
+		//}
+
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -384,44 +371,31 @@ int main() {
 		aru_animator.UpdateAnimation(dt);
 
 
-		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
-			Mesh m = std::get<0>(tuple);
-			Shader s = std::get<1>(tuple);
-			s.Activate();
-			glCullFace(GL_FRONT);
-			s.setMat4("lightProjection", lightSpaceMatrix);
-			s.setInt("sampleRadius", sampleRadius);
-			s.setFloat("ambientIntensity", ambient);
-			aruModelShader.setBool("hasAnimation", false);
-			s.setVec4("lightColor", lightColor);
-			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
-			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform3f(glGetUniformLocation(s.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-			glCullFace(GL_BACK);
-			m.Draw(s, camera);
-		}
+		modelShader.Activate();
+		glCullFace(GL_FRONT);
+		modelShader.setMat4("lightProjection", lightSpaceMatrix);
+		modelShader.setVec4("lightColor", lightColor);
+		modelShader.setInt("sampleRadius", sampleRadius);
+		modelShader.setFloat("ambientIntensity", ambient);
+		aruModelShader.setBool("hasAnimation", false);
+		glUniform1i(glGetUniformLocation(modelShader.ID, "shadowMap"), 2);
+		glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+		glCullFace(GL_BACK);
+		ourModel.Draw(modelShader, camera);
 
-		for (const std::tuple<Model, Shader>& tuple : models) {
-			Model m = std::get<0>(tuple);
-			Shader s = std::get<1>(tuple);
-			s.Activate();
-			glCullFace(GL_FRONT);
-			s.setMat4("lightProjection", lightSpaceMatrix);
-			s.setVec4("lightColor", lightColor);
-			s.setInt("sampleRadius", sampleRadius);
-			s.setFloat("ambientIntensity", ambient);
-			aruModelShader.setBool("hasAnimation", false);
-			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
-			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform3f(glGetUniformLocation(s.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-			glCullFace(GL_BACK);
-			
-			//auto transforms = animator.GetFinalBoneMatrices();
-			//for (int i = 0; i < transforms.size(); ++i)
-			//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-			//
-			m.Draw(s, camera);
-		}
+		planeShader.Activate();
+		glCullFace(GL_FRONT);
+		planeShader.setMat4("lightProjection", lightSpaceMatrix);
+		planeShader.setVec4("lightColor", lightColor);
+		planeShader.setInt("sampleRadius", sampleRadius);
+		planeShader.setFloat("ambientIntensity", ambient);
+		aruModelShader.setBool("hasAnimation", false);
+		glUniform1i(glGetUniformLocation(planeShader.ID, "shadowMap"), 2);
+		glUniform3f(glGetUniformLocation(planeShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(planeShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+		glCullFace(GL_BACK);
+		plane.Draw(planeShader, camera);
 
 		aruModelShader.Activate();
 		aruModelShader.setMat4("lightProjection", lightSpaceMatrix);
@@ -437,23 +411,6 @@ int main() {
 		for (int i = 0; i < aru_transforms.size(); ++i)
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
-
-
-		//vampireModelShader.Activate();
-		//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		//vampireModelShader.setMat4("lightProjection", lightSpaceMatrix);
-		//vampireModelShader.setVec4("lightColor", lightColor);
-		//vampireModelShader.setInt("sampleRadius", sampleRadius);
-		//vampireModelShader.setFloat("ambientIntensity", ambient);
-		//glUniform1i(glGetUniformLocation(vampireModelShader.ID, "shadowMap"), 2);
-		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-
-		//auto transforms = animator.GetFinalBoneMatrices();
-		//for (int i = 0; i < transforms.size(); ++i)
-		//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-		//vampireModel.Draw(vampireModelShader, camera);
-
 
 		skybox.render(camera);
 
