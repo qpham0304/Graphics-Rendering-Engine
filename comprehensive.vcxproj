@@ -150,8 +150,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\apps\test_imgui\main_test.cpp" />
     <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
-    <ClCompile Include="src\apps\animation\animationApp.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
     <ClCompile Include="src\graphics\core\Animation.cpp" />
