@@ -58,6 +58,7 @@ public:
 	float lastFrame = 0.0f; // Time of last frame
 
 	Camera(float width, float height, glm::vec3 position, glm::vec3 orientation);
+	Camera(float width, float height, glm::vec3 position);
 	void cameraViewUpdate();
 	void cameraViewObject(GLuint shaderID, const char* uniform);
 	void processInput(GLFWwindow* window);

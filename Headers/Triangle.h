@@ -40,7 +40,6 @@ public:
 
 	void Draw();
 	void DrawCube();
-	void Delete();
 	void Rotate();
 	void Translate(int x, int y, int z);
 	Shader getShaderProgram();
