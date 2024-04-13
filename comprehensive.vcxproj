@@ -152,7 +152,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\utils\movement.cpp" />
     <ClCompile Include="src\apps\animation\animationApp.cpp" />
+    <ClCompile Include="src\graphics\core\FrameBuffer.cpp" />
     <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
@@ -185,10 +187,12 @@
     <ClCompile Include="src\graphics\core\VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\FrameBuffer.h" />
     <ClInclude Include="Headers\Animation.h" />
     <ClInclude Include="Headers\Animator.h" />
     <ClInclude Include="Headers\assimp_glm_helpers.h" />
     <ClInclude Include="Headers\Bone.h" />
+    <ClInclude Include="src\graphics\utils\headers\movement.h" />
     <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
     <ClInclude Include="src\graphics\components\headers\Component.h" />
     <ClInclude Include="Headers\camera.h" />

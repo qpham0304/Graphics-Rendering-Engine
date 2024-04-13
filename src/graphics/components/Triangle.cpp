@@ -162,9 +162,6 @@ void Triangle::DrawCube(){
 	va = VAO;
 }
 
-void Triangle::Delete(){
-	glDeleteVertexArrays(1, &va);
-}
 
 void Triangle::Rotate()
 {

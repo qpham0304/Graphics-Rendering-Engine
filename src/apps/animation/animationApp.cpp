@@ -1,6 +1,5 @@
 #include <iostream>
 #include <math.h>
-#include "camera.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -9,13 +8,14 @@
 #include <model.h>
 #include <Animation.h>
 #include <Animator.h>
-#include "../../graphics/components/headers/SkyboxComponent.h"
 #include <chrono>
+#include "camera.h"
+#include "../../graphics/components/headers/SkyboxComponent.h"
+#include "../../graphics/components/headers/PlaneComponent.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
 void Rotate(glm::mat4 matrix, Shader& shader);
-static const std::string DIR = "";
 unsigned int width = 1024;
 unsigned int height = 728;
 float lastFrame = 0;
@@ -27,25 +27,14 @@ float angle = 0.0f;
 float radius = 1.0f;
 float angularSpeed = 0.01f;
 Camera* cameraController = nullptr;
-glm::mat4 tmpMatrix;
 
 Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+float ambient = 0.5f;
+int sampleRadius = 2.0f;
 
 
-std::vector<Vertex> planeVertices =
-{					//     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
-	Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)}
-};
-
-std::vector<GLuint> planeIndices = {
-	0, 1, 2,
-	0, 2, 3
-};
 
 void renderQuad()
 {
@@ -126,21 +115,6 @@ int main() {
 	auto start = std::chrono::high_resolution_clock::now();
 
 
-	//plane
-	std::vector<Texture> planeTextures = {
-		Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("Textures/planksSpec.png", "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE)
-	};
-	Shader planeShader("Shaders/default.vert", "Shaders/default.frag");
-	Mesh plane(planeVertices, planeIndices, planeTextures);
-
-	glm::mat4 planeModel = glm::mat4(1.0f);
-	planeModel = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
-	planeShader.Activate();
-	glUniformMatrix4fv(glGetUniformLocation(planeShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(planeModel));
-	glUniform4f(glGetUniformLocation(planeShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(planeShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(planeShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
 
 	Shader modelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
@@ -151,7 +125,7 @@ int main() {
 	glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	Model ourModel("Models/reimu/reimu.obj");
+	Model reimu("Models/reimu/reimu.obj");
 
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
@@ -173,6 +147,9 @@ int main() {
 	SkyboxComponent skybox;
 	skybox.setUniform();
 
+
+	PlaneComponent plane;
+	
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
@@ -218,14 +195,14 @@ int main() {
 	bool face_culling_enabled = true;
 	bool debug = false;
 
-	float ambient = 0.5f;
-	int sampleRadius = 2.0f;
 
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
 	std::cout << "-----Time taken to load objects: " << duration.count() << " seconds-----\n";
 
+	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
+	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -241,7 +218,14 @@ int main() {
 		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
 		ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
-		ImGui::SliderFloat3("camera position", &camera.orientation[0], 0.0f, 20.0f);
+		if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
+			plane.translate(translateVector);
+		}
+
+		if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
+			plane.scale(scaleVector);
+		}
+
 
 		if (ImGui::Button("+"))
 			sampleRadius++;
@@ -321,14 +305,20 @@ int main() {
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		glm::mat4 lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
+		Light light = Light(lightPos, lightColor, ambient);
+		light.lightProjection = lightSpaceMatrix;
 
 		shadowMapShader.Activate();
 		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
-		shadowMapShader.setMat4("matrix", planeModel);
-		plane.Draw(shadowMapShader, camera);
+		
+		plane.renderShadow(shadowMapShader, camera);
+		shadowMapShader.setMat4("matrix", plane.getModelMatrix());
+		shadowMapShader.setBool("hasAnimation", false);
+		
 		shadowMapShader.setMat4("matrix", objMatrix);
 		shadowMapShader.setBool("hasAnimation", false);
-		ourModel.Draw(shadowMapShader, camera);
+		
+		reimu.Draw(shadowMapShader, camera);
 		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
 
@@ -377,25 +367,14 @@ int main() {
 		modelShader.setVec4("lightColor", lightColor);
 		modelShader.setInt("sampleRadius", sampleRadius);
 		modelShader.setFloat("ambientIntensity", ambient);
-		aruModelShader.setBool("hasAnimation", false);
-		glUniform1i(glGetUniformLocation(modelShader.ID, "shadowMap"), 2);
-		glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+		modelShader.setBool("hasAnimation", false);
+		modelShader.setInt("shadowMap", 2);
+		modelShader.setVec3("lightPos", lightPos);
 		glCullFace(GL_BACK);
-		ourModel.Draw(modelShader, camera);
 
-		planeShader.Activate();
-		glCullFace(GL_FRONT);
-		planeShader.setMat4("lightProjection", lightSpaceMatrix);
-		planeShader.setVec4("lightColor", lightColor);
-		planeShader.setInt("sampleRadius", sampleRadius);
-		planeShader.setFloat("ambientIntensity", ambient);
-		aruModelShader.setBool("hasAnimation", false);
-		glUniform1i(glGetUniformLocation(planeShader.ID, "shadowMap"), 2);
-		glUniform3f(glGetUniformLocation(planeShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform3f(glGetUniformLocation(planeShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-		glCullFace(GL_BACK);
-		plane.Draw(planeShader, camera);
+		reimu.Draw(modelShader, camera);
+
+		plane.render(camera, light);
 
 		aruModelShader.Activate();
 		aruModelShader.setMat4("lightProjection", lightSpaceMatrix);
@@ -403,14 +382,17 @@ int main() {
 		aruModelShader.setInt("sampleRadius", sampleRadius);
 		aruModelShader.setFloat("ambientIntensity", ambient);
 		aruModelShader.setBool("hasAnimation", true);
-		glUniform1i(glGetUniformLocation(aruModelShader.ID, "shadowMap"), 2);
-		glUniform3f(glGetUniformLocation(aruModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform3f(glGetUniformLocation(aruModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+		aruModelShader.setInt("shadowMap", 2);
+		aruModelShader.setVec3("lightPos", lightPos);
+		aruModelShader.setVec3("camPos", camera.position);
 
 		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms.size(); ++i)
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
+
+
+
 
 		skybox.render(camera);
 
@@ -455,7 +437,7 @@ void Rotate(glm::mat4 matrix, Shader& shader) {
 	rotationAngle += deltaTime * rotationSpeed;
 
 	matrix = glm::rotate(matrix, rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+	shader.setMat4("matrix", matrix);
 
 }
 

@@ -13,11 +13,12 @@ uniform vec3 lightPos;
 uniform vec3 camPos;
 uniform float ambientIntensity;
 uniform int sampleRadius = 5;
+uniform bool useTexture = false;
 
 uniform sampler2D diffuse0;
 uniform sampler2D diffuse1;
 uniform sampler2D shadowMap;
-//uniform sampler2D specular0;
+uniform sampler2D specular0;
 
 vec4 toonShader() {
 	float intensity;
@@ -179,7 +180,7 @@ vec4 directionalLight() {
 
 void main()
 {
-    vec3 color = texture(diffuse0, uv).rgb;
+    vec3 color = useTexture ? texture(diffuse0, uv).rgb : vec3(0.5f, 0.5f, 0.5f);
     vec3 normal = normalize(normal);
     // ambient
     vec3 ambient = ambientIntensity * lightColor.xyz;

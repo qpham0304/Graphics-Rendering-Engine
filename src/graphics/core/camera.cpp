@@ -12,6 +12,16 @@ Camera::Camera(float width, float height, glm::vec3 position, glm::vec3 orientat
 	this->lastY = height / 2;
 }
 
+Camera::Camera(float width, float height, glm::vec3 position)
+{
+	this->width = width;
+	this->height = height;
+	this->position = position;
+	this->defaultPosition = position;
+	this->lastX = width / 2;
+	this->lastY = height / 2;
+}
+
 
 void Camera::cameraViewUpdate()
 {
@@ -135,8 +145,16 @@ void Camera::mouseControl(GLFWwindow* window)
 
 	// Update camera orientation based on mouse movement
 	// Example: Adjust yaw and pitch of the camera
-	yaw += xOffset;
-	pitch += yOffset;
+
+	if(yaw == DEFAULT_YAW) {
+		orientation = glm::normalize(orientation);
+		pitch = glm::degrees(asin(orientation.y));
+		yaw = glm::degrees(atan2(orientation.z, orientation.x));
+	}
+	else {
+		yaw += xOffset;
+		pitch += yOffset;
+	}
 
 	// Clamp pitch to prevent camera flipping
 	if (pitch > 89.0f)

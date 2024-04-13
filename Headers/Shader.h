@@ -12,6 +12,7 @@
 #include<glm/gtc/type_ptr.hpp>
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
+#include<unordered_map>
 
 std::string get_file_contents(const char* filename);
 
@@ -19,23 +20,20 @@ class Shader
 {
 private:
 	GLuint id;
+	GLuint getUniformLocation(const std::string& name) const;
 
 public:
 	// Reference ID of the Shader Program
 	GLuint ID;
-	Shader();
-	Shader& operator=(const Shader& other);
-
-	//Shader& operator=(const Shader& other);
+	mutable std::unordered_map<std::string, GLuint> cache;
 	
-	// Constructor that build the Shader Program from 2 different shaders
+	Shader();
 	Shader(const char* vertexFile, const char* fragmentFile);
+	Shader& operator=(const Shader& other);
+	~Shader();
 
-	// Activates the Shader Program
 	void Activate();
-	// Deletes the Shader Program
 	void Delete();
-
 	void compileErrors(unsigned int shader, const char* type);
 
 	// utility uniform functions
