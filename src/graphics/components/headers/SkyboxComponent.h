@@ -11,7 +11,6 @@ class SkyboxComponent : Component
 {
 public:
 	GLuint VAO;
-	std::unique_ptr<Shader> shaderProgram_ptr;
 	std::unique_ptr<Skybox> skybox;
 
 	SkyboxComponent();

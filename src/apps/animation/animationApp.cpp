@@ -1,6 +1,5 @@
 #include <iostream>
 #include <math.h>
-#include "camera.h"
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
@@ -9,13 +8,14 @@
 #include <model.h>
 #include <Animation.h>
 #include <Animator.h>
-#include "../../graphics/components/headers/SkyboxComponent.h"
 #include <chrono>
+#include "camera.h"
+#include "../../graphics/components/headers/SkyboxComponent.h"
+#include "../../graphics/components/headers/PlaneComponent.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
 void Rotate(glm::mat4 matrix, Shader& shader);
-static const std::string DIR = "";
 unsigned int width = 1024;
 unsigned int height = 728;
 float lastFrame = 0;
@@ -27,25 +27,14 @@ float angle = 0.0f;
 float radius = 1.0f;
 float angularSpeed = 0.01f;
 Camera* cameraController = nullptr;
-glm::mat4 tmpMatrix;
 
 Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+float ambient = 0.5f;
+int sampleRadius = 2.0f;
 
 
-std::vector<Vertex> planeVertices =
-{					//     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
-	Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)}
-};
-
-std::vector<GLuint> planeIndices = {
-	0, 1, 2,
-	0, 2, 3
-};
 
 void renderQuad()
 {
@@ -125,21 +114,6 @@ int main() {
 	auto start = std::chrono::high_resolution_clock::now();
 
 
-	//plane
-	std::vector<Texture> planeTextures = {
-		Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("Textures/planksSpec.png", "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE)
-	};
-	Shader planeShader("Shaders/default.vert", "Shaders/default.frag");
-	Mesh plane(planeVertices, planeIndices, planeTextures);
-
-	glm::mat4 planeModel = glm::mat4(1.0f);
-	planeModel = glm::scale(glm::mat4(1.0f), glm::vec3(10.0f, 10.0f, 10.0f));
-	planeShader.Activate();
-	glUniformMatrix4fv(glGetUniformLocation(planeShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(planeModel));
-	glUniform4f(glGetUniformLocation(planeShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(planeShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(planeShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
 
 	Shader modelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
@@ -150,7 +124,7 @@ int main() {
 	glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	Model ourModel("Models/reimu/reimu.obj");
+	Model reimu("Models/reimu/reimu.obj");
 
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
@@ -169,32 +143,12 @@ int main() {
 	Animation aru_animation("Models/aru/edited/aru_edited.gltf", &aruModel);
 	Animator aru_animator(&aru_animation);
 
-	//Shader vampireModelShader("Shaders/skeletonModel.vert", "Shaders/skeletonModel.frag");
-	//glm::mat4 vampireObjMatrix = glm::mat4(1.0f);
-	//vampireObjMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.01f, 0.01f, 0.01f));
-	//vampireObjMatrix = glm::translate(vampireObjMatrix, glm::vec3(-2.0f*100, 0.0f*100, 2.0f*100));
-	//vampireModelShader.Activate();
-	//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(vampireObjMatrix));
-	//glUniform4f(glGetUniformLocation(vampireModelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	//Model vampireModel("Models/vampire/dancing_vampire.dae");
-	//Animation animation("Models/vampire/dancing_vampire.dae", &vampireModel);
-	//Animator animator(&animation);
-
 	SkyboxComponent skybox;
 	skybox.setUniform();
 
-	std::vector<std::tuple<Mesh, Shader>> meshes = {
-		std::make_tuple(plane, planeShader),
-	};
 
-	std::vector<std::tuple<Model, Shader>> models = {
-		std::make_tuple(ourModel, modelShader),
-		//std::make_tuple(aruModel, aruModelShader),
-		//std::make_tuple(vampireModel, vampireModelShader),
-	};
-
+	PlaneComponent plane;
+	
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
@@ -239,14 +193,14 @@ int main() {
 	bool camera_control_enabled = true;
 	bool debug = false;
 
-	float ambient = 0.5f;
-	int sampleRadius = 2.0f;
 
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
 	std::cout << "-----Time taken to load objects: " << duration.count() << " seconds-----\n";
 
+	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
+	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -262,7 +216,14 @@ int main() {
 		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
 		ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
-		ImGui::SliderFloat3("camera position", &camera.orientation[0], 0.0f, 20.0f);
+		if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
+			plane.translate(translateVector);
+		}
+
+		if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
+			plane.scale(scaleVector);
+		}
+
 
 		if (ImGui::Button("+"))
 			sampleRadius++;
@@ -341,19 +302,22 @@ int main() {
 		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		glm::mat4 lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
+		Light light = Light(lightPos, lightColor, ambient);
+		light.lightProjection = lightSpaceMatrix;
 
 		shadowMapShader.Activate();
 		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
-		shadowMapShader.setMat4("matrix", planeModel);
-		plane.Draw(shadowMapShader, camera);
+		
+		plane.renderShadow(shadowMapShader, camera);
+		shadowMapShader.setMat4("matrix", plane.getModelMatrix());
+		shadowMapShader.setBool("hasAnimation", false);
+		
 		shadowMapShader.setMat4("matrix", objMatrix);
 		shadowMapShader.setBool("hasAnimation", false);
-		ourModel.Draw(shadowMapShader, camera);
+		
+		reimu.Draw(shadowMapShader, camera);
 		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
-		//aruModel.Draw(shadowMapShader, camera);
-		//shadowMapShader.setMat4("matrix", vampireObjMatrix);
-		//vampireModel.Draw(shadowMapShader, camera);
 
 		auto aru_transforms_shadow = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms_shadow.size(); ++i)
@@ -384,44 +348,20 @@ int main() {
 		aru_animator.UpdateAnimation(dt);
 
 
-		for (const std::tuple<Mesh, Shader>& tuple : meshes) {
-			Mesh m = std::get<0>(tuple);
-			Shader s = std::get<1>(tuple);
-			s.Activate();
-			glCullFace(GL_FRONT);
-			s.setMat4("lightProjection", lightSpaceMatrix);
-			s.setInt("sampleRadius", sampleRadius);
-			s.setFloat("ambientIntensity", ambient);
-			aruModelShader.setBool("hasAnimation", false);
-			s.setVec4("lightColor", lightColor);
-			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
-			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform3f(glGetUniformLocation(s.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-			glCullFace(GL_BACK);
-			m.Draw(s, camera);
-		}
+		modelShader.Activate();
+		glCullFace(GL_FRONT);
+		modelShader.setMat4("lightProjection", lightSpaceMatrix);
+		modelShader.setVec4("lightColor", lightColor);
+		modelShader.setInt("sampleRadius", sampleRadius);
+		modelShader.setFloat("ambientIntensity", ambient);
+		modelShader.setBool("hasAnimation", false);
+		modelShader.setInt("shadowMap", 2);
+		modelShader.setVec3("lightPos", lightPos);
+		glCullFace(GL_BACK);
 
-		for (const std::tuple<Model, Shader>& tuple : models) {
-			Model m = std::get<0>(tuple);
-			Shader s = std::get<1>(tuple);
-			s.Activate();
-			glCullFace(GL_FRONT);
-			s.setMat4("lightProjection", lightSpaceMatrix);
-			s.setVec4("lightColor", lightColor);
-			s.setInt("sampleRadius", sampleRadius);
-			s.setFloat("ambientIntensity", ambient);
-			aruModelShader.setBool("hasAnimation", false);
-			glUniform1i(glGetUniformLocation(s.ID, "shadowMap"), 2);
-			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform3f(glGetUniformLocation(s.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-			glCullFace(GL_BACK);
-			
-			//auto transforms = animator.GetFinalBoneMatrices();
-			//for (int i = 0; i < transforms.size(); ++i)
-			//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-			//
-			m.Draw(s, camera);
-		}
+		reimu.Draw(modelShader, camera);
+
+		plane.render(camera, light);
 
 		aruModelShader.Activate();
 		aruModelShader.setMat4("lightProjection", lightSpaceMatrix);
@@ -429,9 +369,9 @@ int main() {
 		aruModelShader.setInt("sampleRadius", sampleRadius);
 		aruModelShader.setFloat("ambientIntensity", ambient);
 		aruModelShader.setBool("hasAnimation", true);
-		glUniform1i(glGetUniformLocation(aruModelShader.ID, "shadowMap"), 2);
-		glUniform3f(glGetUniformLocation(aruModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform3f(glGetUniformLocation(aruModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+		aruModelShader.setInt("shadowMap", 2);
+		aruModelShader.setVec3("lightPos", lightPos);
+		aruModelShader.setVec3("camPos", camera.position);
 
 		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms.size(); ++i)
@@ -439,20 +379,6 @@ int main() {
 		aruModel.Draw(aruModelShader, camera);
 
 
-		//vampireModelShader.Activate();
-		//glUniformMatrix4fv(glGetUniformLocation(vampireModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
-		//vampireModelShader.setMat4("lightProjection", lightSpaceMatrix);
-		//vampireModelShader.setVec4("lightColor", lightColor);
-		//vampireModelShader.setInt("sampleRadius", sampleRadius);
-		//vampireModelShader.setFloat("ambientIntensity", ambient);
-		//glUniform1i(glGetUniformLocation(vampireModelShader.ID, "shadowMap"), 2);
-		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-		//glUniform3f(glGetUniformLocation(vampireModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-
-		//auto transforms = animator.GetFinalBoneMatrices();
-		//for (int i = 0; i < transforms.size(); ++i)
-		//	vampireModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
-		//vampireModel.Draw(vampireModelShader, camera);
 
 
 		skybox.render(camera);
@@ -498,7 +424,7 @@ void Rotate(glm::mat4 matrix, Shader& shader) {
 	rotationAngle += deltaTime * rotationSpeed;
 
 	matrix = glm::rotate(matrix, rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(glGetUniformLocation(shader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
+	shader.setMat4("matrix", matrix);
 
 }
 

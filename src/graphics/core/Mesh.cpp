@@ -64,26 +64,35 @@ void Mesh::Draw(Shader& shader, Camera& camera)
     unsigned int countSpecular = 0;
     unsigned int countNormal = 0;
     unsigned int countHeight = 0;
-    for (unsigned int i = 0; i < textures.size(); i++)
-    {
-        glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-        
-        std::string number; // retrieve texture number (the N in diffuse_textureN)
-        std::string name = textures[i].type;
-        if (name == "diffuse")
-            number = std::to_string(countDiffuse++);
-        else if (name == "specular")
-            number = std::to_string(countSpecular++); // transfer unsigned int to string
-        else if (name == "normal")
-            number = std::to_string(countNormal++); // transfer unsigned int to string
-        else if (name == "height")
-            number = std::to_string(countHeight++); // transfer unsigned int to string
-        textures[i].texUnit(shader, (name + number).c_str(), i);
-        textures[i].Bind();
+
+    if (!textures.empty()) {
+        shader.setBool("useTexture", true);
+        for (unsigned int i = 0; i < textures.size(); i++)
+        {
+            glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
+
+            std::string number; // retrieve texture number (the N in diffuse_textureN)
+            std::string name = textures[i].type;
+            if (name == "diffuse")
+                number = std::to_string(countDiffuse++);
+            else if (name == "specular")
+                number = std::to_string(countSpecular++); // transfer unsigned int to string
+            else if (name == "normal")
+                number = std::to_string(countNormal++); // transfer unsigned int to string
+            else if (name == "height")
+                number = std::to_string(countHeight++); // transfer unsigned int to string
+            textures[i].texUnit(shader, (name + number).c_str(), i);
+            textures[i].Bind();
+        }
+    }
+    else {
+        shader.setBool("useTexture", false);
     }
 
+
+
     // setup the camer mvp
-    glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
+    shader.setVec3("camPos", camera.position);
     camera.cameraViewObject(shader.ID, "mvp");
 
     // draw mesh
