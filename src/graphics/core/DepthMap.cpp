@@ -7,23 +7,40 @@ float DepthMap::shadowCalculation(glm::vec4 fragPosLightSpace)
 
 DepthMap::DepthMap()
 {
-	glGenFramebuffers(1, &ID);
-	glGenTextures(1, &depthMap);
-	glBindTexture(GL_TEXTURE_2D, depthMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-		SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+	glGenFramebuffers(1, &FBO);
+
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	//attach the generated depth texture as the framebuffer's depth buffer:
-	glBindFramebuffer(GL_FRAMEBUFFER, ID);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, FBO, 0);
 	glDrawBuffer(GL_NONE);
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+}
+
+void DepthMap::Bind() {
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+}
+
+void DepthMap::Unbind() {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void DepthMap::Delete() {
+	glDeleteFramebuffers(1, &FBO);
+	glDeleteTextures(1, &texture);
 }
 
 
@@ -43,12 +60,3 @@ void DepthMap::depthMapViewObject(GLuint shaderID, const char* uniform) {
 	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
 }
 
-void DepthMap::Draw()
-{
-
-	glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
-	glBindFramebuffer(GL_FRAMEBUFFER, ID);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	//RenderScene(simpleDepthShader);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}

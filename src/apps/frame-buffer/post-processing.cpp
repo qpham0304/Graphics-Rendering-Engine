@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "model.h"
 #include <FrameBuffer.h>
+#include "../../graphics/components/headers/PlaneComponent.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -50,6 +51,7 @@ int main() {
 	Camera camera(width, height, glm::vec3(0.0f, 0.5f, 3.0f));
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 0.5f);
+	Light light = Light(lightPos, lightColor, 0.5f);
 
 	Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
@@ -71,6 +73,8 @@ int main() {
 	glUniformMatrix4fv(glGetUniformLocation(cubeShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(cubeMatrix));
 	glUniform4f(glGetUniformLocation(cubeShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(cubeShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
+	PlaneComponent plane;
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -121,6 +125,8 @@ int main() {
 			glUniform3f(glGetUniformLocation(s.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 			m.Draw(s, camera);
 		}
+
+		plane.render(camera, light);
 
 		framebuffer.Unbind();
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);

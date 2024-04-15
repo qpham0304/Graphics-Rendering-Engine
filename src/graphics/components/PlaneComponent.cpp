@@ -1,57 +1,59 @@
 #include "headers/PlaneComponent.h"
 
-std::vector<Vertex> planeVertices =
-{					//     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
-	Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
-	Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)}
-};
-
-std::vector<GLuint> planeIndices = {
-	0, 1, 2,
-	0, 2, 3
-};
-
 
 
 void PlaneComponent::setup() {
-	planeTextures.push_back(Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE));
-	planeTextures.push_back(Texture("Textures/planksSpec.png", "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE));
+	std::vector<Vertex> planeVertices =
+	{					//     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
+		Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
+		Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(0.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
+		Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f)},
+		Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f)}
+	};
 
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+	std::vector<GLuint> planeIndices = {
+		0, 1, 2,
+		0, 2, 3
+	};
 
-	glBindVertexArray(VAO);
+	float cubeVertices[] = {
+		// Position               // Normal
+		1.000000f, 1.000000f, -1.000000f,  -0.0000f, 1.0000f, -0.0000f,  // Vertex 0
+		1.000000f, -1.000000f, -1.000000f, -0.0000f, 1.0000f, -0.0000f,  // Vertex 1
+		1.000000f, 1.000000f, 1.000000f,   -0.0000f, 1.0000f, -0.0000f,  // Vertex 2
+		1.000000f, -1.000000f, 1.000000f,  -0.0000f, 1.0000f, -0.0000f,  // Vertex 3
+		-1.000000f, 1.000000f, -1.000000f, -0.0000f, -0.0000f, 1.0000f,  // Vertex 4
+		-1.000000f, -1.000000f, -1.000000f,-0.0000f, -0.0000f, 1.0000f,  // Vertex 5
+		-1.000000f, 1.000000f, 1.000000f,  -0.0000f, -0.0000f, 1.0000f,  // Vertex 6
+		-1.000000f, -1.000000f, 1.000000f, -0.0000f, -0.0000f, 1.0000f   // Vertex 7
+	};
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, planeVertices.size() * sizeof(Vertex), &planeVertices[0], GL_STATIC_DRAW);
+	// Cube indices (faces)
+	std::vector<GLuint> cubeIndices = {
+		0, 1, 3, // Front face
+		4, 5, 7, // Back face
+		6, 7, 1, // Left face
+		2, 3, 5, // Right face
+		2, 6, 4, // Top face
+		0, 1, 5  // Bottom face
+	};
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, planeIndices.size() * sizeof(unsigned int), &planeIndices[0], GL_STATIC_DRAW);
+	//std::vector<Vertex> vertices;
+	//std::cout << "size of cube vertices" << sizeof(cubeVertices) / sizeof(float) << "\n";
+	//for (int i = 0; sizeof(cubeVertices) / sizeof(float); i += 6) {
+	//	Vertex vertex;
+	//	vertex.positions = glm::vec3(cubeVertices[i], cubeVertices[i + 1], cubeVertices[i + 2]);
+	//	vertex.color = glm::vec3(1.0f, 1.0f, 1.0f);
+	//	vertex.texCoords = glm::vec2(1.0, 0.0);
+	//	vertex.normal = glm::vec3(cubeVertices[i + 3], cubeVertices[i + 4], cubeVertices[i + 5]);
+	//}
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texCoords));
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-	glEnableVertexAttribArray(4);
-	glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tangent));
-	glEnableVertexAttribArray(5);
-	glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, bitangent));
-	glEnableVertexAttribArray(6);
-	glVertexAttribIPointer(6, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
-	glEnableVertexAttribArray(7);
-	glVertexAttribPointer(7, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
-
-	glBindVertexArray(0);
-
-	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag"));
+	//planeTextures.push_back(Texture("Textures/planks.png", "diffuse", GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE));
+	//planeTextures.push_back(Texture("Textures/planksSpec.png", "diffuse", GL_TEXTURE1, GL_RED, GL_UNSIGNED_BYTE));
 	//plane_ptr.reset(new Mesh(planeVertices, planeIndices, planeTextures));
+
+	plane_ptr.reset(new Model("Models/cube/cube-notex.gltf"));
+	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag"));
 }
 
 PlaneComponent::PlaneComponent()
@@ -76,24 +78,12 @@ void PlaneComponent::renderShadow(Shader& shader, Camera& camera)
 {
 	shader.setMat4("matrix", modelMatrix);
 	shader.setBool("hasAnimation", false);
-	//plane_ptr->Draw(shader, camera);
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(planeIndices.size()), GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+	plane_ptr->Draw(shader, camera);
 }
 
 void PlaneComponent::render(Camera& camera, Light& light)
 {
 	Component::render(camera, light);
-	//plane_ptr->Draw(*shaderProgram_ptr, camera);
+	plane_ptr->Draw(*shaderProgram_ptr, camera);
 
-	shaderProgram_ptr->Activate();
-	shaderProgram_ptr->setBool("useTexture", false);
-	shaderProgram_ptr->setVec3("camPos", camera.position);
-	camera.cameraViewObject(shaderProgram_ptr->ID, "mvp");
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(planeIndices.size()), GL_UNSIGNED_INT, 0);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
 }

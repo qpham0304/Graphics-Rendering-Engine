@@ -18,7 +18,7 @@ void Component::render(Camera& camera, const Light& light)
 {
 	shaderProgram_ptr->Activate();
 	glCullFace(GL_FRONT);
-	shaderProgram_ptr->setMat4("lightProjection", light.lightProjection);
+	shaderProgram_ptr->setMat4("lightProjection", light.mvp);
 	shaderProgram_ptr->setVec4("lightColor", light.color);
 	shaderProgram_ptr->setInt("sampleRadius", 2);
 	shaderProgram_ptr->setFloat("ambientIntensity", light.ambient);
