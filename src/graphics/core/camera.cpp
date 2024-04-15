@@ -31,14 +31,39 @@ void Camera::cameraViewUpdate()
 	speed = 2.5f * deltaTime;
 
 	view = glm::lookAt(position, position + orientation, up);
-	projection = glm::perspective(glm::radians(fov), (float)width / (float)height, nearPlane, farPlane);
+	projection = glm::perspective(glm::radians(fov), width / height, nearPlane, farPlane);
+	mvp = projection * view;
 }
 
-void Camera::cameraViewObject(GLuint shaderID, const char* uniform)
+void Camera::updateViewResize(int width, int height)
 {
-	glm::mat4 mvp = projection * view;
-	GLuint uniformLocation = glGetUniformLocation(shaderID, uniform);
-	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(mvp));
+	this->width = width;
+	this->height = height;
+}
+
+glm::vec3 Camera::getPosition()
+{
+	return position;
+}
+
+glm::vec3 Camera::getOrientation()
+{
+	return orientation;
+}
+
+glm::mat4 Camera::getViewMatrix()
+{
+	return view;
+}
+
+glm::mat4 Camera::projectionMatrix()
+{
+	return projection;
+}
+
+glm::mat4 Camera::getMVP()
+{
+	return mvp;
 }
 
 void Camera::processKeyboard(GLFWwindow* window) {

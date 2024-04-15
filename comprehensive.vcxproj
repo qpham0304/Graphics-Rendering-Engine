@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -152,8 +152,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\apps\test_imgui\main_test.cpp" />
+    <ClCompile Include="src\gui\widgets\MenuWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\MainViewWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\SidebarLeftWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\SidebarRightWidget.cpp" />
     <ClCompile Include="src\graphics\utils\movement.cpp" />
-    <ClCompile Include="src\apps\animation\animationApp.cpp" />
     <ClCompile Include="src\graphics\core\FrameBuffer.cpp" />
     <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />
@@ -185,13 +190,22 @@
     <ClCompile Include="src\graphics\components\Triangle.cpp" />
     <ClCompile Include="src\graphics\core\VAO.cpp" />
     <ClCompile Include="src\graphics\core\VBO.cpp" />
+    <ClCompile Include="src\gui\widgets\Widget.cpp" />
+    <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\Axis.h" />
     <ClInclude Include="Headers\FrameBuffer.h" />
     <ClInclude Include="Headers\Animation.h" />
     <ClInclude Include="Headers\Animator.h" />
     <ClInclude Include="Headers\assimp_glm_helpers.h" />
     <ClInclude Include="Headers\Bone.h" />
+    <ClInclude Include="src\gui\headers\MenuWidget.h" />
+    <ClInclude Include="src\gui\headers\MainViewWidget.h" />
+    <ClInclude Include="src\gui\headers\ConsoleLogWidget.h" />
+    <ClInclude Include="src\gui\headers\SidebarLeftWidget.h" />
+    <ClInclude Include="src\gui\headers\SidebarRightWidget.h" />
+    <ClInclude Include="src\graphics\components\headers\GridComponent.h" />
     <ClInclude Include="src\graphics\utils\headers\movement.h" />
     <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
     <ClInclude Include="src\graphics\components\headers\Component.h" />
@@ -209,8 +223,11 @@
     <ClInclude Include="Headers\VBO.h" />
     <ClInclude Include="Headers\skybox.h" />
     <ClInclude Include="src\graphics\components\headers\SkyboxComponent.h" />
+    <ClInclude Include="src\gui\headers\Themes.h" />
     <ClInclude Include="src\gui\ImGuiController.h" />
     <ClInclude Include="src\graphics\components\headers\PlaneComponent.h" />
+    <ClInclude Include="src\gui\headers\Widget.h" />
+    <ClInclude Include="src\gui\headers\SubViewWidget.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

@@ -13,19 +13,20 @@ private:
 public:
 	const GLuint SHADOW_HEIGHT = 2048;
 	const GLuint SHADOW_WIDTH = 2048;
-	const GLuint SCR_HEIGHT = 728;
-	const GLuint SCR_WIDTH = 1024;
 
-	float near_plane = 1.0f, far_plane = 7.5f;
+	float near_plane = 1.0f, far_plane = 12.5f;
 
-	GLuint ID;
-	GLuint depthMap;
+	GLuint FBO;
+	GLuint texture;
 	glm::mat4 lightProjection = glm::mat4(1.0f);
 	glm::mat4 lightView;
 	glm::mat4 lightSpaceMatrix;
 
 	DepthMap();
+	void Bind();
+	void Unbind();
+	void Delete();
+
 	void depthMapViewUpdate();
 	void depthMapViewObject(GLuint shaderID, const char* uniform);
-	void Draw();
 };

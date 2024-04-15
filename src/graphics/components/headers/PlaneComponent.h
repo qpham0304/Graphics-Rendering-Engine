@@ -1,13 +1,13 @@
 #pragma once
 
 #include <mesh.h>
+#include <model.h>
 #include "component.h"
 
 class PlaneComponent : public Component
 {
 private:
-	unsigned int VAO, VBO, EBO;
-	std::unique_ptr<Mesh> plane_ptr;
+	std::unique_ptr<Model> plane_ptr;
 
 	std::vector<Texture> planeTextures;
 

@@ -81,8 +81,8 @@ void SkyboxComponent::setUniform()
 // should draw skybox last
 void SkyboxComponent::render(Camera& camera)
 {
-	glm::mat4 projection = camera.projection;
-	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.view));	 // remove translation from the view matrix
+	glm::mat4 projection = camera.projectionMatrix();
+	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.getViewMatrix()));	 // remove translation from the view matrix
 	
 	// change depth function so depth test passes when values are equal to depth buffer's content
 	glDepthFunc(GL_LEQUAL);				

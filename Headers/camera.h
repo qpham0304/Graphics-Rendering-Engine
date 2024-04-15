@@ -26,7 +26,6 @@ private:
 	glm::vec3 defaultOrientation = glm::vec3(0.0f, 0.0f, -1.0f);
 	glm::vec3 defaultUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-public:
 	glm::vec3 position;
 	glm::vec3 orientation;
 	glm::vec3 up = defaultUp;
@@ -34,6 +33,7 @@ public:
 
 	glm::mat4 view;
 	glm::mat4 projection;
+	glm::mat4 mvp;
 
 	bool firstClick = true;
 	bool shiftPressed = false;
@@ -52,15 +52,20 @@ public:
 	float nearPlane = DEFAULT_NEARPLANE;
 	float farPlane = DEFAULT_FARPLANE;
 
-
-
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
+public:
 
 	Camera(float width, float height, glm::vec3 position, glm::vec3 orientation);
 	Camera(float width, float height, glm::vec3 position);
 	void cameraViewUpdate();
-	void cameraViewObject(GLuint shaderID, const char* uniform);
+	glm::vec3 getPosition();
+	glm::vec3 getOrientation();
+	glm::mat4 getViewMatrix();
+	glm::mat4 projectionMatrix();
+	glm::mat4 getMVP();
+	
+	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);
 	void processKeyboard(GLFWwindow* window);
 	void processMouse(GLFWwindow* window);

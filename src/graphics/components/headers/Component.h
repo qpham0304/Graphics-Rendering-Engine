@@ -9,13 +9,13 @@ struct Light {
 	glm::vec4 color;
 	float ambient;
 	//float specular;
-	glm::mat4 lightProjection;
+	glm::mat4 mvp;
 
-	Light(const glm::vec3 position, const glm::vec4 color, const float ambient = 0.5f, const glm::mat4& lightProjection = glm::mat4(0.0f)) {
+	Light(const glm::vec3 position, const glm::vec4 color, const float ambient = 0.5f, const glm::mat4& mvp = glm::mat4(0.0f)) {
 		this->position = position;
 		this->color = color;
 		this->ambient = ambient;
-		this->lightProjection = lightProjection;
+		this->mvp = mvp;
 	};
 };
 
@@ -35,10 +35,11 @@ protected:
 	bool isSelected;
 	bool showAxis;
 
+	Component();
+
 public:
 	std::unique_ptr<Shader> shaderProgram_ptr;
 
-	Component();
 	~Component();
 
 	// renderer

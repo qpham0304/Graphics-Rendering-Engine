@@ -1,23 +1,20 @@
-#include <iostream>
-#include <math.h>
-#include <imgui.h>
-#include <imgui_impl_glfw.h>
-#include <imgui_impl_opengl3.h>
-#include <vector>
-#include <Mesh.h>
-#include <model.h>
+#include <chrono>
 #include <Animation.h>
 #include <Animator.h>
-#include <chrono>
+#include <FrameBuffer.h>
 #include "camera.h"
 #include "../../graphics/components/headers/SkyboxComponent.h"
 #include "../../graphics/components/headers/PlaneComponent.h"
+#include "../../gui/ImGuiController.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
 void Rotate(glm::mat4 matrix, Shader& shader);
-unsigned int width = 1024;
-unsigned int height = 728;
+static const unsigned int DEFAULT_WIDTH = 720;
+static const unsigned int DEFAULT_HEIGHT = 1280;
+unsigned int width = DEFAULT_WIDTH;
+unsigned int height = DEFAULT_HEIGHT;
+
 float lastFrame = 0;
 float lf = 0;
 float lastTime = 0;
@@ -28,13 +25,10 @@ float radius = 1.0f;
 float angularSpeed = 0.01f;
 Camera* cameraController = nullptr;
 
-Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 float ambient = 0.5f;
 int sampleRadius = 2.0f;
-
-
 
 void renderQuad()
 {
@@ -65,56 +59,53 @@ void renderQuad()
 	glBindVertexArray(0);
 }
 
-void setupDearImGui(GLFWwindow* window, ImGuiIO& io) {
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-	ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init("#version 330");
-	ImGui::GetStyle().ScaleAllSizes(1);
-}
 
 int main() {
-	glfwInit();
-
-	// Tell GLFW what version of OpenGL we are using 
-	// In this case we are using OpenGL 3.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	// Tell GLFW we are using the CORE profile
-	// So that means we only have the modern functions
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(width, height, "Graphic Engine", NULL, NULL);
-	// Error check if the window fails to create
-	if (window == NULL)
-	{
-		std::cout << "Failed to create GLFW window" << std::endl;
+	// Initialize GLFW
+	if (!glfwInit())
+		return -1;
+
+	// Get primary monitor
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	if (!monitor) {
+		std::cerr << "Failed to get primary monitor" << std::endl;
 		glfwTerminate();
 		return -1;
 	}
-	// Introduce the window into the current context
-	glfwMakeContextCurrent(window);
 
+	// Get monitor video mode
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	if (!mode) {
+		std::cerr << "Failed to get video mode" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
+	width = mode->width * 2 / 3;
+	height = mode->height * 2 / 3;
+	GLFWwindow* window = glfwCreateWindow(width, height, "Graphic Engine", NULL, NULL);
+	
+	if (window == NULL)
+	{
+		std::cerr << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
+	}
+
+	glfwMakeContextCurrent(window);
 	gladLoadGL();
+
 	glViewport(0, 0, width, height);
 
 	glEnable(GL_DEPTH_TEST);
 
+	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 
 	auto start = std::chrono::high_resolution_clock::now();
-
-
 
 	Shader modelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
@@ -181,18 +172,12 @@ int main() {
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO io;
-	setupDearImGui(window, io);
-
 	bool show_demo_window = false;
 	bool show_style_editor = false;
 	bool show_debug_window = false;
 	bool camera_control_enabled = true;
-	bool face_culling_enabled = true;
+	bool face_culling_enabled = false;
+	bool draw_frame_buffer = true;
 	bool debug = false;
 
 
@@ -204,49 +189,67 @@ int main() {
 	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
 	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);
 
+	FrameBuffer framebuffer(width, height);
+
+	Shader frameShaderProgram("src/apps/frame-buffer/framebuffer.vert", "src/apps/frame-buffer/framebuffer.frag");
+	frameShaderProgram.Activate();
+	frameShaderProgram.setFloat("screenTexture", 0);
+
+
+
+	// Setup Dear ImGui context
+	//IMGUI_CHECKVERSION();
+	//ImGui::CreateContext();
+	//ImGuiIO io;
+	//setupDearImGui(window, io);
+	ImGuiController guiController;
+	guiController.init(window, width, height);
+
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
 		// Start the Dear ImGui frame
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
+		//ImGui_ImplOpenGL3_NewFrame();
+		//ImGui_ImplGlfw_NewFrame();
+		//ImGui::NewFrame();
+		guiController.start();
+
+		guiController.render();
 
 		// main window
-		ImGui::Begin("Another Window", &show_demo_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		ImGui::Begin("Another Window", &show_demo_window);  // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 
-		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
-		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
-		ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
-		if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
-			plane.translate(translateVector);
-		}
+			ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
+			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+			ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
+			if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
+				plane.translate(translateVector);
+			}
 
-		if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
-			plane.scale(scaleVector);
-		}
+			if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
+				plane.scale(scaleVector);
+			}
 
 
-		if (ImGui::Button("+"))
-			sampleRadius++;
-		ImGui::SameLine();
-		if (ImGui::Button("-") && sampleRadius >= 0)
-			sampleRadius--;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", sampleRadius);
+			if (ImGui::Button("+"))
+				sampleRadius++;
+			ImGui::SameLine();
+			if (ImGui::Button("-") && sampleRadius >= 0)
+				sampleRadius--;
+			ImGui::SameLine();
+			ImGui::Text("counter = %d", sampleRadius);
 
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("Hello from another window!");
+			ImGui::Checkbox("Debug Mode", &debug);
+			ImGui::SameLine();
+			ImGui::Checkbox("Show debug window", &show_debug_window);
+			ImGui::SameLine();
+			ImGui::Checkbox("Camera lock", &camera_control_enabled);
+			ImGui::ColorEdit4("Text Color", &lightColor[0]);
+			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
+			ImGui::Checkbox("draw frame buffer", &draw_frame_buffer);
 
-		ImGui::Text("Hello from another window!");
-		ImGui::Checkbox("Debug Mode", &debug);
-		ImGui::SameLine();
-		ImGui::Checkbox("Show debug window", &show_debug_window);
-		ImGui::SameLine();
-		ImGui::Checkbox("Camera lock", &camera_control_enabled);
-		ImGui::ColorEdit4("Text Color", &lightColor[0]);
-		ImGui::Checkbox("Enable face culling", &face_culling_enabled);
-
-		ImGui::End();
+			ImGui::End();
 
 		if (show_style_editor)
 			ImGui::ShowStyleEditor();
@@ -266,11 +269,29 @@ int main() {
 			ImGui::End();
 		}
 
+		if (draw_frame_buffer) {
+			ImGui::Begin("filter window");
+			{
+				frameShaderProgram.Activate();
+				// Using a Child allow to fill all the space of the window.
+				// It also alows customization
+				ImGui::BeginChild("filter window");
+				// Get the size of the child (i.e. the whole draw size of the windows).
+				ImVec2 wsize = ImGui::GetWindowSize();
+				glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+				ImGui::Image((ImTextureID)framebuffer.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::EndChild();
+			}
+			ImGui::End();
+		}
+
+
 		// Rendering
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//guiController.end();
 
 		float currentTime = glfwGetTime();
 		float timeDiff = currentTime - lastTime;
@@ -330,15 +351,15 @@ int main() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// reset viewport
-		//if (face_culling_enabled) {
-		//	glEnable(GL_DEPTH_TEST);
-		//	glEnable(GL_CULL_FACE);
-		//	glCullFace(GL_BACK);
-		//	glFrontFace(GL_CCW);
-		//}
-		//else {
-		//	glDisable(GL_CULL_FACE);
-		//}
+		if (face_culling_enabled) {
+			glEnable(GL_DEPTH_TEST);
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_BACK);
+			glFrontFace(GL_CCW);
+		}
+		else {
+			glDisable(GL_CULL_FACE);
+		}
 
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -357,7 +378,6 @@ int main() {
 		float cf = glfwGetTime();
 		float dt = cf - lf;
 		lf = cf;
-		//animator.UpdateAnimation(dt);
 		aru_animator.UpdateAnimation(dt);
 
 
@@ -373,7 +393,6 @@ int main() {
 		glCullFace(GL_BACK);
 
 		reimu.Draw(modelShader, camera);
-
 		plane.render(camera, light);
 
 		aruModelShader.Activate();
@@ -391,11 +410,31 @@ int main() {
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
 
+		skybox.render(camera);
+		
+		
+		framebuffer.Bind();
+		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_DEPTH_TEST);
 
-
-
+		reimu.Draw(modelShader, camera);
+		aruModel.Draw(aruModelShader, camera);
+		plane.render(camera, light);
 		skybox.render(camera);
 
+		framebuffer.Unbind();
+
+		if (draw_frame_buffer) {
+			frameShaderProgram.Activate();
+			glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+			glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+			glActiveTexture(GL_TEXTURE0);
+			renderQuad();
+		}
+
+
+		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		processProgramInput(window);
