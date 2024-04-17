@@ -152,6 +152,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Libraries\include\ImGuizmo\GraphEditor.cpp" />
+    <ClCompile Include="Libraries\include\ImGuizmo\ImCurveEdit.cpp" />
+    <ClCompile Include="Libraries\include\ImGuizmo\ImGradient.cpp" />
+    <ClCompile Include="Libraries\include\ImGuizmo\ImGuizmo.cpp" />
+    <ClCompile Include="Libraries\include\ImGuizmo\ImSequencer.cpp" />
     <ClCompile Include="src\SceneRenderer.cpp" />
     <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp" />
     <ClCompile Include="src\apps\sanbox\main.cpp" />
@@ -197,6 +202,12 @@
     <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libraries\include\ImGuizmo\GraphEditor.h" />
+    <ClInclude Include="Libraries\include\ImGuizmo\ImCurveEdit.h" />
+    <ClInclude Include="Libraries\include\ImGuizmo\ImGradient.h" />
+    <ClInclude Include="Libraries\include\ImGuizmo\ImGuizmo.h" />
+    <ClInclude Include="Libraries\include\ImGuizmo\ImSequencer.h" />
+    <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h" />
     <ClInclude Include="src\SceneRenderer.h" />
     <ClInclude Include="src\gui\headers\EntityControlWidget.h" />
     <ClInclude Include="Headers\OpenGL\Axis.h" />

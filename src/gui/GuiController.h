@@ -7,6 +7,7 @@
 #include "headers/widget.h"
 #include "headers/Themes.h"
 #include "headers/MenuWidget.h"
+#include "ImGuizmo.h"
 
 class GuiController {
 private:

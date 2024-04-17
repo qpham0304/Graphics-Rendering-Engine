@@ -56,7 +56,7 @@ glm::mat4 Camera::getViewMatrix()
 	return view;
 }
 
-glm::mat4 Camera::projectionMatrix()
+glm::mat4 Camera::getProjectionMatrix()
 {
 	return projection;
 }
