@@ -15,7 +15,7 @@ public:
     // Copy constructor
     Widget(const Widget& other);
     // Move constructor
-    Widget(Widget&& other);
+    Widget(Widget&& other) noexcept;
     // Copy assignment operator
     Widget& operator=(const Widget& other);
     // Move assignment operator

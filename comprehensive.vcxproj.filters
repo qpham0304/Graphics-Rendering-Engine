@@ -27,34 +27,34 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Shader.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\VAO.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\VAO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Texture.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\VBO.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\VBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\components\Triangle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\EBO.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\EBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\stb.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\stb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\camera.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Plane.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Plane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Mesh.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Libraries\include\imgui\imgui.cpp">
@@ -81,19 +81,19 @@
     <ClCompile Include="Libraries\include\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>externals</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Model.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\skybox.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\DepthMap.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\DepthMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\components\PlaneComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\ImGuiController.cpp">
+    <ClCompile Include="src\gui\GuiController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\components\SkyboxComponent.cpp">
@@ -102,19 +102,19 @@
     <ClCompile Include="src\graphics\components\Component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Bone.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Bone.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Animation.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Animation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\Animator.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\components\ModelComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\FrameBuffer.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\utils\movement.cpp">
@@ -141,54 +141,63 @@
     <ClCompile Include="src\gui\widgets\MenuWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\test_imgui\main_test.cpp">
+    <ClCompile Include="src\apps\sanbox\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\GraphicsController.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SceneRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\VAO.h">
+    <ClInclude Include="Headers\OpenGL\VAO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\VBO.h">
+    <ClInclude Include="Headers\OpenGL\VBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Shader.h">
+    <ClInclude Include="Headers\OpenGL\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Texture.h">
+    <ClInclude Include="Headers\OpenGL\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\resource.h">
+    <ClInclude Include="Headers\OpenGL\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Triangle.h">
+    <ClInclude Include="Headers\OpenGL\Triangle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\EBO.h">
+    <ClInclude Include="Headers\OpenGL\EBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\camera.h">
+    <ClInclude Include="Headers\OpenGL\camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Plane.h">
+    <ClInclude Include="Headers\OpenGL\Plane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Mesh.h">
+    <ClInclude Include="Headers\OpenGL\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\model.h">
+    <ClInclude Include="Headers\OpenGL\model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\skybox.h">
+    <ClInclude Include="Headers\OpenGL\skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\DepthMap.h">
+    <ClInclude Include="Headers\OpenGL\DepthMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\components\headers\PlaneComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\ImGuiController.h">
+    <ClInclude Include="src\gui\GuiController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\components\headers\SkyboxComponent.h">
@@ -197,22 +206,22 @@
     <ClInclude Include="src\graphics\components\headers\Component.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Animation.h">
+    <ClInclude Include="Headers\OpenGL\Animation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Animator.h">
+    <ClInclude Include="Headers\OpenGL\Animator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\assimp_glm_helpers.h">
+    <ClInclude Include="Headers\OpenGL\assimp_glm_helpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Bone.h">
+    <ClInclude Include="Headers\OpenGL\Bone.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\components\headers\ModelComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\FrameBuffer.h">
+    <ClInclude Include="Headers\OpenGL\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\utils\headers\movement.h">
@@ -245,7 +254,16 @@
     <ClInclude Include="src\gui\headers\MenuWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Axis.h">
+    <ClInclude Include="Headers\OpenGL\Axis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\GraphicsController.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\headers\EntityControlWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SceneRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

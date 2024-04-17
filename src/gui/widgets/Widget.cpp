@@ -11,7 +11,7 @@ Widget::Widget(const Widget& other) {
 }
 
 // Move constructor
-Widget::Widget(Widget&& other)
+Widget::Widget(Widget&& other) noexcept
 {
     showWidget = std::exchange(other.showWidget, false);
 }
