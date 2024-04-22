@@ -51,9 +51,6 @@
     <ClCompile Include="src\graphics\core\OpenGL\camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\OpenGL\Plane.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\core\OpenGL\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -117,9 +114,6 @@
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\utils\movement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -168,6 +162,9 @@
     <ClCompile Include="Libraries\include\ImGuizmo\ImSequencer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\utils\Math.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -192,9 +189,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers\OpenGL\Plane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\Mesh.h">
@@ -239,22 +233,13 @@
     <ClInclude Include="Headers\OpenGL\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\utils\headers\movement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\headers\ConsoleLogWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\components\headers\GridComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\gui\headers\SidebarRightWidget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\headers\Widget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\gui\headers\SidebarLeftWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\headers\Themes.h">
@@ -297,6 +282,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\utils\headers\Math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\headers\LeftSidebarWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\gui\headers\RightSidebarWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

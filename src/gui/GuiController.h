@@ -4,10 +4,15 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <memory>
+#include <ImGuizmo.h>
+#include <GLFW/glfw3.h>
 #include "headers/widget.h"
 #include "headers/Themes.h"
 #include "headers/MenuWidget.h"
-#include "ImGuizmo.h"
+#include "headers/LeftSidebarWidget.h"
+#include "headers/RightSidebarWidget.h"
+#include "headers/ConsoleLogWidget.h"
+#include "IconsFontAwesome5.h"
 
 class GuiController {
 private:
@@ -34,6 +39,10 @@ public:
 //TODO: Move this class to framework/imgui folder once there are other gui framework
 class ImGuiController : public GuiController {
 private:
+	LeftSidebarWidget leftSidebar;
+	RightSidebarWidget rightSidebar;
+	ConsoleLogWidget console;
+	MenuWidget menu;
 
 public:
 	ImGuiController();

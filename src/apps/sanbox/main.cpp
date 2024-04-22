@@ -1,14 +1,15 @@
 
 #include "../../SceneRenderer.h"
-#include <memory>
 
 int main()
 {
-	ImGuiController imguiController;
-	OpenGLController openglController;
-
-	//SceneRenderer renderer(imguiController, openglController);
-	SceneRenderer renderer;
-
-	renderer.renderScene();
+	try {
+		SceneRenderer::init(PLATFORM_OPENGL);
+		SceneRenderer::start("OpenGL Game Engine");
+		SceneRenderer::renderScene();
+		SceneRenderer::end();
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << "Exception: " << e.what() <<std::endl;
+	}
 }

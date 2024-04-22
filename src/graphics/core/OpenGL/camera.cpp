@@ -102,7 +102,7 @@ void Camera::processMouse(GLFWwindow* window) {
 	
 	instance = this;
 
-	glfwSetScrollCallback(window, scrollcb);
+	//glfwSetScrollCallback(window, scrollcb);
 	//glfwSetCursorPosCallback(window, mousecb);
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)

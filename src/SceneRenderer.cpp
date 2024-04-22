@@ -1,243 +1,29 @@
 #include "SceneRenderer.h"
+#include "graphics/components/headers/ModelComponent.h"
 
+unsigned int SceneRenderer::width = 0.0f;
+unsigned int SceneRenderer::height = 0.0f;
 
-bool useWindow = true;
-int gizmoCount = 1;
-float camDistance = 8.f;
-static ImGuizmo::OPERATION mCurrentGizmoOperation(ImGuizmo::TRANSLATE);
+float SceneRenderer::lastFrame = 0.0f;
+float SceneRenderer::lf = 0.0f;
+float SceneRenderer::lastTime = 0.0f;
+unsigned int SceneRenderer::frameCounter = 0.0f;
+float SceneRenderer::rotationAngle = 0.0f;
+float SceneRenderer::angle = 0.0f;
+float SceneRenderer::radius = 0.0f;
+float SceneRenderer::angularSpeed = 0.0f;
+Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
+const Platform SceneRenderer::supportPlatform[] = { PLATFORM_OPENGL };
 
-float fov = 27.f;
-float viewWidth = 10.f; // for orthographic
-float camYAngle = 165.f / 180.f * 3.14159f;
-float camXAngle = 32.f / 180.f * 3.14159f;
+float SceneRenderer::ambient = 0.5f;
+int SceneRenderer::sampleRadius = 2.0f;
+glm::vec4 SceneRenderer::lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec3 SceneRenderer::lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+Camera* SceneRenderer::cameraController = nullptr;
+GLFWwindow* SceneRenderer::window = nullptr;
 
-float objectMatrix[4][16] = {
-  { 1.f, 0.f, 0.f, 0.f,
-	0.f, 1.f, 0.f, 0.f,
-	0.f, 0.f, 1.f, 0.f,
-	0.f, 0.f, 0.f, 1.f },
+ImGuiController SceneRenderer::guiController(true);
 
-  { 1.f, 0.f, 0.f, 0.f,
-  0.f, 1.f, 0.f, 0.f,
-  0.f, 0.f, 1.f, 0.f,
-  2.f, 0.f, 0.f, 1.f },
-
-  { 1.f, 0.f, 0.f, 0.f,
-  0.f, 1.f, 0.f, 0.f,
-  0.f, 0.f, 1.f, 0.f,
-  2.f, 0.f, 2.f, 1.f },
-
-  { 1.f, 0.f, 0.f, 0.f,
-  0.f, 1.f, 0.f, 0.f,
-  0.f, 0.f, 1.f, 0.f,
-  0.f, 0.f, 2.f, 1.f }
-};
-
-static const float identityMatrix[16] =
-{ 1.f, 0.f, 0.f, 0.f,
-	0.f, 1.f, 0.f, 0.f,
-	0.f, 0.f, 1.f, 0.f,
-	0.f, 0.f, 0.f, 1.f 
-};
-
-float cameraView[16] =
-{ 1.f, 0.f, 0.f, 0.f,
-  0.f, 1.f, 0.f, 0.f,
-  0.f, 0.f, 1.f, 0.f,
-  0.f, 0.f, 0.f, 1.f 
-};
-
-float cameraProjection[16];
-int lastUsing = 0;
-
-void Cross(const float* a, const float* b, float* r)
-{
-	r[0] = a[1] * b[2] - a[2] * b[1];
-	r[1] = a[2] * b[0] - a[0] * b[2];
-	r[2] = a[0] * b[1] - a[1] * b[0];
-}
-
-float Dot(const float* a, const float* b)
-{
-	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-}
-
-void Normalize(const float* a, float* r)
-{
-	float il = 1.f / (sqrtf(Dot(a, a)) + FLT_EPSILON);
-	r[0] = a[0] * il;
-	r[1] = a[1] * il;
-	r[2] = a[2] * il;
-}
-
-void LookAt(const float* eye, const float* at, const float* up, float* m16)
-{
-	float X[3], Y[3], Z[3], tmp[3];
-
-	tmp[0] = eye[0] - at[0];
-	tmp[1] = eye[1] - at[1];
-	tmp[2] = eye[2] - at[2];
-	Normalize(tmp, Z);
-	Normalize(up, Y);
-
-	Cross(Y, Z, tmp);
-	Normalize(tmp, X);
-
-	Cross(Z, X, tmp);
-	Normalize(tmp, Y);
-
-	m16[0] = X[0];
-	m16[1] = Y[0];
-	m16[2] = Z[0];
-	m16[3] = 0.0f;
-	m16[4] = X[1];
-	m16[5] = Y[1];
-	m16[6] = Z[1];
-	m16[7] = 0.0f;
-	m16[8] = X[2];
-	m16[9] = Y[2];
-	m16[10] = Z[2];
-	m16[11] = 0.0f;
-	m16[12] = -Dot(X, eye);
-	m16[13] = -Dot(Y, eye);
-	m16[14] = -Dot(Z, eye);
-	m16[15] = 1.0f;
-}
-
-void EditTransform(float* cameraView, float* cameraProjection, float* matrix, bool editTransformDecomposition)
-{
-	static ImGuizmo::MODE mCurrentGizmoMode(ImGuizmo::LOCAL);
-	static bool useSnap = false;
-	static float snap[3] = { 1.f, 1.f, 1.f };
-	static float bounds[] = { -0.5f, -0.5f, -0.5f, 0.5f, 0.5f, 0.5f };
-	static float boundsSnap[] = { 0.1f, 0.1f, 0.1f };
-	static bool boundSizing = false;
-	static bool boundSizingSnap = false;
-
-	if (editTransformDecomposition)
-	{
-		if (ImGui::IsKeyPressed(ImGuiKey_T))
-			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-		if (ImGui::IsKeyPressed(ImGuiKey_E))
-			mCurrentGizmoOperation = ImGuizmo::ROTATE;
-		if (ImGui::IsKeyPressed(ImGuiKey_R)) // r Key
-			mCurrentGizmoOperation = ImGuizmo::SCALE;
-		if (ImGui::RadioButton("Translate", mCurrentGizmoOperation == ImGuizmo::TRANSLATE))
-			mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
-		ImGui::SameLine();
-		if (ImGui::RadioButton("Rotate", mCurrentGizmoOperation == ImGuizmo::ROTATE))
-			mCurrentGizmoOperation = ImGuizmo::ROTATE;
-		ImGui::SameLine();
-		if (ImGui::RadioButton("Scale", mCurrentGizmoOperation == ImGuizmo::SCALE))
-			mCurrentGizmoOperation = ImGuizmo::SCALE;
-		if (ImGui::RadioButton("Universal", mCurrentGizmoOperation == ImGuizmo::UNIVERSAL))
-			mCurrentGizmoOperation = ImGuizmo::UNIVERSAL;
-		float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-		ImGuizmo::DecomposeMatrixToComponents(matrix, matrixTranslation, matrixRotation, matrixScale);
-		ImGui::InputFloat3("Tr", matrixTranslation);
-		ImGui::InputFloat3("Rt", matrixRotation);
-		ImGui::InputFloat3("Sc", matrixScale);
-		ImGuizmo::RecomposeMatrixFromComponents(matrixTranslation, matrixRotation, matrixScale, matrix);
-
-		if (mCurrentGizmoOperation != ImGuizmo::SCALE)
-		{
-			if (ImGui::RadioButton("Local", mCurrentGizmoMode == ImGuizmo::LOCAL))
-				mCurrentGizmoMode = ImGuizmo::LOCAL;
-			ImGui::SameLine();
-			if (ImGui::RadioButton("World", mCurrentGizmoMode == ImGuizmo::WORLD))
-				mCurrentGizmoMode = ImGuizmo::WORLD;
-		}
-		if (ImGui::IsKeyPressed(ImGuiKey_S))
-			useSnap = !useSnap;
-		ImGui::Checkbox("##UseSnap", &useSnap);
-		ImGui::SameLine();
-
-		switch (mCurrentGizmoOperation)
-		{
-		case ImGuizmo::TRANSLATE:
-			ImGui::InputFloat3("Snap", &snap[0]);
-			break;
-		case ImGuizmo::ROTATE:
-			ImGui::InputFloat("Angle Snap", &snap[0]);
-			break;
-		case ImGuizmo::SCALE:
-			ImGui::InputFloat("Scale Snap", &snap[0]);
-			break;
-		}
-		ImGui::Checkbox("Bound Sizing", &boundSizing);
-		if (boundSizing)
-		{
-			ImGui::PushID(3);
-			ImGui::Checkbox("##BoundSizing", &boundSizingSnap);
-			ImGui::SameLine();
-			ImGui::InputFloat3("Snap", boundsSnap);
-			ImGui::PopID();
-		}
-	}
-
-	ImGuiIO& io = ImGui::GetIO();
-	float viewManipulateRight = io.DisplaySize.x;
-	float viewManipulateTop = 0;
-	static ImGuiWindowFlags gizmoWindowFlags = 0;
-	if (useWindow)
-	{
-		ImGui::SetNextWindowSize(ImVec2(800, 400), ImGuiCond_Appearing);
-		ImGui::SetNextWindowPos(ImVec2(400, 20), ImGuiCond_Appearing);
-		ImGui::PushStyleColor(ImGuiCol_WindowBg, (ImVec4)ImColor(0.35f, 0.3f, 0.3f));
-		ImGui::Begin("Gizmo", 0, gizmoWindowFlags);
-		ImGuizmo::SetDrawlist();
-		float windowWidth = (float)ImGui::GetWindowWidth();
-		float windowHeight = (float)ImGui::GetWindowHeight();
-		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
-		viewManipulateRight = ImGui::GetWindowPos().x + windowWidth;
-		viewManipulateTop = ImGui::GetWindowPos().y;
-		ImGuiWindow* window = ImGui::GetCurrentWindow();
-		gizmoWindowFlags = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(window->InnerRect.Min, window->InnerRect.Max) ? ImGuiWindowFlags_NoMove : 0;
-	}
-	else
-	{
-		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
-	}
-
-	ImGuizmo::DrawGrid(cameraView, cameraProjection, identityMatrix, 100.f);
-	ImGuizmo::DrawCubes(cameraView, cameraProjection, &objectMatrix[0][0], gizmoCount);
-	ImGuizmo::Manipulate(cameraView, cameraProjection, mCurrentGizmoOperation, mCurrentGizmoMode, matrix, NULL, useSnap ? &snap[0] : NULL, boundSizing ? bounds : NULL, boundSizingSnap ? boundsSnap : NULL);
-
-	ImGuizmo::ViewManipulate(cameraView, camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
-
-	if (useWindow)
-	{
-		ImGui::End();
-		ImGui::PopStyleColor(1);
-	}
-}
-
-
-SceneRenderer::SceneRenderer()
-{
-	guiController.reset(new ImGuiController());
-	graphicsController.reset(new OpenGLController());
-}
-
-//TODO: there's compile errors on ownership fix it when have time
-SceneRenderer::SceneRenderer(GuiController& guiController, GraphicsController& graphicsController)
-{
-	//this->guiController.reset(new GuiController(guiController));
-	//this->graphicsController.reset(new GraphicsController(graphicsController));
-	//this->guiController = std::make_unique<GuiController>(std::move(guiController));
-	//this->graphicsController = std::make_unique<GraphicsController>(std::move(graphicsController));
-}
-
-SceneRenderer* rendererInstance = nullptr;
-void processProgramInput_cb(GLFWwindow* window)
-{
-	rendererInstance->processProgramInput(window);
-}
-
-void framebuffer_size_cb(GLFWwindow* window, int w, int h)
-{
-	rendererInstance->framebuffer_size_callback(window, w, h);
-}
 
 void SceneRenderer::renderQuad()
 {
@@ -283,69 +69,96 @@ void SceneRenderer::setUniform(Shader& shader, glm::mat4& matrix, bool hasAnimat
 	glCullFace(GL_BACK);
 }
 
+int SceneRenderer::init(Platform platform) {
+	SceneRenderer::platform = platform;
+	for (auto& p : supportPlatform) {
+		if (platform != p) {
+			throw std::runtime_error("Platform unsupported");
+
+		}
+	}
+
+	if (SceneRenderer::platform == PLATFORM_OPENGL) {
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+		// Initialize GLFW
+		if (!glfwInit())
+			return -1;
+
+		// Get primary monitor
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		if (!monitor) {
+			std::cerr << "Failed to get primary monitor" << std::endl;
+			glfwTerminate();
+			return -1;
+		}
+
+		// Get monitor video mode
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		if (!mode) {
+			std::cerr << "Failed to get video mode" << std::endl;
+			glfwTerminate();
+			return -1;
+		}
+
+		width = mode->width * 2 / 3;
+		height = mode->height * 2 / 3;
+	}
+	return 0;
+}
+
+int SceneRenderer::start(const char* title) {
+	if(platform == PLATFORM_UNDEFINED)
+		throw std::runtime_error("Platform not specified have you called init() with supported platform yet?");
+	else if (platform == PLATFORM_OPENGL) {
+		window = glfwCreateWindow(width, height, title, NULL, NULL);
+
+		if (window == NULL)
+		{
+			std::cerr << "Failed to create GLFW window" << std::endl;
+			glfwTerminate();
+			return -1;
+		}
+		glfwMakeContextCurrent(window);
+		gladLoadGL();
+	}
+	return 0;
+}
+
+int SceneRenderer::end() {
+	if (platform == PLATFORM_OPENGL) {
+		ImGui_ImplOpenGL3_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
+
+		glfwDestroyWindow(window);
+		glfwTerminate();
+	}
+	return 0;
+}
+
+
+
 int SceneRenderer::renderScene() {
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	// Initialize GLFW
-	if (!glfwInit())
-		return -1;
-
-	// Get primary monitor
-	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-	if (!monitor) {
-		std::cerr << "Failed to get primary monitor" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-
-	// Get monitor video mode
-	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-	if (!mode) {
-		std::cerr << "Failed to get video mode" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-
-	width = mode->width * 2 / 3;
-	height = mode->height * 2 / 3;
-
-	GLFWwindow* window = glfwCreateWindow(width, height, "Graphic Engine", NULL, NULL);
-
-	if (window == NULL)
-	{
-		std::cerr << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
-
-	glfwMakeContextCurrent(window);
-	gladLoadGL();
-
 	glViewport(0, 0, width, height);
-
 	glEnable(GL_DEPTH_TEST);
 
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
-	glm::vec3 camPos = camera.getPosition();
-
 	cameraController = &camera;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
 	Shader modelShader("Shaders/default.vert", "Shaders/default.frag");
 	glm::mat4 objMatrix = glm::mat4(1.0f);
-	objMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
-	objMatrix = glm::translate(objMatrix, glm::vec3(12.0f, -1.0f, 0.0f));
-	modelShader.Activate();
-	modelShader.setMat4("matrix", objMatrix);
-	Model reimu("Models/reimu/reimu.obj");
-
+	//ModelComponent* reimu = new ModelComponent("Models/reimu/reimu.obj");
+	//glm::vec3 scale = glm::vec3(0.25f, 0.25f, 0.25f);
+	//reimu->scale(scale);
+	//std::cout << reimu.getID() << "\n";
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
-	glm::mat4 aruObjMatrix = glm::mat4(1.0f);
-	aruObjMatrix = glm::translate(aruObjMatrix, glm::vec3(-5.0f, 0.25f, 0.0f));
+	glm::mat4 aruObjMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
 	aruModelShader.Activate();
 	modelShader.setMat4("matrix", aruObjMatrix);
 	Model aruModel("Models/aru/aru.gltf");
@@ -393,6 +206,7 @@ int SceneRenderer::renderScene() {
 	bool draw_frame_buffer = true;
 	bool debug = false;
 	bool animate_enable = true;
+	bool show_navigator = true;
 
 
 
@@ -410,7 +224,7 @@ int SceneRenderer::renderScene() {
 	frameShaderProgram.setFloat("screenTexture", 0);
 
 
-	guiController->init(window, width, height);
+	guiController.init(window, width, height);
 
 	float near_plane = 1.0f, far_plane = 12.5f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -421,8 +235,6 @@ int SceneRenderer::renderScene() {
 	debugDepthQuad.setFloat("near_plane", near_plane);
 	debugDepthQuad.setFloat("far_plane", far_plane);
 
-
-	rendererInstance = this;
 	bool firstFrame = true;
 
 	// Main while loop
@@ -430,12 +242,14 @@ int SceneRenderer::renderScene() {
 	{
 		int countDrawCall = 0;
 
-		guiController->start();
+		guiController.start();
 
-		guiController->render();
+		guiController.render();
 
 		// main window
-		ImGui::Begin("Another Window", &show_demo_window);  // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+
+		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+		if(ImGui::Begin("Global Control", &show_demo_window))
 		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
 		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
 		if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
@@ -462,8 +276,8 @@ int SceneRenderer::renderScene() {
 		ImGui::ColorEdit4("Text Color", &lightColor[0]);
 		ImGui::Checkbox("Enable face culling", &face_culling_enabled);
 		ImGui::Checkbox("Enable animation", &animate_enable);
+		ImGui::Checkbox("Show navigator", &show_navigator);
 		ImGui::End();
-
 
 
 		float currentTime = glfwGetTime();
@@ -479,12 +293,6 @@ int SceneRenderer::renderScene() {
 			frameCounter = 0;
 		}
 
-		
-
-		// camera inputs
-		if (camera_control_enabled) {
-			camera.processInput(window);
-		}
 		camera.cameraViewUpdate();
 
 		// render scene from light's point of view
@@ -496,17 +304,14 @@ int SceneRenderer::renderScene() {
 		lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
 		Light light = Light(lightPos, lightColor, ambient, lightSpaceMatrix);
 
+
 		shadowMapShader.Activate();
 		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
 
 		plane.renderShadow(shadowMapShader, camera);
-		shadowMapShader.setMat4("matrix", plane.getModelMatrix());
-		shadowMapShader.setBool("hasAnimation", false);
 
-		shadowMapShader.setMat4("matrix", objMatrix);
-		shadowMapShader.setBool("hasAnimation", false);
-
-		reimu.Draw(shadowMapShader, camera);
+		//reimu.renderShadow(shadowMapShader, camera);
+		OpenGLController::renderShadow(shadowMapShader, camera);
 		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
 
@@ -518,7 +323,6 @@ int SceneRenderer::renderScene() {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		framebuffer.Bind();
-
 		// reset viewport
 		if (face_culling_enabled) {
 			glEnable(GL_DEPTH_TEST);
@@ -548,8 +352,8 @@ int SceneRenderer::renderScene() {
 		if (animate_enable)
 			aru_animator.UpdateAnimation(dt);
 
-		setUniform(modelShader, objMatrix, false, light, lightSpaceMatrix, objMatrix, camera);
-		reimu.Draw(modelShader, camera);
+		//reimu.render(camera, light);
+		OpenGLController::render(camera, light);
 
 		plane.render(camera, light);
 
@@ -559,35 +363,26 @@ int SceneRenderer::renderScene() {
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
 
-		countDrawCall += reimu.getCountDrawCall();
-		countDrawCall += aruModel.getCountDrawCall();
-
 		skybox.render(camera);
-
-		//if (draw_frame_buffer) {
-		//	frameShaderProgram.Activate();
-		//	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
-		//	glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-		//	glActiveTexture(GL_TEXTURE0);
-		//	renderQuad();
-		//}
 
 
 		ImGui::Begin("Application Window");
 		{
-			cameraController->updateViewResize(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
-			frameShaderProgram.Activate();
 			// Using a Child allow to fill all the space of the window.
-			// It also alows customization
-			ImGui::BeginChild("filter window");
+			ImGui::BeginChild("View window");
 			// Get the size of the child (i.e. the whole draw size of the windows).
 			ImVec2 wsize = ImGui::GetWindowSize();
 			glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
 			ImGui::Image((ImTextureID)framebuffer.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 
+			// camera inputs
+			cameraController->updateViewResize(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+			if (ImGui::IsItemHovered())
+				camera.processInput(window);
+
 			float viewManipulateRight = ImGui::GetIO().DisplaySize.x;
 			float viewManipulateTop = 0;
-			if (true) {
+			if (show_navigator) {
 				auto v = &camera.getViewMatrix()[0][0];
 				auto p = glm::value_ptr(camera.getProjectionMatrix());
 				glm::mat4 transform = plane.getModelMatrix();
@@ -598,21 +393,31 @@ int SceneRenderer::renderScene() {
 				glm::mat4 modelMat = plane.getModelMatrix();
 				ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, wd, wh);
 				glm::mat4 identity(1.0f);
-				ImGuizmo::DrawCubes(v, p, glm::value_ptr(transform), gizmoCount);
+				
+				ImGuizmo::DrawCubes(v, p, glm::value_ptr(transform), 1);
 				ImGuizmo::DrawGrid(v, p, glm::value_ptr(identity), 100.f);
 				bool res = ImGuizmo::Manipulate(v, p, ImGuizmo::OPERATION::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(transform));
 				viewManipulateRight = ImGui::GetWindowPos().x + wd;
 				viewManipulateTop = ImGui::GetWindowPos().y;
-				ImGuizmo::ViewManipulate(v, camDistance, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
-				//if (res)
-					//plane.translate();
+				ImGuizmo::ViewManipulate(v, 5.0f, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+				if (ImGuizmo::IsUsing()) {
+					translateVector = glm::vec3(transform[3]);
+					plane.translate(translateVector);
+
+				}
 			}
 			ImGui::EndChild();
 		}
 		ImGui::End();
 
+		//frameShaderProgram.Activate();
+		//glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+		//glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+		//glActiveTexture(GL_TEXTURE0);
+		//renderQuad();
 
 		framebuffer.Unbind();
+
 
 
 		ImGui::Begin("Debug Window");
@@ -633,54 +438,14 @@ int SceneRenderer::renderScene() {
 		ImGui::End();
 
 
-		//bool viewDirty = false;
-		//viewDirty |= ImGui::SliderFloat("Distance", &camDistance, 1.f, 10.f);
-		//ImGui::SliderInt("Gizmo count", &gizmoCount, 1, 4);
+		guiController.end();
 
-		//if (viewDirty || firstFrame)
-		//{
-		//	float eye[] = { cosf(camYAngle) * cosf(camXAngle) * camDistance, sinf(camXAngle) * camDistance, sinf(camYAngle) * cosf(camXAngle) * camDistance };
-		//	float at[] = { 0.f, 0.f, 0.f };
-		//	float up[] = { 0.f, 1.f, 0.f };
-		//	LookAt(eye, at, up, cameraView);
-		//	firstFrame = false;
-		//}
-
-		//for (int matId = 0; matId < gizmoCount; matId++)
-		//{
-		//	ImGuizmo::SetID(matId);
-
-		//	EditTransform(cameraView, cameraProjection, objectMatrix[matId], lastUsing == matId);
-		//	if (ImGuizmo::IsUsing())
-		//	{
-		//		lastUsing = matId;
-		//	}
-		//}
-
-
-		guiController->end();
-
-		// find a way to move it inside guicontroller
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
-
-		glfwSetFramebufferSizeCallback(window, framebuffer_size_cb);
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 		processProgramInput(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
-
-	glfwDestroyWindow(window);
-	glfwTerminate();
 	return 0;
 }
 

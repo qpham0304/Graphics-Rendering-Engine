@@ -13,6 +13,7 @@
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
 #include<unordered_map>
+#include <cstring>
 
 std::string get_file_contents(const char* filename);
 
@@ -25,6 +26,7 @@ private:
 public:
 	// Reference ID of the Shader Program
 	GLuint ID;
+	std::string type;
 	mutable std::unordered_map<std::string, GLuint> cache;
 	
 	Shader();

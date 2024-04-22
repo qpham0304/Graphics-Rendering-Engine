@@ -2,16 +2,15 @@
 
 Component::Component() {
 	modelMatrix = glm::mat4(1.0f);
-	isSelected = false;
+	selected = false;
 	showAxis = false;
+	id = Utils::uuid::get_uuid();
 }
-
 
 void Component::setUniform()
 {
 	shaderProgram_ptr->Activate();
 	shaderProgram_ptr->setMat4("matrix", modelMatrix);
-
 }
 
 void Component::render(Camera& camera, const Light& light)
@@ -32,6 +31,12 @@ void Component::render(Camera& camera, const Light& light)
 	// TODO: find a way to separate into 2 batches to set animate boolean in
 	// shader to be true or false -> avoid unecessary repeat
 	// same thing for shadowmaps shader
+}
+
+void Component::renderShadow(Shader& shader, Camera& camera)
+{
+	shader.setMat4("matrix", modelMatrix);
+	shader.setBool("hasAnimation", false);
 }
 
 void Component::scale(glm::vec3& scale)
@@ -55,7 +60,7 @@ glm::mat4 Component::getModelMatrix()
 
 bool Component::getSelectedState()
 {
-	return isSelected;
+	return selected;
 }
 
 bool Component::getShowAxisState()
@@ -63,8 +68,36 @@ bool Component::getShowAxisState()
 	return showAxis;
 }
 
-Component::~Component()
+std::vector<std::string> Component::uniforms()
 {
-	shaderProgram_ptr->Delete();
+	//TODO: conditional to list the uniforms that can be altered
+	//edit*: nvm, just use a map to map with the shader type 
+	//if no match throw error or use a default one
+	return {};
 }
 
+void Component::select()
+{
+	selected = true;
+}
+
+void Component::unSelect()
+{
+	selected = false;
+}
+
+bool Component::isSelected()
+{
+	return selected;
+}
+
+std::string Component::getID()
+{
+	return id;
+}
+
+void Component::swapShader(Shader& shader)
+{
+	//shaderProgram_ptr = std::make_unique<Shader>(shader);
+	shaderProgram_ptr.reset(new Shader(shader));
+}

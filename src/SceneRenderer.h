@@ -12,43 +12,50 @@
 #include "./graphics/GraphicsController.h"
 #include "camera.h"
 
+enum Platform
+{
+	PLATFORM_UNDEFINED, PLATFORM_OPENGL, PLATFORM_VULKAN, PLATFORM_DIRECTX,
+};
 
 class SceneRenderer
 {
 private:
 	static const unsigned int DEFAULT_WIDTH = 720;
 	static const unsigned int DEFAULT_HEIGHT = 1280;
-	unsigned int width = DEFAULT_WIDTH;
-	unsigned int height = DEFAULT_HEIGHT;
-
-	float lastFrame = 0;
-	float lf = 0;
-	float lastTime = 0;
-	unsigned int frameCounter = 0;
-	float rotationAngle = 0;
-	float angle = 0.0f;
-	float radius = 1.0f;
-	float angularSpeed = 0.01f;
-	Camera* cameraController = nullptr;
-
-	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
-	float ambient = 0.5f;
-	int sampleRadius = 2.0f;
-
-	std::unique_ptr<GraphicsController> graphicsController;
-	std::unique_ptr<GuiController> guiController;
-
-
-public:
 	SceneRenderer();
-	SceneRenderer(GuiController& guiController, GraphicsController& graphicsController);
+public:
+	static unsigned int width;
+	static unsigned int height;
+	static Platform platform;
+	static const Platform supportPlatform[];
+	
+	static float lastFrame;
+	static float lf;
+	static float lastTime;
+	static unsigned int frameCounter;
+	static float rotationAngle;
+	static float angle;
+	static float radius;
+	static float angularSpeed;
 
-	void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	void processProgramInput(GLFWwindow* window);
-	void renderQuad();
-	void setUniform(Shader& shader, glm::mat4& matrix, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera);
-	int renderScene();
+	static glm::vec4 lightColor;
+	static glm::vec3 lightPos;
+	static float ambient;
+	static int sampleRadius;
+	static Camera* cameraController;
+
+	static ImGuiController guiController;
+	static GLFWwindow* window;
+
+	static int init(Platform platform);		// set up and init the graphics api depending on the platform
+	static int start(const char* title);	// start creating windows and context
+	static int end();						// close and terminate the program
+	static int renderScene();				// the main rendering part that run the ui and the graphics
+
+	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+	static void processProgramInput(GLFWwindow* window);
+	static void renderQuad();
+	static void setUniform(Shader& shader, glm::mat4& matrix, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera);
 
 };
 

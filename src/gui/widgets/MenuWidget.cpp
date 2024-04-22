@@ -1,6 +1,7 @@
 #include "../headers/MenuWidget.h"
 
-MenuWidget::MenuWidget() {
+MenuWidget::MenuWidget() 
+{
 
 }
 
@@ -16,8 +17,6 @@ void MenuWidget::render()
 
 void MenuWidget::MainMenuBar()
 {
-
-
 	if (ImGui::BeginMainMenuBar())
 	{
 		ImGui::SetNextWindowSize({ 250.0f, 0.0f });

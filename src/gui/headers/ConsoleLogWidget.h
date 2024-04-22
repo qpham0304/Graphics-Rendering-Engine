@@ -2,8 +2,14 @@
 
 #include "../headers/Widget.h"
 
-class ConsoleLog : Widget
+class ConsoleLogWidget : public Widget
 {
+private:
+	bool scrollToBottom = false;
 
+public:
+	ConsoleLogWidget();
+
+	void render() override;
 };
 
