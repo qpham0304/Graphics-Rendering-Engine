@@ -21,3 +21,8 @@ namespace Utils::uuid {
     std::string get_uuid();
 
 }
+
+namespace Utils::Draw {
+    void drawQuad();
+
+}

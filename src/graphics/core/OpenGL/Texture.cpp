@@ -39,10 +39,7 @@ void Texture::loadTexture(const char* path, bool flip)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture::Texture()
-{
-
-}
+Texture::Texture() = default;
 
 Texture::Texture(const char* path)
 {
@@ -77,14 +74,16 @@ Texture::Texture(const char* path)
 	stbi_image_free(data);
 }
 
-Texture::Texture(const char* path, const char* texType, const std::string& directory)
+Texture::Texture(const char* fileName, const char* texType, const std::string& directory)
 {
-	std::string filename = std::string(path);
-	filename = directory + '/' + filename;
+	std::string finalPath = std::string(fileName);
+	std::cout << "--------filName:" << fileName << "\n";
+	finalPath = directory + '/' + finalPath;
+	std::cout << "--------path:" << finalPath << "\n";
 	this->type = texType;
-	this->path = path;
+	this->path = fileName;
 
-	loadTexture(filename.c_str(), false);
+	loadTexture(finalPath.c_str(), false);
 }
 
 

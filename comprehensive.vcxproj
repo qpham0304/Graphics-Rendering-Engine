@@ -159,7 +159,7 @@
     <ClCompile Include="Libraries\include\ImGuizmo\ImGradient.cpp" />
     <ClCompile Include="Libraries\include\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="Libraries\include\ImGuizmo\ImSequencer.cpp" />
-    <ClCompile Include="src\graphics\utils\Math.cpp" />
+    <ClCompile Include="src\graphics\utils\Utils.cpp" />
     <ClCompile Include="src\SceneRenderer.cpp" />
     <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp" />
     <ClCompile Include="src\apps\sanbox\main.cpp" />
@@ -210,7 +210,7 @@
     <ClInclude Include="Libraries\include\ImGuizmo\ImSequencer.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h" />
     <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h" />
-    <ClInclude Include="src\graphics\utils\headers\Math.h" />
+    <ClInclude Include="src\graphics\utils\headers\Utils.h" />
     <ClInclude Include="src\SceneRenderer.h" />
     <ClInclude Include="src\gui\headers\EntityControlWidget.h" />
     <ClInclude Include="Headers\OpenGL\Axis.h" />

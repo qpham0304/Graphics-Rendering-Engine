@@ -4,26 +4,27 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm> 
+#include <memory>
 #include "components/headers/Component.h"
 #include "components/headers/ModelComponent.h"
 
-class OpenGLController {
-private:
-	OpenGLController() {};
+namespace OpenGLController {
 
 	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
 	static std::unordered_map<std::string, Shader> shaders;
+	static Camera* cameraController;
+	static std::string selectedID;
 
-public:
-	//static Light light;
-
-	static void render(Camera& camera, Light& light);
-	static void renderShadow(Shader& shadowMapShader, Camera& camera);
-	static std::string addComponent(Component& component);
-	static std::string addComponent(const char* path);
-	static void removeComponent(std::string id);
-	static std::string getActiveComponent();
-	static void addShader();
-	static void removeShader();
+	void render(Camera& camera, Light& light);
+	void renderShadow(Shader& shadowMapShader, Camera& camera);
+	Component* getComponent(std::string id);
+	Component* getSelectedComponent();
+	void setSelectedID(std::string id);
+	std::string addComponent(Component& component);
+	std::string addComponent(const char* path);
+	void updatecomponent(std::string id);
+	void removeComponent(std::string id);
+	void addShader();
+	void removeShader();
 };
 

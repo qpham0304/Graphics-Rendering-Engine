@@ -9,8 +9,6 @@ class ModelComponent : public Component
 private:
 	std::unique_ptr<Model> model_ptr;
 
-	std::vector<Texture> planeTextures;
-
 public:
 	ModelComponent(const char* path);
 	~ModelComponent() = default;

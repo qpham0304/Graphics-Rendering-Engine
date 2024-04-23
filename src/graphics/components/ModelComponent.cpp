@@ -4,6 +4,8 @@ ModelComponent::ModelComponent(const char* path)
 {
 	model_ptr.reset(new Model(path));
 	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag"));
+	const char* fileName = std::strrchr(path, '/');
+	name = fileName + 1;
 }
 
 

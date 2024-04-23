@@ -75,6 +75,7 @@ void ImGuiController::init(GLFWwindow* window, int width, int height)
 	colors[ImGuiCol_Button] = ImVec4(0.303f, 0.303f, 0.303f, 0.540f);
 	colors[ImGuiCol_ButtonHovered] = ImVec4(0.379f, 0.379f, 0.379f, 0.540f);
 	colors[ImGuiCol_ButtonActive] = ImVec4(0.148f, 0.148f, 0.148f, 1.000f);
+	colors[ImGuiCol_DockingEmptyBg] = ImVec4(0.148f, 0.148f, 0.148f, 1.000f);
 
 	std::unique_ptr<MenuWidget> menu = std::make_unique<MenuWidget>();
 	widgets.push_back(std::move(menu));

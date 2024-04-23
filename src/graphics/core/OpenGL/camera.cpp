@@ -84,7 +84,7 @@ void Camera::processKeyboard(GLFWwindow* window) {
 		position += glm::normalize(up) * speed;
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && shiftPressed)
 		position -= glm::normalize(up) * speed;
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && shiftPressed)
 		resetCamera();
 }
 

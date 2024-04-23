@@ -162,7 +162,7 @@
     <ClCompile Include="Libraries\include\ImGuizmo\ImSequencer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\utils\Math.cpp">
+    <ClCompile Include="src\graphics\utils\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -284,7 +284,7 @@
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\utils\headers\Math.h">
+    <ClInclude Include="src\graphics\utils\headers\Utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\gui\headers\LeftSidebarWidget.h">

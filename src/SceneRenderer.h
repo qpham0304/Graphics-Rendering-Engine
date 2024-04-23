@@ -10,7 +10,8 @@
 #include "./graphics/components/headers/PlaneComponent.h"
 #include "./gui/GuiController.h"
 #include "./graphics/GraphicsController.h"
-#include "camera.h"
+#include "./graphics/utils/headers/utils.h"
+#include <camera.h>
 
 enum Platform
 {
@@ -37,12 +38,12 @@ public:
 	static float angle;
 	static float radius;
 	static float angularSpeed;
+	static ImGuizmo::OPERATION GuizmoType;
 
 	static glm::vec4 lightColor;
 	static glm::vec3 lightPos;
 	static float ambient;
 	static int sampleRadius;
-	static Camera* cameraController;
 
 	static ImGuiController guiController;
 	static GLFWwindow* window;
@@ -51,11 +52,11 @@ public:
 	static int start(const char* title);	// start creating windows and context
 	static int end();						// close and terminate the program
 	static int renderScene();				// the main rendering part that run the ui and the graphics
+	static void renderGuizmo(Component& component, const bool drawCube, const bool drawGrid);
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	static void processProgramInput(GLFWwindow* window);
-	static void renderQuad();
-	static void setUniform(Shader& shader, glm::mat4& matrix, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera);
+	static void setUniform(Shader& shader, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera);
 
 };
 
