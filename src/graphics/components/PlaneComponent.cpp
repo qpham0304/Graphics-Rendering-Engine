@@ -1,7 +1,5 @@
 #include "headers/PlaneComponent.h"
 
-
-
 void PlaneComponent::setup() {
 	std::vector<Vertex> planeVertices =
 	{					//     COORDINATES     /        COLORS          /    TexCoord   /        NORMALS       //
@@ -76,12 +74,11 @@ void PlaneComponent::setUniform()
 
 void PlaneComponent::renderShadow(Shader& shader, Camera& camera)
 {
-	shader.setMat4("matrix", modelMatrix);
-	shader.setBool("hasAnimation", false);
+	Component::renderShadow(shader, camera);
 	plane_ptr->Draw(shader, camera);
 }
 
-void PlaneComponent::render(Camera& camera, Light& light)
+void PlaneComponent::render(Camera& camera, const Light& light)
 {
 	Component::render(camera, light);
 	plane_ptr->Draw(*shaderProgram_ptr, camera);

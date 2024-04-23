@@ -1,7 +1,7 @@
 #version 330 core
 layout(location = 0) in vec3 pos;
-layout(location = 1) in vec3 color;
-layout(location = 2) in vec2 tex;
+// layout(location = 1) in vec3 color;
+// layout(location = 2) in vec2 tex;
 layout(location = 3) in vec3 norm;
 // layout (location = 4) in vec3 tangent;
 // layout (location = 5) in vec3 bitangent;
@@ -37,7 +37,7 @@ void main()
     int condition = int(hasAnimation);
 
     // if hasAnimation then apply animation else just have it as vec4(pos, 1.0f);
-    // Todo, test this performance when have time
+    // Todo, test this performance compared to a regular if else when have time
     totalPosition = condition * totalPosition + (1 - condition) * vec4(pos, 1.0f);
 
     gl_Position = lightProjection * matrix * totalPosition;

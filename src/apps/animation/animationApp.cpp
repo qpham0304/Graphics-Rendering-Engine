@@ -6,10 +6,10 @@
 #include "../../graphics/components/headers/SkyboxComponent.h"
 #include "../../graphics/components/headers/PlaneComponent.h"
 #include "../../gui/ImGuiController.h"
+#include <DepthMap.h>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processProgramInput(GLFWwindow* window);
-void Rotate(glm::mat4 matrix, Shader& shader);
 static const unsigned int DEFAULT_WIDTH = 720;
 static const unsigned int DEFAULT_HEIGHT = 1280;
 unsigned int width = DEFAULT_WIDTH;
@@ -59,6 +59,18 @@ void renderQuad()
 	glBindVertexArray(0);
 }
 
+void setUniform(Shader& shader, glm::mat4& matrix, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix) {
+	shader.Activate();
+	glCullFace(GL_FRONT);
+	shader.setMat4("lightProjection", lightCastMatrix);
+	shader.setVec4("lightColor", lightColor);
+	shader.setInt("sampleRadius", sampleRadius);
+	shader.setFloat("ambientIntensity", ambient);
+	shader.setBool("hasAnimation", hasAnimation);
+	shader.setInt("shadowMap", 2);
+	shader.setVec3("lightPos", lightPos);
+	glCullFace(GL_BACK);
+}
 
 int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -87,8 +99,9 @@ int main() {
 
 	width = mode->width * 2 / 3;
 	height = mode->height * 2 / 3;
+
 	GLFWwindow* window = glfwCreateWindow(width, height, "Graphic Engine", NULL, NULL);
-	
+
 	if (window == NULL)
 	{
 		std::cerr << "Failed to create GLFW window" << std::endl;
@@ -104,6 +117,9 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+	glm::vec3 camPos = camera.getPosition();
+
+	cameraController = &camera;
 
 	auto start = std::chrono::high_resolution_clock::now();
 
@@ -115,8 +131,9 @@ int main() {
 	glUniformMatrix4fv(glGetUniformLocation(modelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(objMatrix));
 	glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	Model reimu("Models/reimu/reimu.obj");
+	glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camPos.x, camPos.y, camPos.z);
+	//Model reimu("Models/house-garden-255k/scene.gltf");
+	Model reimu("Models/city-forrest-3.5mil/scene.bin");
 
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
@@ -127,12 +144,9 @@ int main() {
 	aruObjMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 	aruObjMatrix = glm::translate(aruObjMatrix, glm::vec3(-5.0f, 0.25f, 0.0f));
 	aruModelShader.Activate();
-	glUniformMatrix4fv(glGetUniformLocation(aruModelShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(aruObjMatrix));
-	glUniform4f(glGetUniformLocation(aruModelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(aruModelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-	glUniform3f(glGetUniformLocation(aruModelShader.ID, "camPos"), camera.position.x, camera.position.y, camera.position.z);
-	Model aruModel("Models/aru/edited/aru_edited.gltf");
-	Animation aru_animation("Models/aru/edited/aru_edited.gltf", &aruModel);
+	modelShader.setMat4("matrix", aruObjMatrix);
+	Model aruModel("Models/aru/aru.gltf");
+	Animation aru_animation("Models/aru/aru.gltf", &aruModel);
 	Animator aru_animator(&aru_animation);
 
 	SkyboxComponent skybox;
@@ -140,7 +154,7 @@ int main() {
 
 
 	PlaneComponent plane;
-	
+
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
@@ -166,11 +180,7 @@ int main() {
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	float near_plane = 1.0f, far_plane = 12.5f;
-
-
-	debugDepthQuad.Activate();
-	debugDepthQuad.setInt("depthMap", 0);
+	DepthMap depthMap;
 
 	bool show_demo_window = false;
 	bool show_style_editor = false;
@@ -195,23 +205,21 @@ int main() {
 	frameShaderProgram.Activate();
 	frameShaderProgram.setFloat("screenTexture", 0);
 
-
-
-	// Setup Dear ImGui context
-	//IMGUI_CHECKVERSION();
-	//ImGui::CreateContext();
-	//ImGuiIO io;
-	//setupDearImGui(window, io);
 	ImGuiController guiController;
 	guiController.init(window, width, height);
+
+	float near_plane = 1.0f, far_plane = 12.5f;
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+	glm::mat4 lightSpaceMatrix;
+	debugDepthQuad.Activate();
+	debugDepthQuad.setInt("depthMap", 0);
+	debugDepthQuad.setFloat("near_plane", near_plane);
+	debugDepthQuad.setFloat("far_plane", far_plane);
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
-		// Start the Dear ImGui frame
-		//ImGui_ImplOpenGL3_NewFrame();
-		//ImGui_ImplGlfw_NewFrame();
-		//ImGui::NewFrame();
 		guiController.start();
 
 		guiController.render();
@@ -219,37 +227,34 @@ int main() {
 		// main window
 		ImGui::Begin("Another Window", &show_demo_window);  // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 
-			ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
-			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
-			ImGui::SliderFloat3("camera position", &camera.position[0], 0.0f, 20.0f);
-			if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
-				plane.translate(translateVector);
-			}
+		ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
+		ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+		if (ImGui::SliderFloat3("translate", &translateVector[0], -10.0f, 10.0f, 0)) {
+			plane.translate(translateVector);
+		}
 
-			if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
-				plane.scale(scaleVector);
-			}
+		if (ImGui::SliderFloat3("scale", &scaleVector[0], -10.0f, 10.0f, 0)) {
+			plane.scale(scaleVector);
+		}
 
+		if (ImGui::Button("+"))
+			sampleRadius++;
+		ImGui::SameLine();
+		if (ImGui::Button("-") && sampleRadius >= 0)
+			sampleRadius--;
+		ImGui::SameLine();
+		ImGui::Text("counter = %d", sampleRadius);
+		ImGui::Text("Hello from another window!");
+		ImGui::Checkbox("Debug Mode", &debug);
+		ImGui::SameLine();
+		ImGui::Checkbox("Show debug window", &show_debug_window);
+		ImGui::SameLine();
+		ImGui::Checkbox("Camera lock", &camera_control_enabled);
+		ImGui::ColorEdit4("Text Color", &lightColor[0]);
+		ImGui::Checkbox("Enable face culling", &face_culling_enabled);
+		ImGui::Checkbox("draw frame buffer", &draw_frame_buffer);
 
-			if (ImGui::Button("+"))
-				sampleRadius++;
-			ImGui::SameLine();
-			if (ImGui::Button("-") && sampleRadius >= 0)
-				sampleRadius--;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", sampleRadius);
-
-			ImGui::Text("Hello from another window!");
-			ImGui::Checkbox("Debug Mode", &debug);
-			ImGui::SameLine();
-			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::SameLine();
-			ImGui::Checkbox("Camera lock", &camera_control_enabled);
-			ImGui::ColorEdit4("Text Color", &lightColor[0]);
-			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
-			ImGui::Checkbox("draw frame buffer", &draw_frame_buffer);
-
-			ImGui::End();
+		ImGui::End();
 
 		if (show_style_editor)
 			ImGui::ShowStyleEditor();
@@ -261,8 +266,6 @@ int main() {
 				ImGui::BeginChild("Debug Window");
 				// Get the size of the child (i.e. the whole draw size of the windows).
 				ImVec2 wsize = ImGui::GetWindowSize();
-				glActiveTexture(GL_TEXTURE0 + 2);
-				glBindTexture(GL_TEXTURE_2D, shadowMap);
 				ImGui::Image((ImTextureID)shadowMap, wsize, ImVec2(0, 1), ImVec2(1, 0));
 				ImGui::EndChild();
 			}
@@ -291,7 +294,7 @@ int main() {
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		//guiController.end();
+		//guiController.close();
 
 		float currentTime = glfwGetTime();
 		float timeDiff = currentTime - lastTime;
@@ -312,33 +315,25 @@ int main() {
 			camera.cameraViewUpdate();
 		}
 
-		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-		
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		// render scene from light's point of view
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glActiveTexture(GL_TEXTURE0);
 
-		glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		glm::mat4 lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
-		Light light = Light(lightPos, lightColor, ambient);
-		light.lightProjection = lightSpaceMatrix;
+		lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
+		Light light = Light(lightPos, lightColor, ambient, lightSpaceMatrix);
 
 		shadowMapShader.Activate();
 		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
-		
+
 		plane.renderShadow(shadowMapShader, camera);
 		shadowMapShader.setMat4("matrix", plane.getModelMatrix());
 		shadowMapShader.setBool("hasAnimation", false);
-		
+
 		shadowMapShader.setMat4("matrix", objMatrix);
 		shadowMapShader.setBool("hasAnimation", false);
-		
+
 		reimu.Draw(shadowMapShader, camera);
 		shadowMapShader.setBool("hasAnimation", true);
 		shadowMapShader.setMat4("matrix", aruObjMatrix);
@@ -349,6 +344,8 @@ int main() {
 		aruModel.Draw(shadowMapShader, camera);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		framebuffer.Bind();
 
 		// reset viewport
 		if (face_culling_enabled) {
@@ -365,8 +362,6 @@ int main() {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		debugDepthQuad.Activate();
-		debugDepthQuad.setFloat("near_plane", near_plane);
-		debugDepthQuad.setFloat("far_plane", far_plane);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, shadowMap);
 		if (debug) renderQuad();
@@ -380,63 +375,42 @@ int main() {
 		lf = cf;
 		aru_animator.UpdateAnimation(dt);
 
-
-		modelShader.Activate();
-		glCullFace(GL_FRONT);
-		modelShader.setMat4("lightProjection", lightSpaceMatrix);
-		modelShader.setVec4("lightColor", lightColor);
-		modelShader.setInt("sampleRadius", sampleRadius);
-		modelShader.setFloat("ambientIntensity", ambient);
-		modelShader.setBool("hasAnimation", false);
-		modelShader.setInt("shadowMap", 2);
-		modelShader.setVec3("lightPos", lightPos);
-		glCullFace(GL_BACK);
-
+		setUniform(modelShader, objMatrix, false, light, lightSpaceMatrix);
 		reimu.Draw(modelShader, camera);
+
 		plane.render(camera, light);
 
-		aruModelShader.Activate();
-		aruModelShader.setMat4("lightProjection", lightSpaceMatrix);
-		aruModelShader.setVec4("lightColor", lightColor);
-		aruModelShader.setInt("sampleRadius", sampleRadius);
-		aruModelShader.setFloat("ambientIntensity", ambient);
-		aruModelShader.setBool("hasAnimation", true);
-		aruModelShader.setInt("shadowMap", 2);
-		aruModelShader.setVec3("lightPos", lightPos);
-		aruModelShader.setVec3("camPos", camera.position);
-
+		setUniform(aruModelShader, objMatrix, true, light, lightSpaceMatrix);
 		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms.size(); ++i)
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
 
-		skybox.render(camera);
-		
-		
-		framebuffer.Bind();
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_DEPTH_TEST);
+		//skybox.render(camera);
 
-		reimu.Draw(modelShader, camera);
-		aruModel.Draw(aruModelShader, camera);
-		plane.render(camera, light);
+		//glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glEnable(GL_DEPTH_TEST);
+		//reimu.Draw(modelShader, camera);
+		//aruModel.Draw(aruModelShader, camera);
+		//plane.render(camera, light);
 		skybox.render(camera);
+
+		//if (draw_frame_buffer) {
+		//	frameShaderProgram.Activate();
+		//	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
+		//	glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
+		//	glActiveTexture(GL_TEXTURE0);
+		//	renderQuad();
+		//}
 
 		framebuffer.Unbind();
 
-		if (draw_frame_buffer) {
-			frameShaderProgram.Activate();
-			glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
-			glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-			glActiveTexture(GL_TEXTURE0);
-			renderQuad();
-		}
 
 
-		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 		processProgramInput(window);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -464,20 +438,6 @@ void framebuffer_size_callback(GLFWwindow* window, int w, int h)
 {
 	width = w;
 	height = h;
+	cameraController->updateViewResize(width, height);
 	glViewport(0, 0, width, height);
 }
-
-void Rotate(glm::mat4 matrix, Shader& shader) {
-	float currentFrame = glfwGetTime();
-	float deltaTime = currentFrame - lastFrame;
-	lastFrame = currentFrame;
-
-	float rotationSpeed = 1;
-	rotationAngle += deltaTime * rotationSpeed;
-
-	matrix = glm::rotate(matrix, rotationAngle, glm::vec3(0.0f, 1.0f, 0.0f));
-	shader.setMat4("matrix", matrix);
-
-}
-
-

@@ -56,7 +56,7 @@ glm::mat4 Camera::getViewMatrix()
 	return view;
 }
 
-glm::mat4 Camera::projectionMatrix()
+glm::mat4 Camera::getProjectionMatrix()
 {
 	return projection;
 }
@@ -84,7 +84,7 @@ void Camera::processKeyboard(GLFWwindow* window) {
 		position += glm::normalize(up) * speed;
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && shiftPressed)
 		position -= glm::normalize(up) * speed;
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && shiftPressed)
 		resetCamera();
 }
 
@@ -102,7 +102,7 @@ void Camera::processMouse(GLFWwindow* window) {
 	
 	instance = this;
 
-	glfwSetScrollCallback(window, scrollcb);
+	//glfwSetScrollCallback(window, scrollcb);
 	//glfwSetCursorPosCallback(window, mousecb);
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)

@@ -132,7 +132,8 @@ int main() {
 	glUniform4f(glGetUniformLocation(modelShader.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	glUniform3f(glGetUniformLocation(modelShader.ID, "camPos"), camPos.x, camPos.y, camPos.z);
-	Model reimu("Models/reimu/reimu.obj");
+	//Model reimu("Models/house-garden-255k/scene.gltf");
+	Model reimu("Models/city-forrest-3.5mil/scene.bin");
 
 
 	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
@@ -144,8 +145,8 @@ int main() {
 	aruObjMatrix = glm::translate(aruObjMatrix, glm::vec3(-5.0f, 0.25f, 0.0f));
 	aruModelShader.Activate();
 	modelShader.setMat4("matrix", aruObjMatrix);
-	Model aruModel("Models/aru/edited/aru_edited.gltf");
-	Animation aru_animation("Models/aru/edited/aru_edited.gltf", &aruModel);
+	Model aruModel("Models/aru/aru.gltf");
+	Animation aru_animation("Models/aru/aru.gltf", &aruModel);
 	Animator aru_animator(&aru_animation);
 
 	SkyboxComponent skybox;
@@ -385,7 +386,7 @@ int main() {
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
 		aruModel.Draw(aruModelShader, camera);
 
-		skybox.render(camera);
+		//skybox.render(camera);
 
 		//glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -393,7 +394,7 @@ int main() {
 		//reimu.Draw(modelShader, camera);
 		//aruModel.Draw(aruModelShader, camera);
 		//plane.render(camera, light);
-		//skybox.render(camera);
+		skybox.render(camera);
 
 		//if (draw_frame_buffer) {
 		//	frameShaderProgram.Activate();

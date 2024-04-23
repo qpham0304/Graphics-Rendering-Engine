@@ -40,6 +40,7 @@ public:
 
     std::map<std::string, BoneInfo> GetBoneInfoMap();
     int& GetBoneCount();
+    int getCountDrawCall();
     std::map<std::string, BoneInfo> m_BoneInfoMap;
 
 private:
@@ -48,6 +49,8 @@ private:
     std::string directory;
     std::vector<Texture> textures;
     int m_BoneCounter = 0;
+    int countDrawCall = 0;
+
 
 
     void loadModel(std::string path);

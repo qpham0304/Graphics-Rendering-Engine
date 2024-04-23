@@ -62,7 +62,7 @@ public:
 	glm::vec3 getPosition();
 	glm::vec3 getOrientation();
 	glm::mat4 getViewMatrix();
-	glm::mat4 projectionMatrix();
+	glm::mat4 getProjectionMatrix();
 	glm::mat4 getMVP();
 	
 	void updateViewResize(int width, int height);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <mesh.h>
 #include <model.h>
 #include "component.h"
 
@@ -18,7 +17,7 @@ public:
 	PlaneComponent(glm::vec3 scale);
 
 	void setUniform();
-	void render(Camera& camera, Light& light);
-	void renderShadow(Shader& shader, Camera &camera);
+	void render(Camera& camera, const Light& light) override;
+	void renderShadow(Shader& shader, Camera &camera) override;
 };
 

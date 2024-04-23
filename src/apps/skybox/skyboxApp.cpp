@@ -23,6 +23,7 @@ float deltaTime = 0;
 
 // camera
 Camera camera(width, height, glm::vec3(0.0f, 0.0f, 3.0f));
+glm::vec3 camPos = camera.getPosition();
 
 Camera* cameraController = nullptr;
 
@@ -195,7 +196,7 @@ int main() {
 	glUniformMatrix4fv(glGetUniformLocation(cubeShader.ID, "matrix"), 1, GL_FALSE, glm::value_ptr(cubeMatrix));
 	glUniform4f(glGetUniformLocation(cubeShader.ID, "lightColor"), lightColor.x, lightColor.x, lightColor.x, lightColor.w);
 	glUniform3f(glGetUniformLocation(cubeShader.ID, "lightPos"), lightPos.x, lightPos.x, lightPos.x);
-	glUniform3f(glGetUniformLocation(cubeShader.ID, "camPos"), camera.position.x, camera.position.x, camera.position.x);
+	glUniform3f(glGetUniformLocation(cubeShader.ID, "camPos"), camPos.x, camPos.x, camPos.x);
 
 
 	Shader modelShader("Shaders/cubemap.vert", "Shaders/cubemap.frag");
@@ -221,7 +222,7 @@ int main() {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	
+
 	// shader configuration
 	// --------------------
 	shader.Activate();
@@ -248,8 +249,8 @@ int main() {
 		// camera inputs
 		camera.processInput(window);
 		camera.cameraViewUpdate();
-		glm::mat4 projection = camera.projection;
-		glm::mat4 viewMatrix = camera.view;
+		glm::mat4 projection = camera.projectionMatrix();
+		glm::mat4 viewMatrix = camera.getViewMatrix();
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 mvp = projection * viewMatrix;
 
@@ -269,19 +270,18 @@ int main() {
 		modelShader.Activate();
 		modelShader.setMat4("model", objMatrix);
 		modelShader.setMat4("mvp", mvp);
-		modelShader.setVec3("camPos", camera.position);
+		modelShader.setVec3("camPos", camPos);
 		ourModel.Draw(modelShader, camera);
 
 		// cubes
 		shader.Activate();
 		shader.setMat4("model", model);
 		shader.setMat4("mvp", mvp);
-		shader.setVec3("camPos", camera.position);
+		shader.setVec3("camPos", camPos);
 		glBindVertexArray(cubeVAO);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture.ID);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-		//Rotate(lastFrame, rotationAngle, glm::mat4(1.0f), shader);
 		glBindVertexArray(0);
 
 

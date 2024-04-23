@@ -12,9 +12,29 @@ Shader& Shader::operator=(const Shader& other) {
 }
 
 
+static bool validateFormat(const char* str) {
+	size_t len = std::strlen(str);
+	if (len >= 5)	// .frag and .vert length
+		return std::strcmp(str + len - 5, ".vert") == 0 || std::strcmp(str + len - 5, ".frag") == 0;
+	return false;
+}
+
 // Constructor that build the Shader Program from 2 different shaders
 Shader::Shader(const char* vertexFile, const char* fragmentFile)
 {
+	//TODO properly validate format 
+	//if false, use a default shader or something to prevent crash maybe?
+	if (!(validateFormat(vertexFile) && validateFormat(fragmentFile))) {
+		std::cerr << "invalid file format, must be .frag or .vert" << std::endl;
+	}
+
+	const char* fileName = std::strrchr(fragmentFile, '/');
+	if (fileName != nullptr)
+		type = fileName + 1;
+	else
+		type = fragmentFile;
+	type = type.substr(0, type.size() - 5);
+
 	// Read vertexFile and fragmentFile and store the strings
 	std::string vertexCode = get_file_contents(vertexFile);
 	std::string fragmentCode = get_file_contents(fragmentFile);

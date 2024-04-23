@@ -49,6 +49,11 @@ void Mesh::setup()
     glBindVertexArray(0);
 }
 
+int Mesh::getCountDrawCall()
+{
+    return countDrawCall;
+}
+
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
 {
 	this->vertices = vertices;
@@ -87,25 +92,25 @@ void Mesh::Draw(Shader& shader, Camera& camera)
             textures[i].Bind();
         }
     }
-    else {
+    else
         shader.setBool("useTexture", false);
-    }
 
     // setup the camer mvp
-    shader.setVec3("camPos", camera.getPosition());
-    shader.setMat4("mvp", camera.getMVP());
-    //camera.cameraViewObject(shader, "mvp");
+    //shader.setVec3("camPos", camera.getPosition());
+    //shader.setMat4("mvp", camera.getMVP());
 
     // draw mesh
     glBindVertexArray(VAO);
 
-    if(!indices.empty())
+    if (!indices.empty()) {
         glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-    else
+        countDrawCall = indices.size() / 3;
+    }
+    else {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
+        countDrawCall = vertices.size() / 3;
+    }
     
     glBindVertexArray(0);
-
-    // always good practice to set everything back to defaults once configured.
     glActiveTexture(GL_TEXTURE0);
 }

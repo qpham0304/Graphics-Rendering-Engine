@@ -28,6 +28,7 @@ class Mesh
 {
 private:
 	unsigned int VAO, VBO, EBO;
+	int countDrawCall = 0;
 
 	void setup();
 
@@ -36,6 +37,7 @@ public:
 	std::vector<GLuint> indices;
 	std::vector<Texture> textures;
 
+	int getCountDrawCall();
 	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
 
 	void Draw(Shader& shader, Camera& camera);

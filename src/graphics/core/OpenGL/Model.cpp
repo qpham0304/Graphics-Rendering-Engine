@@ -3,24 +3,33 @@
 Model::Model(const char* path)
 {
     loadModel(path);
-    std::cout << "load model success " << path << '\n';
 }
 
 void Model::Draw(Shader& shader, Camera& camera)
 {
-	for (unsigned int i = 0; i < meshes.size(); i++)
+    countDrawCall = 0;
+    for (unsigned int i = 0; i < meshes.size(); i++) {
 		meshes[i].Draw(shader, camera);
+        countDrawCall += meshes[i].getCountDrawCall();
+    }
+}
+
+int Model::getCountDrawCall()
+{
+    return countDrawCall;
 }
 
 void Model::loadModel(std::string path)
 {
+
     Assimp::Importer import;
     const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        std::cout << "ERROR::ASSIMP::" << import.GetErrorString() << '\n';
+        std::cout << "Model Loading failed: ERROR::ASSIMP::" << import.GetErrorString() << '\n';
         return;
     }
+    std::cout << "Model loading success " << path << '\n';
     directory = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
