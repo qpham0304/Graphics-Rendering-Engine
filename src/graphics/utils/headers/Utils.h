@@ -4,6 +4,8 @@
 #include <string>
 #include <random>
 #include <sstream>
+#include <windows.h>
+#include <shobjidl.h> 
 
 namespace Utils::Math {
 
@@ -24,5 +26,10 @@ namespace Utils::uuid {
 
 namespace Utils::Draw {
     void drawQuad();
+
+}
+
+namespace Utils::Window {
+    std::string WindowFileDialog();
 
 }

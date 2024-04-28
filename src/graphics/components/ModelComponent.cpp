@@ -20,6 +20,11 @@ void ModelComponent::renderShadow(Shader& shader, Camera& camera)
 	model_ptr->Draw(shader, camera);
 }
 
+void ModelComponent::loadAnimation()
+{
+
+}
+
 void ModelComponent::render(Camera& camera, const Light& light)
 {
 	Component::render(camera, light);

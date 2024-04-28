@@ -57,7 +57,6 @@ public:
 
 	// getter
 	glm::mat4 getModelMatrix();
-	bool getSelectedState();
 	bool getShowAxisState();
 	std::vector<std::string> uniforms();
 	void select();

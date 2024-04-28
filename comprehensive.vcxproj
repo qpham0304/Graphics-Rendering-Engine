@@ -74,18 +74,34 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\ImGuizmo;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\DirectX;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\Vulkan;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\OpenGL;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\ImGuizmo;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\DirectX;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\Vulkan;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\OpenGL;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\ImGuizmo;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\DirectX;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\Vulkan;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\OpenGL;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\ImGuizmo;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\DirectX;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\Vulkan;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers\OpenGL;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui\backends;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include\imgui;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Headers;C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\tomor\Desktop\Projects\C++\OpenGL-projs\comprehensive\Libraries\lib;$(LibraryPath)</LibraryPath>
+    <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
+    <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -196,7 +212,6 @@
     <ClCompile Include="src\graphics\core\OpenGL\Shader.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\stb.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Texture.cpp" />
-    <ClCompile Include="src\graphics\components\Triangle.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\VAO.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\VBO.cpp" />
     <ClCompile Include="src\gui\widgets\Widget.cpp" />
@@ -236,7 +251,6 @@
     <ClInclude Include="Headers\OpenGL\resource.h" />
     <ClInclude Include="Headers\OpenGL\Shader.h" />
     <ClInclude Include="Headers\OpenGL\Texture.h" />
-    <ClInclude Include="Headers\OpenGL\Triangle.h" />
     <ClInclude Include="Headers\OpenGL\VAO.h" />
     <ClInclude Include="Headers\OpenGL\VBO.h" />
     <ClInclude Include="Headers\OpenGL\skybox.h" />

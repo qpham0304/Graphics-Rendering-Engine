@@ -176,7 +176,7 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
     auto& boneInfoMap = m_BoneInfoMap;
     int& boneCount = m_BoneCounter;
 
-    for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
     {
 
         int boneID = -1;

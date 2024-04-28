@@ -17,7 +17,7 @@ Animation::Animation(const std::string& animationPath, Model* model)
     //TODO: hard coded for now, do something for multiple animations loading dynamically(swap animation at run time)
     aiAnimation* animation = nullptr;
 
-    int index = 6;
+    unsigned int index = 6;
     if (scene->mNumAnimations > index)
         animation = scene->mAnimations[index];
     else
@@ -83,7 +83,7 @@ void Animation::ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
     dest.transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
     dest.childrenCount = src->mNumChildren;
 
-    for (int i = 0; i < src->mNumChildren; i++)
+    for (unsigned int i = 0; i < src->mNumChildren; i++)
     {
         AssimpNodeData newData;
         ReadHierarchyData(newData, src->mChildren[i]);

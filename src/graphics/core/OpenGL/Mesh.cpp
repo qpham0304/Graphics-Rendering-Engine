@@ -104,11 +104,11 @@ void Mesh::Draw(Shader& shader, Camera& camera)
 
     if (!indices.empty()) {
         glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-        countDrawCall = indices.size() / 3;
+        countDrawCall = static_cast<int>(indices.size() / 3);
     }
     else {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, vertices.size());
-        countDrawCall = vertices.size() / 3;
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(vertices.size()));
+        countDrawCall = static_cast<int>(vertices.size() / 3);
     }
     
     glBindVertexArray(0);

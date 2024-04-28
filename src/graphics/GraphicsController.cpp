@@ -67,8 +67,12 @@ void OpenGLController::updatecomponent(std::string id)
 
 void OpenGLController::removeComponent(std::string id)
 {
-	if (components.find(id) == components.end()) {
+	if (components.find(id) != components.end()) {
 		components[id].reset();
+		components.erase(id);
+	}
+	else {
+		std::cerr << "could not find the selected index to delete \n";
 	}
 }
 
@@ -85,4 +89,8 @@ void OpenGLController::removeShader()
 void OpenGLController::setSelectedID(std::string id)
 {
 	selectedID = id;
+}
+
+std::string OpenGLController::getSelectedID() {
+	return selectedID;
 }

@@ -1,6 +1,6 @@
 #include "camera.h"
 
-Camera::Camera(float width, float height, glm::vec3 position, glm::vec3 orientation)
+Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
 {
 	this->width = width;
 	this->height = height;
@@ -12,7 +12,7 @@ Camera::Camera(float width, float height, glm::vec3 position, glm::vec3 orientat
 	this->lastY = height / 2;
 }
 
-Camera::Camera(float width, float height, glm::vec3 position)
+Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position)
 {
 	this->width = width;
 	this->height = height;
@@ -25,13 +25,13 @@ Camera::Camera(float width, float height, glm::vec3 position)
 
 void Camera::cameraViewUpdate()
 {
-	float currentFrame = glfwGetTime();
+	double currentFrame = glfwGetTime();
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
-	speed = 2.5f * deltaTime;
+	speed = 2.5f * deltaTime * speedMultiplier;
 
 	view = glm::lookAt(position, position + orientation, up);
-	projection = glm::perspective(glm::radians(fov), width / height, nearPlane, farPlane);
+	projection = glm::perspective(glm::radians(fov), (float) width / height, nearPlane, farPlane);
 	mvp = projection * view;
 }
 
@@ -124,13 +124,17 @@ void Camera::resetCamera()
 	position = defaultPosition;
 	orientation = defaultOrientation;
 	speed = DEFAULT_SPEED;
-	mouseSpeed = DEFAULT_MOUSESPEED;
 	sensitivity = DEFAULT_SENSITIVITY;
 	yaw = DEFAULT_YAW;
 	pitch = DEFAULT_PITCH;
 	fov = DEFAULT_FOV;
 	nearPlane = DEFAULT_NEARPLANE;
 	farPlane = DEFAULT_FARPLANE;
+}
+
+void Camera::setCameraSpeed(int speedMultiplier)
+{
+	this->speedMultiplier = speedMultiplier;
 }
 
 

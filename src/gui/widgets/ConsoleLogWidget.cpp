@@ -27,6 +27,9 @@ void ConsoleLogWidget::render()
 	//ImGui::SetNextItemAllowOverlap();
 	//ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
 
+	ImGui::Begin("Assets");
+	ImGui::Text("assets placeholder");
+	ImGui::End();
 
 
 

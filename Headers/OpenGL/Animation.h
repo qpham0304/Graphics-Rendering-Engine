@@ -25,9 +25,9 @@ public:
 
 	Bone* FindBone(const std::string& name);
 
-	inline float GetTicksPerSecond() { return m_TicksPerSecond; }
+	inline float GetTicksPerSecond() { return static_cast<float>(m_TicksPerSecond); }
 
-	inline float GetDuration() { return m_Duration; }
+	inline float GetDuration() { return static_cast<float>(m_Duration); }
 
 	inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
 
@@ -41,8 +41,8 @@ private:
 	void ReadMissingBones(const aiAnimation* animation, Model& model);
 
 	void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);
-	float m_Duration = 0.0f;
-	int m_TicksPerSecond;
+	double m_Duration = 0.0f;
+	double m_TicksPerSecond;
 	std::vector<Bone> m_Bones;	// joint animations
 	AssimpNodeData m_RootNode;	// joint transformation
 	std::map<std::string, BoneInfo> m_BoneInfoMap;

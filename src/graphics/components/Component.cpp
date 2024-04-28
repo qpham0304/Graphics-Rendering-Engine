@@ -92,11 +92,6 @@ glm::mat4 Component::getModelMatrix()
 	return modelMatrix;
 }
 
-bool Component::getSelectedState()
-{
-	return selected;
-}
-
 bool Component::getShowAxisState()
 {
 	return showAxis;

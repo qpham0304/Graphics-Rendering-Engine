@@ -3,46 +3,7 @@
 
 #include <windows.h>
 #include <shobjidl.h> 
-
-std::string WindowFileDialog(HWND hwnd) {
-    std::string filePath;
-
-    IFileOpenDialog* pFileOpen = NULL;
-    HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-    if (SUCCEEDED(hr)) {
-        // Set options for the file dialog
-        DWORD dwFlags;
-        hr = pFileOpen->GetOptions(&dwFlags);
-        if (SUCCEEDED(hr)) {
-            hr = pFileOpen->SetOptions(dwFlags | FOS_FORCEFILESYSTEM);
-        }
-
-        // Show the file dialog
-        if (SUCCEEDED(hr)) {
-            hr = pFileOpen->Show(hwnd);
-        }
-
-        // Get the selected file path
-        if (SUCCEEDED(hr)) {
-            IShellItem* pItem = NULL;
-            hr = pFileOpen->GetResult(&pItem);
-            if (SUCCEEDED(hr)) {
-                PWSTR pszFilePath = NULL;
-                hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
-                if (SUCCEEDED(hr)) {
-                    // Convert wchar_t* to std::string
-                    std::wstring ws(pszFilePath);
-                    filePath = std::string(ws.begin(), ws.end());
-                    CoTaskMemFree(pszFilePath);
-                }
-                pItem->Release();
-            }
-        }
-        pFileOpen->Release();
-    }
-
-    return filePath;
-}
+#include "../../graphics/utils/headers/Utils.h"
 
 LeftSidebarWidget::LeftSidebarWidget() {
     selectedIndex = 0;
@@ -55,13 +16,7 @@ void LeftSidebarWidget::render()
     if (ImGui::Button("+ Add Object", ImVec2(-1, 0))) {
         
 #if defined(_WIN32)
-        HWND hwnd = ::GetActiveWindow();
-        std::string path = WindowFileDialog(hwnd);
-        for (char& c : path) {
-            if (c == '\\') {
-                c = '/';
-            }
-        }
+        std::string path = Utils::Window::WindowFileDialog();
 #elif defined(__APPLE__) && defined(__MACH__)
         // macOS specific code
 #elif defined(__linux__)
@@ -83,89 +38,101 @@ void LeftSidebarWidget::render()
     //static ImGuiTextFilter filter;
     //filter.Filters;
     //filter.Draw("Search");
+    int currentItem = 0;
+    static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-    bool flag = ImGuiTreeNodeFlags_OpenOnArrow;
-    int prevIndex;
+    static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
+    
+
+    size_t prevIndex;
     for (int i = 0; i < nodes.size(); i++) {
+        ImGuiTreeNodeFlags node_flags = base_flags;
         prevIndex = selectedIndex;
         Component* component = OpenGLController::getComponent(nodes[i]);    // PLS DONT FREE THIS
-        if (selectedIndex == i) {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 1.0f, 1.0f));
-            prevIndex = selectedIndex;
-        }
-        else {
-            ImGui::SetNextItemOpen(false);
-        }
-        if (ImGui::TreeNodeEx(component->getName().c_str(), ImGuiTreeNodeFlags_OpenOnArrow))
-        {
-            if (ImGui::IsItemClicked())
-            {
-                selectedIndex = i;
+        if (component != nullptr) {
+            if (selectedIndex == i) {
+                //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.000f, 0.682f, 0.000f, 0.949f));
+                prevIndex = selectedIndex;
+                node_flags |= ImGuiTreeNodeFlags_Selected;
             }
-            selectedIndex == i ? component->select() : component->unSelect();
-
-
-            static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
-            for (int n = 0; n < IM_ARRAYSIZE(item_names); n++)
+            if (ImGui::TreeNodeEx(component->getName().c_str(), node_flags))
             {
-                const char* item = item_names[n];
-                ImGui::Selectable(item);
+                if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
+                    selectedIndex = i;
+                selectedIndex == i ? component->select() : component->unSelect();
+                //if(component->isSelected())
+                //    node_flags |= ImGuiTreeNodeFlags_Selected;
 
-                if (ImGui::IsItemActive() && !ImGui::IsItemHovered())
+                static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
+                for (int n = 0; n < IM_ARRAYSIZE(item_names); n++)
                 {
-                    int n_next = n + (ImGui::GetMouseDragDelta(0).y < 0.f ? -1 : 1);
-                    if (n_next >= 0 && n_next < IM_ARRAYSIZE(item_names))
+                    const char* item = item_names[n];
+                    ImGui::Selectable(item);
+
+                    if (ImGui::IsItemActive())
                     {
-                        item_names[n] = item_names[n_next];
-                        item_names[n_next] = item;
-                        ImGui::ResetMouseDragDelta();
+                        int n_next = n + (ImGui::GetMouseDragDelta(0).y < 0.f ? -1 : 1);
+                        if (n_next >= 0 && n_next < IM_ARRAYSIZE(item_names))
+                        {
+                            item_names[n] = item_names[n_next];
+                            item_names[n_next] = item;
+                            ImGui::ResetMouseDragDelta();
+                        }
                     }
                 }
+                ImGui::TreePop();
             }
-            ImGui::TreePop();
         }
-        if (prevIndex == i)
-            ImGui::PopStyleColor();
+        
+        //if (prevIndex == i)
+        //    ImGui::PopStyleColor();
     }
 
     if (ImGui::Begin("Properties")) {
         if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
             Component* component = OpenGLController::getComponent(nodes[selectedIndex]);    // PLS DONT FREE THIS
-            
-            glm::vec3 translateVector(component->translateVector);
-            glm::vec3 scaleVector(component->scaleVector);
-            glm::vec3 rotationVector(component->rotationVector);
-            glm::vec3 dummy;
-            
-            OpenGLController::setSelectedID(nodes[selectedIndex]);
-            ImGui::Text(component->getName().c_str());
-            if (ImGui::SliderFloat3("Translate", &translateVector[0], -10.0f, 10.0f, 0))
-                component->translate(translateVector);
-            if (ImGui::SliderFloat3("Scale", &scaleVector[0], 0.0f, 10.0f, 0))
-                component->scale(scaleVector);
-            //if (ImGui::SliderFloat3("Rotate", &rotationVector[0], -10.0f, 10.0f, 0))
-            //    component->rotate(rotationVector);
+            if (component != nullptr) {
+                glm::vec3 translateVector(component->translateVector);
+                glm::vec3 scaleVector(component->scaleVector);
+                glm::vec3 rotationVector(component->rotationVector);
+                glm::vec3 dummy;
 
-            //TODO: place holder for now, add these features later
-            ImGui::Text("Material Properties");
-            if (ImGui::SliderFloat3("Ambient", &dummy[0], -10.0f, 10.0f, 0))
-                component->scale(scaleVector);
-            if (ImGui::SliderFloat3("Diffuse", &dummy[0], -10.0f, 10.0f, 0))
-                component->scale(scaleVector);
-            if (ImGui::SliderFloat3("Specular", &dummy[0], -10.0f, 10.0f, 0))
-                component->scale(scaleVector);
-            if (ImGui::SliderFloat3("Shininess", &dummy[0], -10.0f, 10.0f, 0))
-                component->scale(scaleVector);
+                OpenGLController::setSelectedID(nodes[selectedIndex]);
+                //std::cout << "current selectedID: " << OpenGLController::getSelectedID() << "\n";
+
+
+                ImGui::Text(component->getName().c_str());
+
+                if (ImGui::SliderFloat3("Translate", &translateVector[0], -10.0f, 10.0f, 0))
+                    component->translate(translateVector);
+                if (ImGui::DragFloat3("Scale", &scaleVector[0], 0.0f, 10.0f, 0))
+                    component->scale(scaleVector);
+                //if (ImGui::SliderFloat3("Rotate", &rotationVector[0], -10.0f, 10.0f, 0))
+                //    component->rotate(rotationVector);
+
+                //TODO: place holder for now, add these features later
+                ImGui::Text("Material Properties");
+                if (ImGui::SliderFloat3("Ambient", &dummy[0], -10.0f, 10.0f, 0))
+                    component->scale(scaleVector);
+                if (ImGui::SliderFloat3("Diffuse", &dummy[0], -10.0f, 10.0f, 0))
+                    component->scale(scaleVector);
+                if (ImGui::SliderFloat3("Specular", &dummy[0], -10.0f, 10.0f, 0))
+                    component->scale(scaleVector);
+                if (ImGui::SliderFloat3("Shininess", &dummy[0], -10.0f, 10.0f, 0))
+                    component->scale(scaleVector);
+            }
         }
-	    ImGui::End();
     }
+	ImGui::End();
 
-
-    ImGui::Begin("Animation");
-
-
-
+    if (ImGui::Begin("Animation")) {
+        
+    }
     ImGui::End();
 
+
+
 	ImGui::End();
+
+
 }

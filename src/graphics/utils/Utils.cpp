@@ -135,3 +135,50 @@ namespace Utils::Draw {
 		glBindVertexArray(0);
 	}
 }
+
+namespace Utils::Window {
+	std::string WindowFileDialog() {
+		std::string filePath;
+		HWND hwnd = ::GetActiveWindow();
+
+		IFileOpenDialog* pFileOpen = NULL;
+		HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
+		if (SUCCEEDED(hr)) {
+			// Set options for the file dialog
+			DWORD dwFlags;
+			hr = pFileOpen->GetOptions(&dwFlags);
+			if (SUCCEEDED(hr)) {
+				hr = pFileOpen->SetOptions(dwFlags | FOS_FORCEFILESYSTEM);
+			}
+
+			// Show the file dialog
+			if (SUCCEEDED(hr)) {
+				hr = pFileOpen->Show(hwnd);
+			}
+
+			// Get the selected file path
+			if (SUCCEEDED(hr)) {
+				IShellItem* pItem = NULL;
+				hr = pFileOpen->GetResult(&pItem);
+				if (SUCCEEDED(hr)) {
+					PWSTR pszFilePath = NULL;
+					hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFilePath);
+					if (SUCCEEDED(hr)) {
+						// Convert wchar_t* to std::string
+						std::wstring ws(pszFilePath);
+						filePath = std::string(ws.begin(), ws.end());
+						CoTaskMemFree(pszFilePath);
+					}
+					pItem->Release();
+				}
+			}
+			pFileOpen->Release();
+		}
+		for (char& c : filePath) {
+			if (c == '\\') {
+				c = '/';
+			}
+		}
+		return filePath;
+	}
+}

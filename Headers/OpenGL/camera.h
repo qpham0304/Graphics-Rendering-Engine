@@ -11,7 +11,6 @@
 
 //Camera* currentCamera = nullptr;
 static const float DEFAULT_SPEED = 0.1f;
-static const float DEFAULT_MOUSESPEED = 0.005f;
 static const float DEFAULT_SENSITIVITY = 0.1f;;
 static const float DEFAULT_YAW = -90.0f;
 static const float DEFAULT_PITCH = 0.0f;
@@ -38,13 +37,13 @@ private:
 	bool firstClick = true;
 	bool shiftPressed = false;
 
-	float width;
-	float height;
+	int width;
+	int height;
 	float lastX;
 	float lastY;
 
+	float speedMultiplier = 1;
 	float speed = DEFAULT_SPEED;
-	float mouseSpeed = DEFAULT_MOUSESPEED;
 	float sensitivity = DEFAULT_SENSITIVITY;
 	float yaw = DEFAULT_YAW;
 	float pitch = DEFAULT_PITCH;
@@ -56,8 +55,8 @@ private:
 	float lastFrame = 0.0f; // Time of last frame
 public:
 
-	Camera(float width, float height, glm::vec3 position, glm::vec3 orientation);
-	Camera(float width, float height, glm::vec3 position);
+	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
+	Camera(unsigned int width, unsigned int height, glm::vec3 position);
 	void cameraViewUpdate();
 	glm::vec3 getPosition();
 	glm::vec3 getOrientation();
@@ -70,6 +69,7 @@ public:
 	void processKeyboard(GLFWwindow* window);
 	void processMouse(GLFWwindow* window);
 	void resetCamera();
+	void setCameraSpeed(int speedMultiplier);
 
 	//TODO: refactor by moving these to global
 	// create a singleton camera that control and manage the view

@@ -1,13 +1,13 @@
 #include "SceneRenderer.h"
 #include "graphics/components/headers/ModelComponent.h"
 
-unsigned int SceneRenderer::width = 0.0f;
-unsigned int SceneRenderer::height = 0.0f;
+unsigned int SceneRenderer::width = 0;
+unsigned int SceneRenderer::height = 0;
 
 float SceneRenderer::lastFrame = 0.0f;
 float SceneRenderer::lf = 0.0f;
 float SceneRenderer::lastTime = 0.0f;
-unsigned int SceneRenderer::frameCounter = 0.0f;
+unsigned int SceneRenderer::frameCounter = 0;
 float SceneRenderer::rotationAngle = 0.0f;
 float SceneRenderer::angle = 0.0f;
 float SceneRenderer::radius = 0.0f;
@@ -17,7 +17,7 @@ Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
 const Platform SceneRenderer::supportPlatform[] = { PLATFORM_OPENGL };	// add more platform when we support more
 
 float SceneRenderer::ambient = 0.5f;
-int SceneRenderer::sampleRadius = 2.0f;
+int SceneRenderer::sampleRadius = 2;
 glm::vec4 SceneRenderer::lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 SceneRenderer::lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 
@@ -50,7 +50,7 @@ void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, cons
 	if(drawGrid)
 		ImGuizmo::DrawGrid(v, p, glm::value_ptr(identity), 100.f);
 	
-	bool res = ImGuizmo::Manipulate(v, p, (ImGuizmo::OPERATION)GuizmoType, ImGuizmo::WORLD, glm::value_ptr(transform));
+	bool res = ImGuizmo::Manipulate(v, p, (ImGuizmo::OPERATION)GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
 	viewManipulateRight = ImGui::GetWindowPos().x + wd;
 	viewManipulateTop = ImGui::GetWindowPos().y;
 	ImGuizmo::ViewManipulate(v, 5.0f, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
@@ -178,34 +178,10 @@ int SceneRenderer::renderScene() {
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
-	unsigned int shadowMapFBO;
-	glGenFramebuffers(1, &shadowMapFBO);
-
-	unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-	unsigned int shadowMap;
-	glGenTextures(1, &shadowMap);
-	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	DepthMap depthMap;
 
-	bool show_demo_window = false;
-	bool show_style_editor = false;
+
 	bool show_debug_window = true;
-	bool camera_control_enabled = true;
 	bool face_culling_enabled = true;
 	bool draw_frame_buffer = true;
 	bool debug = false;
@@ -232,10 +208,12 @@ int SceneRenderer::renderScene() {
 
 	float near_plane = 1.0f, far_plane = 12.5f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-	glm::mat4 lightSpaceMatrix;
+	glm::mat4 lightMVP;
+	glm::mat4 lightView;
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
+
+	int cameraSpeed = 2;
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
@@ -245,11 +223,12 @@ int SceneRenderer::renderScene() {
 		guiController.start();
 		guiController.render();
 
-		// main window
-
 		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		if (ImGui::Begin("Global Control", &show_demo_window)) {
+		if (ImGui::Begin("Global Control")) {
 			ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
+			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10)) {
+				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
+			}
 			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
 
 			if (ImGui::Button("+"))
@@ -263,9 +242,7 @@ int SceneRenderer::renderScene() {
 			ImGui::Checkbox("Debug Mode", &debug);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::SameLine();
-			ImGui::Checkbox("Camera lock", &camera_control_enabled);
-			ImGui::ColorEdit4("Text Color", &lightColor[0]);
+			ImGui::ColorEdit4("Global Color", &lightColor[0]);
 			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
 			ImGui::Checkbox("Enable animation", &animate_enable);
 			ImGui::Checkbox("Show navigator", &show_navigator);
@@ -279,7 +256,7 @@ int SceneRenderer::renderScene() {
 		}
 
 
-		float currentTime = glfwGetTime();
+		float currentTime = static_cast<float>(glfwGetTime());
 		float timeDiff = currentTime - lastTime;
 		frameCounter++;
 
@@ -294,15 +271,16 @@ int SceneRenderer::renderScene() {
 
 		OpenGLController::cameraController->cameraViewUpdate();
 		// render scene from light's point of view
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+		depthMap.Bind();
+		glViewport(0, 0, depthMap.SHADOW_WIDTH, depthMap.SHADOW_HEIGHT);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glActiveTexture(GL_TEXTURE0);
 
-		lightSpaceMatrix = lightSpaceMatrix = lightProjection * lightView;
-		Light light = Light(lightPos, lightColor, ambient, lightSpaceMatrix, sampleRadius);
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightMVP = lightProjection * lightView;
+		Light light = Light(lightPos, lightColor, ambient, lightMVP, sampleRadius);
 		shadowMapShader.Activate();
-		shadowMapShader.setMat4("lightProjection", lightSpaceMatrix);
+		shadowMapShader.setMat4("mvp", lightMVP);
 
 		if (face_culling_enabled) {
 			glEnable(GL_DEPTH_TEST);
@@ -314,6 +292,7 @@ int SceneRenderer::renderScene() {
 			glDisable(GL_CULL_FACE);
 		}
 
+		glCullFace(GL_FRONT);
 
 		plane.renderShadow(shadowMapShader, *OpenGLController::cameraController);
 		OpenGLController::renderShadow(shadowMapShader, camera);
@@ -326,7 +305,7 @@ int SceneRenderer::renderScene() {
 			shadowMapShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms_shadow[i]);
 		aruModel.Draw(shadowMapShader, camera);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		depthMap.Unbind();
 
 		framebuffer.Bind();
 		// reset viewport
@@ -341,7 +320,6 @@ int SceneRenderer::renderScene() {
 		}
 
 		if (configToggle) {
-			std::cout << "on \n";
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_LINE_SMOOTH);
@@ -353,12 +331,11 @@ int SceneRenderer::renderScene() {
 
 		debugDepthQuad.Activate();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glBindTexture(GL_TEXTURE_2D, depthMap.texture);
 		if (debug) Utils::Draw::drawQuad();
 
 		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
-
+		glBindTexture(GL_TEXTURE_2D, depthMap.texture);
 
 		float cf = glfwGetTime();
 		float dt = cf - lf;
@@ -370,7 +347,7 @@ int SceneRenderer::renderScene() {
 
 		plane.render(camera, light);
 
-		setUniform(aruModelShader, true, light, lightSpaceMatrix, aruObjMatrix, camera);
+		setUniform(aruModelShader, true, light, lightMVP, aruObjMatrix, camera);
 		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms.size(); ++i)
 			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
@@ -388,6 +365,9 @@ int SceneRenderer::renderScene() {
 			ImGui::BeginChild("View window");
 			// Get the size of the child (i.e. the whole draw size of the windows).
 			ImVec2 wsize = ImGui::GetWindowSize();
+			int wWidth = static_cast<int>(ImGui::GetWindowWidth());
+			int wHeight = static_cast<int>(ImGui::GetWindowHeight());
+
 			if (show_post_processing) {
 				postRenderFrame.Bind();
 				if (face_culling_enabled) {
@@ -412,7 +392,7 @@ int SceneRenderer::renderScene() {
 			else
 				ImGui::Image((ImTextureID)framebuffer.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 			// camera inputs
-			OpenGLController::cameraController->updateViewResize(ImGui::GetWindowWidth(), ImGui::GetWindowHeight());
+			OpenGLController::cameraController->updateViewResize(wWidth, wHeight);
 			if (ImGui::IsItemHovered())
 				OpenGLController::cameraController->processInput(window);
 
@@ -439,7 +419,7 @@ int SceneRenderer::renderScene() {
 			// Get the size of the child (i.e. the whole draw size of the windows).
 			ImVec2 wsize = ImGui::GetWindowSize();
 			if (show_debug_window) 
-				ImGui::Image((ImTextureID)shadowMap, wsize, ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::Image((ImTextureID)depthMap.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 			ImGui::EndChild();
 		}
 		ImGui::End();
@@ -467,6 +447,8 @@ void SceneRenderer::processProgramInput(GLFWwindow* window)
 		GuizmoType = ImGuizmo::OPERATION::ROTATE;
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		GuizmoType = ImGuizmo::OPERATION::SCALE;
+	if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS)
+		OpenGLController::removeComponent(OpenGLController::getSelectedID());
 }
 
 void SceneRenderer::framebuffer_size_callback(GLFWwindow* window, int w, int h)

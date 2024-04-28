@@ -9,7 +9,7 @@ layout(location = 6) in ivec4 boneIds;
 layout(location = 7) in vec4 weights;
 
 
-uniform mat4 lightProjection;
+uniform mat4 mvp;
 uniform mat4 matrix;
 
 const int MAX_BONES = 100;
@@ -40,5 +40,5 @@ void main()
     // Todo, test this performance compared to a regular if else when have time
     totalPosition = condition * totalPosition + (1 - condition) * vec4(pos, 1.0f);
 
-    gl_Position = lightProjection * matrix * totalPosition;
+    gl_Position = mvp * matrix * totalPosition;
 } 

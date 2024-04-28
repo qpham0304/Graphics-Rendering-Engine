@@ -11,8 +11,8 @@ class DepthMap {
 private:
 	float shadowCalculation(glm::vec4 fragPosLightSpace);
 public:
-	const GLuint SHADOW_HEIGHT = 2048;
-	const GLuint SHADOW_WIDTH = 2048;
+	const GLuint SHADOW_HEIGHT = 8192;
+	const GLuint SHADOW_WIDTH = 8192;
 
 	float near_plane = 1.0f, far_plane = 12.5f;
 
