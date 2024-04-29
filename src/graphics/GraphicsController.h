@@ -7,24 +7,32 @@
 #include <memory>
 #include "components/headers/Component.h"
 #include "components/headers/ModelComponent.h"
+#include "components/headers/PlaneComponent.h"
+#include "components/headers/SkyboxComponent.h"
 
-namespace OpenGLController {
-	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
+class OpenGLController {
+private:
 	static std::unordered_map<std::string, Shader> shaders;
-	static Camera* cameraController;
-	static std::string selectedID = "";
+	static std::vector<std::string> lightsID;
+	static std::string selectedID;
+	OpenGLController();
 
-	void render(Camera& camera, Light& light);
-	void renderShadow(Shader& shadowMapShader, Camera& camera);
-	Component* getComponent(std::string id);
-	Component* getSelectedComponent();
-	std::string getSelectedID();
-	void setSelectedID(std::string id);
-	std::string addComponent(Component& component);
-	std::string addComponent(const char* path);
-	void updatecomponent(std::string id);
-	void removeComponent(std::string id);
-	void addShader();
-	void removeShader();
+public:
+	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
+	static Camera* cameraController;
+
+	static void render(Camera& camera, Light& light);
+	static void renderShadow(Shader& shadowMapShader, Light& light);
+	static Component* getComponent(std::string id);
+	static Component* getSelectedComponent();
+	static std::string getSelectedID();
+	static int getNumVertices();
+	static void setSelectedID(std::string id);
+	static std::string addComponent(Component& component);
+	static std::string addComponent(const char* path);
+	static void updatecomponent(std::string id);
+	static void removeComponent(std::string id);
+	static void addShader();
+	static void removeShader();
 };
 

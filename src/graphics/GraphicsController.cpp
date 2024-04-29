@@ -1,20 +1,28 @@
 #include "GraphicsController.h"
 
-//std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
-//std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
+std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
+std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
+std::vector<std::string> OpenGLController::lightsID = {};
+Camera* OpenGLController::cameraController = nullptr;
+std::string OpenGLController::selectedID = "";
+
 //Light OpenGLController::light;
 
 void OpenGLController::render(Camera& camera, Light& light)
 {
+	//skybox->setUniform();
 	for (auto& pair: components) {
 		pair.second->render(camera, light);
 	}
+	//skybox->render(camera);
 }
 
-void OpenGLController::renderShadow(Shader& shadowMapShader, Camera& camera)
+void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
 {
+	shadowMapShader.Activate();
+	shadowMapShader.setMat4("mvp", light.mvp);
 	for (auto& pair : components) {
-		pair.second->renderShadow(shadowMapShader, camera);
+		pair.second->renderShadow(shadowMapShader);
 	}
 }
 
@@ -42,21 +50,27 @@ std::string OpenGLController::addComponent(Component& component)
 	//	components[id] = std::move(c);
 	//}
 	//std::cout << "component already exist: " << components[id].getID() << "\n";
+	//components[id] = std::move(c);
+
 	return id;
 }
 
 std::string OpenGLController::addComponent(const char* path)
 {
-	std::unique_ptr<ModelComponent> component = std::make_unique<ModelComponent>(path);
-	std::string id = component->getID();
-	
-	// assume all the model loaded model works as expected
-	// this would still add a component to the map if a model failed to load
-	if (components.find(component->getID()) == components.end()) {
-		components[component->getID()] = std::move(component);
-		return id;
+	try {
+		std::unique_ptr<ModelComponent> component = std::make_unique<ModelComponent>(path);
+		std::string id = component->getID();
+
+		// assume all the model loaded model works as expected
+		// this would still add a component to the map if a model failed to load
+		if (components.find(component->getID()) == components.end()) {
+			components[component->getID()] = std::move(component);
+			return id;
+		}
 	}
-	return "";
+	catch (const std::runtime_error& e) {
+		return "";
+	}
 }
 
 void OpenGLController::updatecomponent(std::string id)
@@ -84,6 +98,15 @@ void OpenGLController::addShader()
 void OpenGLController::removeShader()
 {
 
+}
+
+int OpenGLController::getNumVertices()
+{
+	int countVertices = 0;
+	for (auto& pair : components) {
+		countVertices += pair.second->getNumVertices();
+	}
+	return countVertices;
 }
 
 void OpenGLController::setSelectedID(std::string id)

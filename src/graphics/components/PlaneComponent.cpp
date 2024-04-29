@@ -72,15 +72,15 @@ void PlaneComponent::setUniform()
 
 }
 
-void PlaneComponent::renderShadow(Shader& shader, Camera& camera)
+void PlaneComponent::renderShadow(Shader& shader)
 {
-	Component::renderShadow(shader, camera);
-	plane_ptr->Draw(shader, camera);
+	Component::renderShadow(shader);
+	plane_ptr->Draw(shader);
 }
 
 void PlaneComponent::render(Camera& camera, const Light& light)
 {
 	Component::render(camera, light);
-	plane_ptr->Draw(*shaderProgram_ptr, camera);
+	plane_ptr->Draw(*shaderProgram_ptr);
 
 }

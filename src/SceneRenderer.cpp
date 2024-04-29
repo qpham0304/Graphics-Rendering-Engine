@@ -1,20 +1,12 @@
 #include "SceneRenderer.h"
 #include "graphics/components/headers/ModelComponent.h"
 
-unsigned int SceneRenderer::width = 0;
-unsigned int SceneRenderer::height = 0;
+unsigned int SceneRenderer::width = DEFAULT_WIDTH;
+unsigned int SceneRenderer::height = DEFAULT_HEIGHT;
 
-float SceneRenderer::lastFrame = 0.0f;
-float SceneRenderer::lf = 0.0f;
-float SceneRenderer::lastTime = 0.0f;
-unsigned int SceneRenderer::frameCounter = 0;
-float SceneRenderer::rotationAngle = 0.0f;
-float SceneRenderer::angle = 0.0f;
-float SceneRenderer::radius = 0.0f;
-float SceneRenderer::angularSpeed = 0.0f;
 ImGuizmo::OPERATION SceneRenderer::GuizmoType = ImGuizmo::TRANSLATE;
 Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
-const Platform SceneRenderer::supportPlatform[] = { PLATFORM_OPENGL };	// add more platform when we support more
+const std::set<Platform> SceneRenderer::supportPlatform = { PLATFORM_OPENGL };	// add more platform when we support more
 
 float SceneRenderer::ambient = 0.5f;
 int SceneRenderer::sampleRadius = 2;
@@ -22,8 +14,21 @@ glm::vec4 SceneRenderer::lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 SceneRenderer::lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 
 GLFWwindow* SceneRenderer::window = nullptr;
-
 ImGuiController SceneRenderer::guiController(true);
+
+bool show_debug_window = true;
+bool face_culling_enabled = true;
+bool draw_frame_buffer = true;
+bool debug = false;
+bool animate_enable = true;
+bool show_navigator = true;
+bool show_post_processing = false;
+bool drawCube_enabled = false;
+bool drawGrid_enabled = false;
+bool configToggle = false;
+bool renderShadow = true;
+int cameraSpeed = 2;
+float lf = 0.0f;
 
 void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
 	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
@@ -67,27 +72,10 @@ void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, cons
 	}
 }
 
-void SceneRenderer::setUniform(Shader& shader, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera) {
-	shader.Activate();
-	glCullFace(GL_FRONT);
-	shader.setMat4("lightProjection", lightCastMatrix);
-	shader.setVec4("lightColor", lightColor);
-	shader.setInt("sampleRadius", sampleRadius);
-	shader.setFloat("ambientIntensity", ambient);
-	shader.setBool("hasAnimation", hasAnimation);
-	shader.setInt("shadowMap", 2);
-	shader.setVec3("lightPos", lightPos);
-	shader.setMat4("matrix", modelMatrix);
-	shader.setMat4("mvp", camera.getMVP());
-	glCullFace(GL_BACK);
-}
-
 int SceneRenderer::init(Platform platform) {
 	SceneRenderer::platform = platform;
-	for (auto& p : supportPlatform) {
-		if (platform != p) {
-			throw std::runtime_error("Platform unsupported");
-		}
+	if (supportPlatform.find(platform)  == supportPlatform.end()) {
+		throw std::runtime_error("Platform unsupported");
 	}
 
 	if (SceneRenderer::platform == PLATFORM_OPENGL) {
@@ -152,49 +140,55 @@ int SceneRenderer::end() {
 	return 0;
 }
 
+void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light) {
+	shadowMap.Bind();
+	glViewport(0, 0, shadowMap.SHADOW_WIDTH, shadowMap.SHADOW_HEIGHT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+
+	if (face_culling_enabled) {
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+	}
+	else {
+		glDisable(GL_CULL_FACE);
+	}
+
+	glCullFace(GL_FRONT);
+
+	OpenGLController::renderShadow(shadowMapShader, light);
+
+	shadowMap.Unbind();
+}
+
+
+void SceneRenderer::renderObjects() {
+	
+}
+
+
 int SceneRenderer::renderScene() {
 	glViewport(0, 0, width, height);
 	glEnable(GL_DEPTH_TEST);
 
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
 	OpenGLController::cameraController = &camera;
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
-	glm::mat4 aruObjMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
-	aruModelShader.Activate();
-	aruModelShader.setMat4("matrix", aruObjMatrix);
-	Model aruModel("Models/aru/aru.gltf");
-	Animation aru_animation("Models/aru/aru.gltf", &aruModel);
-	Animator aru_animator(&aru_animation);
-
+	
 	SkyboxComponent skybox("Textures/skybox");
 	skybox.setUniform();
 
-
-	PlaneComponent plane;
+	glm::vec3 translate(5.0f, 0.0f, 2.0f);
+	OpenGLController::addComponent("Models/cube/cube.obj");
+	std::string id = OpenGLController::addComponent("Models/aru/aru.gltf");
+	OpenGLController::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
+	OpenGLController::getComponent(id)->translate(translate);
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
 	DepthMap depthMap;
-
-
-	bool show_debug_window = true;
-	bool face_culling_enabled = true;
-	bool draw_frame_buffer = true;
-	bool debug = false;
-	bool animate_enable = true;
-	bool show_navigator = true;
-	bool show_post_processing = false;
-	bool drawCube_enabled = false;
-	bool drawGrid_enabled = false;
-	bool configToggle = false;
-
-	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = end - start;
-	std::cout << "-----Time taken to load scene: " << duration.count() << " seconds-----\n";
 
 	FrameBuffer framebuffer(width, height);
 	FrameBuffer postRenderFrame(width, height);
@@ -213,13 +207,10 @@ int SceneRenderer::renderScene() {
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-	int cameraSpeed = 2;
 
 	// Main while loop
 	while (!glfwWindowShouldClose(window))
 	{
-		int countDrawCall = 0;
-
 		guiController.start();
 		guiController.render();
 
@@ -256,76 +247,34 @@ int SceneRenderer::renderScene() {
 		}
 
 
-		float currentTime = static_cast<float>(glfwGetTime());
-		float timeDiff = currentTime - lastTime;
-		frameCounter++;
-
-		if (timeDiff >= 1 / 2) {
-			std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
-			std::string ms = std::to_string((timeDiff / frameCounter) * 1000);
-			std::string updatedTitle = "Graphic Engine - " + FPS + "FPS / " + ms + "ms";
-			glfwSetWindowTitle(window, updatedTitle.c_str());
-			lastTime = currentTime;
-			frameCounter = 0;
-		}
-
-		OpenGLController::cameraController->cameraViewUpdate();
-		// render scene from light's point of view
-		depthMap.Bind();
-		glViewport(0, 0, depthMap.SHADOW_WIDTH, depthMap.SHADOW_HEIGHT);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
-
 		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		lightMVP = lightProjection * lightView;
 		Light light = Light(lightPos, lightColor, ambient, lightMVP, sampleRadius);
-		shadowMapShader.Activate();
-		shadowMapShader.setMat4("mvp", lightMVP);
 
-		if (face_culling_enabled) {
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glFrontFace(GL_CCW);
-		}
-		else {
-			glDisable(GL_CULL_FACE);
-		}
-
-		glCullFace(GL_FRONT);
-
-		plane.renderShadow(shadowMapShader, *OpenGLController::cameraController);
-		OpenGLController::renderShadow(shadowMapShader, camera);
-
-		shadowMapShader.setBool("hasAnimation", true);
-		shadowMapShader.setMat4("matrix", aruObjMatrix);
-
-		auto aru_transforms_shadow = aru_animator.GetFinalBoneMatrices();
-		for (int i = 0; i < aru_transforms_shadow.size(); ++i)
-			shadowMapShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms_shadow[i]);
-		aruModel.Draw(shadowMapShader, camera);
-
-		depthMap.Unbind();
+		OpenGLController::cameraController->cameraViewUpdate();
+		renderShadowScene(depthMap, shadowMapShader, light);
 
 		framebuffer.Bind();
-		// reset viewport
 		if (face_culling_enabled) {
 			glEnable(GL_DEPTH_TEST);
 			glEnable(GL_CULL_FACE);
 			glCullFace(GL_BACK);
 			glFrontFace(GL_CCW);
 		}
-		else {
+		else
 			glDisable(GL_CULL_FACE);
-		}
 
 		if (configToggle) {
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_LINE_SMOOTH);
 			glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		}
+		else
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+		// reset viewport
 		glViewport(0, 0, width, height);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -337,26 +286,15 @@ int SceneRenderer::renderScene() {
 		glActiveTexture(GL_TEXTURE0 + 2);
 		glBindTexture(GL_TEXTURE_2D, depthMap.texture);
 
-		float cf = glfwGetTime();
-		float dt = cf - lf;
-		lf = cf;
+		float currentTime = static_cast<float>(glfwGetTime());
+		float dt = currentTime - lf;
+		lf = currentTime;
 		if (animate_enable)
-			aru_animator.UpdateAnimation(dt);
+			OpenGLController::getComponent(id)->updateAnimation(dt);
 
 		OpenGLController::render(camera, light);
-
-		plane.render(camera, light);
-
-		setUniform(aruModelShader, true, light, lightMVP, aruObjMatrix, camera);
-		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
-		for (int i = 0; i < aru_transforms.size(); ++i)
-			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
-		aruModel.Draw(aruModelShader, camera);
-
 		skybox.render(camera);
-
 		framebuffer.Unbind();
-
 
 		
 		if(ImGui::Begin("Application Window"))
@@ -406,12 +344,11 @@ int SceneRenderer::renderScene() {
 		}
 		ImGui::End();
 
-
-		ImGui::Begin("Debug Window");
+		if(ImGui::Begin("Debug Window"))
 		{
-			std::string countVertices = "Vertices: " + std::to_string(countDrawCall * 3);
+			std::string countVertices = "Vertices: " + std::to_string(OpenGLController::getNumVertices() * 3);
 			ImGui::Text(countVertices.c_str());
-			countVertices = "Triangles: " + std::to_string(countDrawCall);
+			countVertices = "Triangles: " + std::to_string(OpenGLController::getNumVertices());
 			ImGui::Text(countVertices.c_str());
 			// Using a Child allow to fill all the space of the window.
 			// It also alows customization

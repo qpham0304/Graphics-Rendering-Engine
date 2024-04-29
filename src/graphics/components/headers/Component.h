@@ -37,6 +37,8 @@ protected:
 	bool selected;
 	bool showAxis;
 	bool hasAnimation;
+	int countVertices = 0;
+	float deltaTime;
 	std::string id;			// better use true uuid but whatever
 	std::unordered_map<std::string, std::vector<std::string>> attributes;
 
@@ -44,6 +46,7 @@ protected:
 
 public:
 	Component();
+
 	std::unique_ptr<Shader> shaderProgram_ptr;
 	glm::mat4 modelMatrix = glm::mat4(1.0f);
 	glm::vec3 scaleVector = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -53,9 +56,12 @@ public:
 	// renderer
 	virtual void setUniform();
 	virtual void render(Camera& camera, const Light& light);
-	virtual void renderShadow(Shader& shader, Camera& camera);
+	virtual void renderShadow(Shader& shader);
+	virtual void loadAnimation(const char* path);
+	virtual void updateAnimation(float deltaTime);
 
 	// getter
+	int getNumVertices();
 	glm::mat4 getModelMatrix();
 	bool getShowAxisState();
 	std::vector<std::string> uniforms();
@@ -64,6 +70,7 @@ public:
 	bool isSelected();
 	std::string getID();
 	std::string getName();
+	bool canAnimate();
 
 	// setter
 	void swapShader(Shader& shader);

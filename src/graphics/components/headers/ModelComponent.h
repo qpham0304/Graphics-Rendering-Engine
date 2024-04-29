@@ -9,9 +9,8 @@ class ModelComponent : public Component
 {
 private:
 	std::unique_ptr<Model> model_ptr;
-	std::unique_ptr<Animation> animation;
-	std::unique_ptr<Animator> animator;
-	bool hasAnimation = false;
+	std::unique_ptr<Animation> animation_ptr;
+	std::unique_ptr<Animator> animator_ptr;
 
 public:
 	ModelComponent(const char* path);
@@ -20,9 +19,9 @@ public:
 
 	void setUniform();
 	void render(Camera& camera, const Light& light) override;
-	void renderShadow(Shader& shader, Camera& camera) override;
-	void loadAnimation();
-
+	void renderShadow(Shader& shader) override;
+	void loadAnimation(const char* path) override;
+	void updateAnimation(float currentFrame) override;
 };
 
 

@@ -2,6 +2,13 @@
 
 Shader::Shader() = default;
 
+Shader::Shader(const Shader& other)
+{
+	this->ID = other.ID;
+	this->type = other.type;
+	this->cache = other.cache;
+}
+
 Shader& Shader::operator=(const Shader& other) {
 	if (this != &other) {
 		this->ID = other.ID;

@@ -77,9 +77,9 @@ Texture::Texture(const char* path)
 Texture::Texture(const char* fileName, const char* texType, const std::string& directory)
 {
 	std::string finalPath = std::string(fileName);
-	std::cout << "--------filName:" << fileName << "\n";
+	std::cout << "filName:" << fileName << "\n";
 	finalPath = directory + '/' + finalPath;
-	std::cout << "--------path:" << finalPath << "\n";
+	std::cout << "path:" << finalPath << "\n";
 	this->type = texType;
 	this->path = fileName;
 

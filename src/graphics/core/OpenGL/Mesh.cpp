@@ -49,9 +49,12 @@ void Mesh::setup()
     glBindVertexArray(0);
 }
 
-int Mesh::getCountDrawCall()
+int Mesh::getNumVertices()
 {
-    return countDrawCall;
+    !indices.empty()
+        ? numVertices = static_cast<int>(indices.size() / 3)
+        : numVertices = static_cast<int>(vertices.size() / 3);
+    return numVertices;
 }
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures)
@@ -62,7 +65,7 @@ Mesh::Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vecto
 	setup();
 }
 
-void Mesh::Draw(Shader& shader, Camera& camera)
+void Mesh::Draw(Shader& shader)
 {
     shader.Activate();
 
@@ -95,20 +98,14 @@ void Mesh::Draw(Shader& shader, Camera& camera)
     else
         shader.setBool("useTexture", false);
 
-    // setup the camer mvp
-    //shader.setVec3("camPos", camera.getPosition());
-    //shader.setMat4("mvp", camera.getMVP());
-
     // draw mesh
     glBindVertexArray(VAO);
 
     if (!indices.empty()) {
         glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-        countDrawCall = static_cast<int>(indices.size() / 3);
     }
     else {
         glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(vertices.size()));
-        countDrawCall = static_cast<int>(vertices.size() / 3);
     }
     
     glBindVertexArray(0);

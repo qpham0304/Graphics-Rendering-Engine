@@ -11,7 +11,6 @@ Component::Component() {
 	// list of shader that implemented with their uniform
 	// allow gui to control them
 	attributes["default"] = {""};
-
 }
 
 void Component::setUniform()
@@ -40,10 +39,20 @@ void Component::render(Camera& camera, const Light& light)
 	// same thing for shadowmaps shader
 }
 
-void Component::renderShadow(Shader& shader, Camera& camera)
+void Component::renderShadow(Shader& shader)
 {
 	shader.setMat4("matrix", modelMatrix);
-	shader.setBool("hasAnimation", false);
+	shader.setBool("hasAnimation", hasAnimation);
+}
+
+void Component::loadAnimation(const char* path)
+{
+	hasAnimation = true;
+}
+
+void Component::updateAnimation(float deltaTime)
+{
+	this->deltaTime = deltaTime;
 }
 
 void Component::translate(glm::vec3& translate)
@@ -52,6 +61,11 @@ void Component::translate(glm::vec3& translate)
 	modelMatrix = glm::translate(glm::mat4(1.0f), translate);
 	rotate(rotationVector);
 	modelMatrix = glm::scale(modelMatrix, scaleVector);
+}
+
+bool Component::canAnimate()
+{
+	return hasAnimation;
 }
 
 glm::mat4  Component::getTransform()
@@ -115,6 +129,11 @@ void Component::unSelect()
 	selected = false;
 }
 
+int Component::getNumVertices()
+{
+	return countVertices;
+}
+
 bool Component::isSelected()
 {
 	return selected;
@@ -132,6 +151,6 @@ std::string Component::getName()
 
 void Component::swapShader(Shader& shader)
 {
-	//shaderProgram_ptr = std::make_unique<Shader>(shader);
-	shaderProgram_ptr.reset(new Shader(shader));
+	if(shaderProgram_ptr->type != shader.type)
+		shaderProgram_ptr.reset(new Shader(shader));
 }

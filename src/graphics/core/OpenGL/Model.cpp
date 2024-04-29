@@ -5,34 +5,39 @@ Model::Model(const char* path)
     loadModel(path);
 }
 
-void Model::Draw(Shader& shader, Camera& camera)
+void Model::Draw(Shader& shader)
 {
-    countDrawCall = 0;
     for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].Draw(shader, camera);
-        countDrawCall += meshes[i].getCountDrawCall();
+		meshes[i].Draw(shader);
     }
 }
 
-int Model::getCountDrawCall()
+int Model::getNumVertices()
 {
-    return countDrawCall;
+    int numVertices = 0;
+    for (auto& mesh : meshes)
+        numVertices += mesh.getNumVertices();
+    return numVertices;
 }
 
 void Model::loadModel(std::string path)
 {
-
+    auto start = std::chrono::high_resolution_clock::now();
     Assimp::Importer import;
     const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        std::cout << "Model Loading failed: ERROR::ASSIMP::" << import.GetErrorString() << '\n';
-        return;
+        std::string error = import.GetErrorString();
+        throw std::runtime_error("Model Loading failed: ERROR::ASSIMP::" + error);
+        //std::cout << "Model Loading failed: ERROR::ASSIMP::" << error << '\n';
+        //return;
     }
-    std::cout << "Model loading success " << path << '\n';
     directory = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    std::cout << "Model loading success: " << path << ", time taken: " << duration.count() << '\n';
 }
 
 void Model::processNode(aiNode* node, const aiScene* scene)
@@ -62,19 +67,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         SetVertexBoneDataToDefault(vertex);
 
         // process vertex positions, normals and texture coordinates
-        glm::vec3 vector;
-        vector.x = mesh->mVertices[i].x;
-        vector.y = mesh->mVertices[i].y;
-        vector.z = mesh->mVertices[i].z;
-        vertex.positions = vector;
-
-        vector.x = mesh->mNormals[i].x;
-        vector.y = mesh->mNormals[i].y;
-        vector.z = mesh->mNormals[i].z;
-        vertex.normal = vector;
-
-        //vertex.positions = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
-        //vertex.normal = AssimpGLMHelpers::GetGLMVec(mesh->mNormals[i]);
+        vertex.positions = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
+        vertex.normal = AssimpGLMHelpers::GetGLMVec(mesh->mNormals[i]);
 
         if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
         {
