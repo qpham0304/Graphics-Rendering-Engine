@@ -9,14 +9,6 @@ Shader::Shader(const Shader& other)
 	this->cache = other.cache;
 }
 
-Shader& Shader::operator=(const Shader& other) {
-	if (this != &other) {
-		this->ID = other.ID;
-	}
-	return *this;
-}
-
-
 static bool validateFormat(const char* str) {
 	size_t len = std::strlen(str);
 	if (len >= 5)	// .frag and .vert length
@@ -64,6 +56,25 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	glDeleteShader(fragmentShader);
 
 }
+
+Shader& Shader::operator=(const Shader& other) {
+	if (this != &other) {
+		this->ID = other.ID;
+	}
+	return *this;
+}
+
+Shader::Shader(Shader&& other) noexcept : ID(std::exchange(other.ID, 0)), type(std::move(other.type)), cache(std::move(other.cache)) {}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+	if (this != &other) {
+		ID = std::exchange(other.ID, 0);
+		type = std::move(other.type);
+		cache = std::move(other.cache);
+	}
+	return *this;
+}
+
 
 Shader::~Shader()
 {

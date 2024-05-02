@@ -1,4 +1,5 @@
 #include "GuiController.h"
+#include "../graphics/GraphicsController.h"
 
 ImGuiController::ImGuiController()
 {
@@ -33,14 +34,15 @@ void ImGuiController::init(GLFWwindow* window, int width, int height)
 	icons_config.MergeMode = true;
 	icons_config.PixelSnapH = true;
 	icons_config.GlyphMinAdvanceX = fontSize;
-
+	icons_config.GlyphOffset.y = -0.5f;
+	icons_config.GlyphOffset.x = -1.75f;
 
 	// Setup ImGui GLFW and OpenGL bindings
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 330");
 
-	ImFont* font1 = io.Fonts->AddFontFromFileTTF("src/gui/fonts/Roboto/Roboto-Regular.ttf", fontSize);
-	io.Fonts->AddFontFromFileTTF("src/gui/fonts/fa/" FONT_ICON_FILE_NAME_FAS, fontSize, &icons_config, icons_ranges);
+	io.Fonts->AddFontFromFileTTF("src/gui/fonts/Roboto/Roboto-Regular.ttf", fontSize);
+	io.Fonts->AddFontFromFileTTF("src/gui/fonts/fa/" FONT_ICON_FILE_NAME_FAS, fontSize*0.75, &icons_config, icons_ranges);
 
 	darkTheme ? useDarkTheme() : useLightTheme(); // preset style from others
 	
@@ -98,6 +100,54 @@ void ImGuiController::start()
 
 	// Create a dock space
 	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+}
+
+void ImGuiController::debugWindow(ImTextureID texture)
+{
+	if (ImGui::Begin("Debug Window"))
+	{
+		std::string countVertices = "Vertices: " + std::to_string(OpenGLController::getNumVertices() * 3);
+		ImGui::Text(countVertices.c_str());
+		countVertices = "Triangles: " + std::to_string(OpenGLController::getNumVertices());
+		ImGui::Text(countVertices.c_str());
+		// Using a Child allow to fill all the space of the window.
+		// It also alows customization
+		ImGui::BeginChild("Debug shadow window");
+		// Get the size of the child (i.e. the whole draw size of the windows).
+		ImVec2 wsize = ImGui::GetWindowSize();
+		ImGui::Image(texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::EndChild();
+	}
+	ImGui::End();
+}
+
+void ImGuiController::applicationWindow()
+{
+	//start group
+	ImGui::SetCursorPos(ImVec2(10.0f, 10.0f));
+	ImGui::BeginGroup();
+	ImGui::Button("A");
+	ImGui::SameLine();
+	ImGui::Button("B");
+	ImGui::SameLine();
+	ImGui::Button("C");
+	ImGui::EndGroup();
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	//center group
+	ImVec4 buttonActiveColor = ImVec4{ 0.0f, (float)140 / 255, (float)184 / 255, 0.8 };
+	ImVec2 buttonSize = ImVec2(36.0f, 36.0f);
+	ImGui::PushStyleColor(ImGuiCol_ButtonActive, buttonActiveColor);
+	ImGui::SetCursorPos(ImVec2(ImGui::GetWindowContentRegionMax().x / 2, 10.0f));
+	ImGui::BeginGroup();
+	ImGui::Button(ICON_FA_PAUSE, buttonSize);
+	ImGui::SameLine();
+	ImGui::Button(ICON_FA_PLAY, buttonSize);
+	ImGui::SameLine();
+	ImGui::Button(ICON_FA_STOP, buttonSize);
+	ImGui::EndGroup();
+	ImGui::PopStyleColor();
 }
 
 void ImGuiController::render()

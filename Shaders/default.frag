@@ -14,11 +14,13 @@ uniform vec3 camPos;
 uniform float ambientIntensity;
 uniform int sampleRadius = 5;
 uniform bool useTexture = false;
+uniform bool enableFog = false;
 
 uniform sampler2D diffuse0;
 uniform sampler2D diffuse1;
 uniform sampler2D shadowMap;
 uniform sampler2D specular0;
+uniform sampler2D normalMap0;
 
 vec4 toonShader() {
 	float intensity;
@@ -49,7 +51,7 @@ float calcShadow() {
 	float shadow = 0.0;
 	//shadow = (currentDepth > closestDepth + bias ) ? 1.0 : 0.0; 
 	
-	// Smoothens out the shadows
+	// sample area for soft shadow
 	vec2 pixelSize = 1.0 / textureSize(shadowMap, 0);
 	for(int y = -sampleRadius; y <= sampleRadius; y++)
 	{
@@ -175,8 +177,19 @@ vec4 directionalLight() {
     vec3 result = (ambient + diffuse + specular) * (1.0 - shadow);
 
 	return vec4(result, 1.0);
+}
 
+float near = 0.1f;
+float far = 100.0f;
 
+float linearizeDepth(float depth) {
+    float z = depth * 2.0 - 1.0;
+    return (2.0 * near * far) / (far + near - z * (far - near));
+}
+
+float logDepth(float depth, float steepness = 0.5f, float offset = 5.0f) {
+	float zVal = linearizeDepth(depth);
+	return (1 / (1 + exp(-steepness * (zVal - offset))));
 }
 
 void main()
@@ -199,9 +212,14 @@ void main()
     // calculate shadow
     float shadow = calcShadow();                      
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
-    
+    // toon shading option
 	vec4 toonShading = toonShader();
-    FragColor = vec4(lighting, 1.0);
+    // fog effect
+    float depth = logDepth(gl_FragCoord.z, 0.2f);
+    vec4 depthVal = vec4(depth * vec3(0.90f, 0.90f, 0.90f), 1.0f);
+	
+	vec4 res = vec4(lighting, 1.0) * (1 - depth) + depthVal;
+	FragColor = vec4(lighting, 1.0);
 
 	//FragColor = pointLight();
 	//FragColor = directionalLight();

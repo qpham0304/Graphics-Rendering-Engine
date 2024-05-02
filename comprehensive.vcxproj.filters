@@ -114,13 +114,13 @@
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\widgets\SidebarRightWidget.cpp">
+    <ClCompile Include="src\gui\widgets\RightSidebarWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\widgets\Widget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\widgets\SidebarLeftWidget.cpp">
+    <ClCompile Include="src\gui\widgets\LeftSidebarWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\widgets\MainViewWidget.cpp">

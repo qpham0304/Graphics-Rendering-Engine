@@ -5,16 +5,13 @@ std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
 std::vector<std::string> OpenGLController::lightsID = {};
 Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
-
 //Light OpenGLController::light;
 
-void OpenGLController::render(Camera& camera, Light& light)
+void OpenGLController::render(Light& light)
 {
-	//skybox->setUniform();
-	for (auto& pair: components) {
-		pair.second->render(camera, light);
+	for (auto& pair : components) {
+		pair.second->render(*cameraController, light);
 	}
-	//skybox->render(camera);
 }
 
 void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
@@ -45,7 +42,7 @@ Component* OpenGLController::getSelectedComponent()
 std::string OpenGLController::addComponent(Component& component)
 {
 	std::string id = component.getID();
-	//std::unique_ptr<ModelComponent> c = std::make_unique<ModelComponent>(std::move(component));
+	//std::unique_ptr<Component> c = std::make_unique<Component>(std::move(component));
 	//if (components.find(id) == components.end()) {
 	//	components[id] = std::move(c);
 	//}
@@ -58,11 +55,9 @@ std::string OpenGLController::addComponent(Component& component)
 std::string OpenGLController::addComponent(const char* path)
 {
 	try {
-		std::unique_ptr<ModelComponent> component = std::make_unique<ModelComponent>(path);
+		std::unique_ptr<Component> component = std::make_unique<Component>(path);
 		std::string id = component->getID();
 
-		// assume all the model loaded model works as expected
-		// this would still add a component to the map if a model failed to load
 		if (components.find(component->getID()) == components.end()) {
 			components[component->getID()] = std::move(component);
 			return id;
@@ -77,7 +72,6 @@ void OpenGLController::updatecomponent(std::string id)
 {
 	components[id]->select();
 }
-
 
 void OpenGLController::removeComponent(std::string id)
 {

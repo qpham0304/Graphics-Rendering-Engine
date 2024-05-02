@@ -183,8 +183,8 @@
     <ClCompile Include="src\gui\widgets\MenuWidget.cpp" />
     <ClCompile Include="src\gui\widgets\MainViewWidget.cpp" />
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp" />
-    <ClCompile Include="src\gui\widgets\SidebarLeftWidget.cpp" />
-    <ClCompile Include="src\gui\widgets\SidebarRightWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\LeftSidebarWidget.cpp" />
+    <ClCompile Include="src\gui\widgets\RightSidebarWidget.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp" />
     <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\graphics\components\Component.cpp" />

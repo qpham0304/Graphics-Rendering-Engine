@@ -24,13 +24,15 @@ void Model::loadModel(std::string path)
 {
     auto start = std::chrono::high_resolution_clock::now();
     Assimp::Importer import;
-    const aiScene *scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_GlobalScale
+        | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_SplitByBoneCount;
+    const aiScene *scene = import.ReadFile(path, flags);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         std::string error = import.GetErrorString();
-        throw std::runtime_error("Model Loading failed: ERROR::ASSIMP::" + error);
-        //std::cout << "Model Loading failed: ERROR::ASSIMP::" << error << '\n';
-        //return;
+        std::string message = "Model Loading failed: ERROR::ASSIMP::" + error;
+        throw std::runtime_error(message);
+        std::cerr << message << std::endl;
     }
     directory = path.substr(0, path.find_last_of('/'));
 
@@ -64,18 +66,30 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
+        glm::vec3 vector;
         SetVertexBoneDataToDefault(vertex);
 
         // process vertex positions, normals and texture coordinates
         vertex.positions = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
         vertex.normal = AssimpGLMHelpers::GetGLMVec(mesh->mNormals[i]);
 
+
         if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
         {
             glm::vec2 vec;
+            // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
+            // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.texCoords = vec;
+            //vector.x = mesh->mTangents[i].x;
+            //vector.y = mesh->mTangents[i].y;
+            //vector.z = mesh->mTangents[i].z;
+            //vertex.tangent = vector;
+            //vector.x = mesh->mBitangents[i].x;
+            //vector.y = mesh->mBitangents[i].y;
+            //vector.z = mesh->mBitangents[i].z;
+            //vertex.bitangent = vector;
         }
         else
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
@@ -97,6 +111,10 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
         std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
         textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "normalMap");
+        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "height");
+        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
     }
 
     ExtractBoneWeightForVertices(vertices, mesh, scene);

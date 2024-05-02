@@ -4,6 +4,9 @@
 #include <Shader.h>
 #include <camera.h>
 #include <unordered_map>
+#include <model.h>
+#include <Animation.h>
+#include <Animator.h>
 #include "../../utils/headers/Utils.h"
 
 struct Light {
@@ -41,12 +44,16 @@ protected:
 	float deltaTime;
 	std::string id;			// better use true uuid but whatever
 	std::unordered_map<std::string, std::vector<std::string>> attributes;
-
 	std::string name;
+	std::unique_ptr<Animation> animation_ptr;
+	std::unique_ptr<Animator> animator_ptr;
 
 public:
 	Component();
+	Component(const char* path);
+	~Component() = default;
 
+	std::unique_ptr<Model> model_ptr;
 	std::unique_ptr<Shader> shaderProgram_ptr;
 	glm::mat4 modelMatrix = glm::mat4(1.0f);
 	glm::vec3 scaleVector = glm::vec3(1.0f, 1.0f, 1.0f);

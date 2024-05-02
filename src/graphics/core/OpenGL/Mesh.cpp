@@ -79,8 +79,6 @@ void Mesh::Draw(Shader& shader)
         shader.setBool("useTexture", true);
         for (unsigned int i = 0; i < textures.size(); i++)
         {
-            glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-
             std::string number; // retrieve texture number (the N in diffuse_textureN)
             std::string name = textures[i].type;
             if (name == "diffuse")

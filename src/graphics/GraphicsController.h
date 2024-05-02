@@ -2,9 +2,13 @@
 
 #include <string>
 #include <vector>
+#include <stack>
 #include <unordered_map>
 #include <algorithm> 
 #include <memory>
+#include <future>
+#include <mutex>
+#include <thread>
 #include "components/headers/Component.h"
 #include "components/headers/ModelComponent.h"
 #include "components/headers/PlaneComponent.h"
@@ -21,7 +25,7 @@ public:
 	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
 	static Camera* cameraController;
 
-	static void render(Camera& camera, Light& light);
+	static void render(Light& light);
 	static void renderShadow(Shader& shadowMapShader, Light& light);
 	static Component* getComponent(std::string id);
 	static Component* getSelectedComponent();

@@ -16,7 +16,7 @@ static const float DEFAULT_YAW = -90.0f;
 static const float DEFAULT_PITCH = 0.0f;
 static const float DEFAULT_FOV = 45.0f;
 static const float DEFAULT_NEARPLANE = 0.1f;
-static const float DEFAULT_FARPLANE = 100.0f;
+static const float DEFAULT_FARPLANE = 200.0f;
 
 class Camera
 {

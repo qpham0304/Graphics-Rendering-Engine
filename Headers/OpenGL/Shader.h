@@ -32,6 +32,10 @@ public:
 	Shader(const Shader& other);
 	Shader(const char* vertexFile, const char* fragmentFile);
 	Shader& operator=(const Shader& other);
+
+	Shader(Shader&& other) noexcept;
+	Shader& operator=(Shader&& other) noexcept;
+
 	~Shader();
 
 	void Activate();
