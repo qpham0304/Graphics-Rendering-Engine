@@ -84,9 +84,6 @@
     <ClCompile Include="src\graphics\core\OpenGL\DepthMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\components\PlaneComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\gui\GuiController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -103,9 +100,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\core\OpenGL\Animator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\components\ModelComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp">
@@ -197,9 +191,6 @@
     <ClInclude Include="Headers\OpenGL\DepthMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\components\headers\PlaneComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\GuiController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -219,9 +210,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\Bone.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\components\headers\ModelComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\FrameBuffer.h">
@@ -315,6 +303,7 @@
     <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\cellshadedModel.vert" />
     <None Include="Shaders\cellshadedModel.frag" />
+    <None Include="Shaders\default.geom" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

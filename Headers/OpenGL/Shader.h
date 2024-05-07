@@ -31,6 +31,7 @@ public:
 	Shader();
 	Shader(const Shader& other);
 	Shader(const char* vertexFile, const char* fragmentFile);
+	Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
 	Shader& operator=(const Shader& other);
 
 	Shader(Shader&& other) noexcept;

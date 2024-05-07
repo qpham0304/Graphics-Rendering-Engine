@@ -10,22 +10,20 @@
 #include <mutex>
 #include <thread>
 #include "components/headers/Component.h"
-#include "components/headers/ModelComponent.h"
-#include "components/headers/PlaneComponent.h"
 #include "components/headers/SkyboxComponent.h"
 
 class OpenGLController {
 private:
 	static std::unordered_map<std::string, Shader> shaders;
-	static std::vector<std::string> lightsID;
 	static std::string selectedID;
 	OpenGLController();
 
 public:
 	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
+	static std::unordered_map<std::string, Light> lights;
 	static Camera* cameraController;
 
-	static void render(Light& light);
+	static void render(Light& light, UniformProperties& uniforms);
 	static void renderShadow(Shader& shadowMapShader, Light& light);
 	static Component* getComponent(std::string id);
 	static Component* getSelectedComponent();

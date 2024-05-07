@@ -2,15 +2,14 @@
 
 std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
 std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
-std::vector<std::string> OpenGLController::lightsID = {};
 Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
-//Light OpenGLController::light;
+std::unordered_map<std::string, Light> OpenGLController::lights = {};
 
-void OpenGLController::render(Light& light)
+void OpenGLController::render(Light& light, UniformProperties& uniforms)
 {
 	for (auto& pair : components) {
-		pair.second->render(*cameraController, light);
+		pair.second->render(*cameraController, light, uniforms);
 	}
 }
 
@@ -75,7 +74,7 @@ void OpenGLController::updatecomponent(std::string id)
 
 void OpenGLController::removeComponent(std::string id)
 {
-	if (components.find(id) != components.end()) {
+	if (components.find(id) != components.end() && components[id]->isSelected()) {
 		components[id].reset();
 		components.erase(id);
 	}

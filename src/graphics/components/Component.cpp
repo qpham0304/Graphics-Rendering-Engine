@@ -27,26 +27,44 @@ Component::Component(const char* path)
 	hasAnimation = false;
 	id = Utils::uuid::get_uuid();
 	name = id;
-
+	
+	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
 	model_ptr.reset(new Model(path));
-	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag"));
 	const char* fileName = std::strrchr(path, '/');
 	name = fileName + 1;
 }
 
-void Component::render(Camera& camera, const Light& light)
+void Component::render(Camera& camera, const Light& light, const UniformProperties& uniforms)
 {
 	shaderProgram_ptr->Activate();
-	shaderProgram_ptr->setMat4("lightProjection", light.mvp);
-	shaderProgram_ptr->setVec4("lightColor", light.color);
-	shaderProgram_ptr->setInt("sampleRadius", light.sampleRadius);
-	shaderProgram_ptr->setFloat("ambientIntensity", light.ambient);
-	shaderProgram_ptr->setBool("hasAnimation", hasAnimation);
-	shaderProgram_ptr->setInt("shadowMap", 2);	// texture unit slot 2
-	shaderProgram_ptr->setVec3("lightPos", light.position);
-	shaderProgram_ptr->setVec3("camPos", camera.getPosition());
+
+	normalMatrix = modelMatrix;
+	glm::transpose(glm::inverse(normalMatrix));
+	shaderProgram_ptr->setMat3("normalMatrix", normalMatrix);
+
 	shaderProgram_ptr->setMat4("matrix", modelMatrix);
 	shaderProgram_ptr->setMat4("mvp", camera.getMVP());
+	shaderProgram_ptr->setVec3("camPos", camera.getPosition());
+	shaderProgram_ptr->setBool("enableFog", uniforms.enableFog);
+	shaderProgram_ptr->setFloat("explodeRadius", uniforms.explodeRadius);
+	shaderProgram_ptr->setInt("shadowMap", 2);	// texture unit slot 2
+	shaderProgram_ptr->setBool("hasAnimation", hasAnimation);
+
+	// material uniform
+	shaderProgram_ptr->setVec3("material.diffuse", material.diffuse);
+	shaderProgram_ptr->setVec3("material.specular", material.specular);
+	shaderProgram_ptr->setFloat("material.shininess", material.shininess);
+
+	// light properties
+	shaderProgram_ptr->setVec3("light.position", light.position);
+	shaderProgram_ptr->setVec4("light.color", light.color);
+	shaderProgram_ptr->setVec3("light.ambient", light.ambient);
+	shaderProgram_ptr->setVec3("light.diffuse", light.diffuse);
+	shaderProgram_ptr->setVec3("light.specular", light.specular);
+	shaderProgram_ptr->setMat4("lightMVP", light.mvp);
+	shaderProgram_ptr->setInt("light.sampleRadius", light.sampleRadius);
+
+	// animation
 	// TODO: find a way to separate into 2 batches to set animate boolean in
 	// shader to be true or false -> avoid unecessary repeat
 	// same thing for shadowmaps shader
@@ -55,10 +73,8 @@ void Component::render(Camera& camera, const Light& light)
 		auto aru_transforms = animator_ptr->GetFinalBoneMatrices();
 		for (int i = 0; i < aru_transforms.size(); ++i)
 			shaderProgram_ptr->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
-		model_ptr->Draw(*shaderProgram_ptr);
 	}
-	else
-		model_ptr->Draw(*shaderProgram_ptr);
+	model_ptr->Draw(*shaderProgram_ptr);
 }
 
 void Component::renderShadow(Shader& shader)

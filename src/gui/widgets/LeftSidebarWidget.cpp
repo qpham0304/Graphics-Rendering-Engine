@@ -186,20 +186,14 @@ void LeftSidebarWidget::render()
         if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
             Component* component = OpenGLController::getComponent(nodes[selectedIndex]);
             if (component != nullptr) {
+                OpenGLController::setSelectedID(nodes[selectedIndex]);
                 glm::vec3 translateVector(component->translateVector);
                 glm::vec3 scaleVector(component->scaleVector);
                 glm::vec3 rotationVector(component->rotationVector);
-                glm::vec3 dummy;
-
-                OpenGLController::setSelectedID(nodes[selectedIndex]);
-                //std::cout << "current selectedID: " << OpenGLController::getSelectedID() << "\n";
-
 
                 ImGui::Text(component->getName().c_str());
-
                 if (ImGui::SliderFloat3("Translate", &translateVector[0], -10.0f, 10.0f, 0))
                     component->translate(translateVector);
-                
                 ImGuiIO& io = ImGui::GetIO();
                 auto boldFont = io.Fonts->Fonts[0];
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
@@ -221,16 +215,11 @@ void LeftSidebarWidget::render()
                 //component->rotationVector = glm::radians(rotation);
                 //DrawVec3Control("Scale", component->scaleVector, 1.0f);
 
-                //TODO: place holder for now, add these features later
                 ImGui::Text("Material Properties");
-                if (ImGui::SliderFloat3("Ambient", &dummy[0], -10.0f, 10.0f, 0))
-                    component->scale(scaleVector);
-                if (ImGui::SliderFloat3("Diffuse", &dummy[0], -10.0f, 10.0f, 0))
-                    component->scale(scaleVector);
-                if (ImGui::SliderFloat3("Specular", &dummy[0], -10.0f, 10.0f, 0))
-                    component->scale(scaleVector);
-                if (ImGui::SliderFloat3("Shininess", &dummy[0], -10.0f, 10.0f, 0))
-                    component->scale(scaleVector);
+                //ImGui::SliderFloat3("Ambient", glm::value_ptr(component->material.ambient), 0.0f, 1.0f, 0);
+                //ImGui::SliderFloat3("Diffuse", glm::value_ptr(component->material.diffuse), 0.0f, 1.0f, 0);
+                ImGui::SliderFloat3("Specular", glm::value_ptr(component->material.specular), -1.0, 1.0f, 0);
+                ImGui::SliderFloat("Shininess", &component->material.shininess, 8.0f, 128.0f, 0);
             }
         }
     }

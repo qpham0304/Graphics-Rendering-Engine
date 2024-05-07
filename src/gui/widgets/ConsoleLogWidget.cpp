@@ -1,8 +1,5 @@
 #include "../headers/ConsoleLogWidget.h"
 
-
-
-
 ConsoleLogWidget::ConsoleLogWidget()
 {
 
@@ -31,13 +28,7 @@ void ConsoleLogWidget::render()
 	ImGui::Text("assets placeholder");
 	ImGui::End();
 
-
-
-
 	ImGui::Begin("console");
-	ImGui::Begin("control");
-	ButtonCenteredOnLine(ICON_FA_PLAY);
-	ImGui::End();
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::ShowDebugLogWindow();
 	ImGui::End();

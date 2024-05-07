@@ -7,10 +7,8 @@ ImGuizmo::OPERATION SceneRenderer::GuizmoType = ImGuizmo::TRANSLATE;
 Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
 const std::set<Platform> SceneRenderer::supportPlatform = { PLATFORM_OPENGL };	// add more platform when we support more
 
-float SceneRenderer::ambient = 0.5f;
-int SceneRenderer::sampleRadius = 2;
-glm::vec4 SceneRenderer::lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-glm::vec3 SceneRenderer::lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 
 GLFWwindow* SceneRenderer::window = nullptr;
 ImGuiController SceneRenderer::guiController(true);
@@ -29,7 +27,10 @@ bool renderShadow = true;
 bool render_skybox = true;
 int cameraSpeed = 2;
 float lf = 0.0f;
-bool ready = false;
+bool enablefog = false;
+float explodeRadius = 0.0f;
+bool enableTencil = true;
+UniformProperties uniforms = UniformProperties(enablefog, explodeRadius);
 std::string id = "";
 
 void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
@@ -161,7 +162,7 @@ void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShad
 	shadowMap.Unbind();
 }
 
-void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light, SkyboxComponent& skybox) {
+void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light) {
 	framebuffer.Bind();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -169,6 +170,10 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 	glEnable(GL_DEPTH_CLAMP);
+	if (enableTencil) {
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	}
 
 	if (face_culling_enabled) {
 		glEnable(GL_CULL_FACE);
@@ -188,7 +193,7 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 	// reset viewport
 	glViewport(0, 0, width, height);
 	glClearColor(0.9f, 0.9f, 0.9f, 1.0f); // RGBA
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, depthMap.texture);
@@ -201,15 +206,19 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 			OpenGLController::getComponent(id)->updateAnimation(dt);
 	}
 
-	OpenGLController::render(light);
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilMask(0xFF);
+	OpenGLController::render(light, uniforms);
+	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	//glStencilMask(0x00);
+	//glDisable(GL_DEPTH_TEST);
 
-	if (render_skybox)
-		skybox.render(*OpenGLController::cameraController);
 	framebuffer.Unbind();
 }
 
 int SceneRenderer::renderScene() 
 {
+	guiController.init(window, width, height);
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5f, -0.2f, -1.0f));
 	OpenGLController::cameraController = &camera;
 	
@@ -218,24 +227,22 @@ int SceneRenderer::renderScene()
 
 	glm::vec3 translate(5.0f, 0.0f, 2.0f);
 	std::string cubeID = OpenGLController::addComponent("Models/cube/cube.obj");
+	OpenGLController::getComponent(cubeID)->translate(translate);
 	id = OpenGLController::addComponent("Models/aru/aru.gltf");
 	OpenGLController::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
+	translate += glm::vec3(-9.0f, 1.0f, 2.0f);
 	OpenGLController::getComponent(id)->translate(translate);
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
 	DepthMap depthMap;
-
 	FrameBuffer framebuffer(width, height);
 	FrameBuffer postRenderFrame(width, height);
 
 	Shader frameShaderProgram("src/apps/frame-buffer/framebuffer.vert", "src/apps/frame-buffer/framebuffer.frag");
 	frameShaderProgram.Activate();
 	frameShaderProgram.setFloat("screenTexture", 0);
-
-
-	guiController.init(window, width, height);
 
 	float near_plane = 1.0f, far_plane = 12.5f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -244,32 +251,57 @@ int SceneRenderer::renderScene()
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
+	Shader shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom");
+	Component modelComponent("Models/cube/cube.obj");
+
+	glm::vec3 lightAmbient = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
+	Light light = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	
+
+	Light sunLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light pointLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light spotLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	std::vector<Light> lights = { sunLight , pointLight, spotLight };
+
 	// Main while loop
+	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
 		guiController.start();
 		guiController.render();
 
+		uniforms = UniformProperties(enablefog, explodeRadius);
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightMVP = lightProjection * lightView;
+
+		light.mvp = lightMVP;
+		OpenGLController::cameraController->cameraViewUpdate();
+
+
 		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		if (ImGui::Begin("Global Control")) {
-			ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
-			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10)) {
+			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10))
 				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
-			}
 			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+			ImGui::SliderFloat3("ambient", &light.ambient[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("diffuse", &light.diffuse[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("specular", &light.specular[0], 0.0f, 1.0f);
+			ImGui::SliderFloat("explode radius", &explodeRadius, 0, 10.f);
 
 			if (ImGui::Button("+"))
-				sampleRadius++;
+				light.sampleRadius++;
 			ImGui::SameLine();
-			if (ImGui::Button("-") && sampleRadius >= 0)
-				sampleRadius--;
+			if (ImGui::Button("-") && light.sampleRadius >= 0)
+				light.sampleRadius--;
 			ImGui::SameLine();
-			ImGui::Text("counter = %d", sampleRadius);
+			ImGui::Text("counter = %d", light.sampleRadius);
 			ImGui::Text("Hello from another window!");
 			ImGui::Checkbox("Debug Mode", &debug);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::ColorEdit4("Global Color", &lightColor[0]);
+			ImGui::ColorEdit4("Global Color", &light.color[0]);
 			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
 			ImGui::Checkbox("Enable animation", &animate_enable);
 			ImGui::Checkbox("Show navigator", &show_navigator);
@@ -277,18 +309,26 @@ int SceneRenderer::renderScene()
 			ImGui::Checkbox("Draw Debug Cube", &drawCube_enabled);
 			ImGui::SameLine();
 			ImGui::Checkbox("Draw Debug Grid", &drawGrid_enabled);
+			ImGui::SameLine();
 			ImGui::Checkbox("post frame process", &show_post_processing);
+			ImGui::SameLine();
 			ImGui::Checkbox("toggle config", &configToggle);
 			ImGui::Checkbox("render skybox", &render_skybox);
+			ImGui::Checkbox("enable fog", &enablefog);
+			ImGui::SameLine();
+			ImGui::Checkbox("enable tencil", &enableTencil);
 			ImGui::End();
 		}
 
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightMVP = lightProjection * lightView;
-		Light light = Light(lightPos, lightColor, ambient, lightMVP, sampleRadius);
-		OpenGLController::cameraController->cameraViewUpdate();
+
 		renderShadowScene(depthMap, shadowMapShader, light);
-		renderObjectsScene(framebuffer, depthMap, light, skybox);
+		renderObjectsScene(framebuffer, depthMap, light);
+		
+		// extra custom draw calls
+		framebuffer.Bind();
+		if (render_skybox)
+			skybox.render(*OpenGLController::cameraController);
+		framebuffer.Unbind();
 
 		if(ImGui::Begin("Application Window"))
 		{

@@ -182,3 +182,9 @@ namespace Utils::Window {
 		return filePath;
 	}
 }
+
+namespace Utils::BindTexture {
+	static const int TEXTURE_DIFFUSE = 0;
+	static const int TEXTURE_SPECULAR = 1;
+	static const int TEXTURE_SHADOW_MAP = 2;
+}

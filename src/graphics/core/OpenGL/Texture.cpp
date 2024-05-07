@@ -83,9 +83,8 @@ Texture::Texture(const char* fileName, const char* texType, const std::string& d
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
 {
 	this->unit = unit;
-	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
 	shader.Activate();
-	glUniform1i(texUni, unit);
+	shader.setInt(uniform, unit);
 }
 
 void Texture::Bind()
