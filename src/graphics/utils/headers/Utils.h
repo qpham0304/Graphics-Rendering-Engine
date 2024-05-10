@@ -6,6 +6,7 @@
 #include <sstream>
 #include <windows.h>
 #include <shobjidl.h> 
+#include <stb/stb_image.h>
 
 namespace Utils::Math {
 
@@ -26,7 +27,8 @@ namespace Utils::uuid {
 
 namespace Utils::Draw {
     void drawQuad();
-
+    void drawSphere(unsigned int sphereVAO, unsigned int indexCount);
+    unsigned int loadTexture(char const* path);
 }
 
 namespace Utils::Window {

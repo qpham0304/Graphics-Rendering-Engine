@@ -9,6 +9,7 @@ const std::set<Platform> SceneRenderer::supportPlatform = { PLATFORM_OPENGL };	/
 
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+glm::vec4 bgColor(38/255.0f, 43/255.0f, 42/255.0f, 1.0f);
 
 GLFWwindow* SceneRenderer::window = nullptr;
 ImGuiController SceneRenderer::guiController(true);
@@ -192,7 +193,7 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 
 	// reset viewport
 	glViewport(0, 0, width, height);
-	glClearColor(0.9f, 0.9f, 0.9f, 1.0f); // RGBA
+	glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w); // RGBA
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0 + 2);
@@ -208,7 +209,9 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	//glStencilMask(0xFF);
-	OpenGLController::render(light, uniforms);
+	std::vector<Light> l = {};
+	UniformProperties uniforms = UniformProperties(false, false);
+	OpenGLController::renderTest(light, uniforms, l);
 	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	//glStencilMask(0x00);
 	//glDisable(GL_DEPTH_TEST);
@@ -226,8 +229,13 @@ int SceneRenderer::renderScene()
 	skybox.setUniform();
 
 	glm::vec3 translate(5.0f, 0.0f, 2.0f);
-	std::string cubeID = OpenGLController::addComponent("Models/cube/cube.obj");
+	glm::vec3 scaleVector(0.5f, 0.5f, 0.5f);
+	std::string cubeID = OpenGLController::addComponent("Models/planet/planet.obj");
 	OpenGLController::getComponent(cubeID)->translate(translate);
+	std::string reimuID = OpenGLController::addComponent("Models/reimu/reimu.obj");
+	translate += glm::vec3(0.0f, 3.0f, 0.0f);
+	OpenGLController::getComponent(reimuID)->translate(translate);
+	OpenGLController::getComponent(reimuID)->scale(scaleVector);
 	id = OpenGLController::addComponent("Models/aru/aru.gltf");
 	OpenGLController::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
 	translate += glm::vec3(-9.0f, 1.0f, 2.0f);
@@ -251,18 +259,20 @@ int SceneRenderer::renderScene()
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-	Shader shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom");
-	Component modelComponent("Models/cube/cube.obj");
+	Shader shader("Shaders/light.vert", "Shaders/light.frag");
+	Component modelComponent("Models/planet/planet.obj");
 
 	glm::vec3 lightAmbient = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 lightDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
 	Light light = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
 	
-
-	Light sunLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	Light pointLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	Light spotLight = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	glm::vec3 lightPos_1 = glm::vec3(5.5f, 0.5f, 0.5f);
+	glm::vec3 lightPos_2 = glm::vec3(-1.5f, 3.5f, 0.5f);
+	glm::vec3 lightPos_3 = glm::vec3(1.0f, 1.0f, 1.0f);
+	Light sunLight = Light(lightPos_1, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light pointLight = Light(lightPos_2, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light spotLight = Light(lightPos_3, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
 	std::vector<Light> lights = { sunLight , pointLight, spotLight };
 
 	// Main while loop
@@ -273,9 +283,9 @@ int SceneRenderer::renderScene()
 		guiController.render();
 
 		uniforms = UniformProperties(enablefog, explodeRadius);
+		lightPos = light.position;
 		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
 		lightMVP = lightProjection * lightView;
-
 		light.mvp = lightMVP;
 		OpenGLController::cameraController->cameraViewUpdate();
 
@@ -284,7 +294,7 @@ int SceneRenderer::renderScene()
 		if (ImGui::Begin("Global Control")) {
 			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10))
 				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
-			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+			ImGui::SliderFloat3("light pos", &light.position[0], -20.0f, 20.0f);
 			ImGui::SliderFloat3("ambient", &light.ambient[0], 0.0f, 1.0f);
 			ImGui::SliderFloat3("diffuse", &light.diffuse[0], 0.0f, 1.0f);
 			ImGui::SliderFloat3("specular", &light.specular[0], 0.0f, 1.0f);
@@ -301,19 +311,19 @@ int SceneRenderer::renderScene()
 			ImGui::Checkbox("Debug Mode", &debug);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::ColorEdit4("Global Color", &light.color[0]);
+			ImGui::ColorEdit4("Sun position", &light.color[0]);
+			ImGui::ColorEdit4("Background Color", &bgColor[0]);
 			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
+			ImGui::SameLine();
 			ImGui::Checkbox("Enable animation", &animate_enable);
 			ImGui::Checkbox("Show navigator", &show_navigator);
 			ImGui::SameLine();
-			ImGui::Checkbox("Draw Debug Cube", &drawCube_enabled);
-			ImGui::SameLine();
 			ImGui::Checkbox("Draw Debug Grid", &drawGrid_enabled);
-			ImGui::SameLine();
 			ImGui::Checkbox("post frame process", &show_post_processing);
 			ImGui::SameLine();
 			ImGui::Checkbox("toggle config", &configToggle);
 			ImGui::Checkbox("render skybox", &render_skybox);
+			ImGui::SameLine();
 			ImGui::Checkbox("enable fog", &enablefog);
 			ImGui::SameLine();
 			ImGui::Checkbox("enable tencil", &enableTencil);
@@ -326,6 +336,13 @@ int SceneRenderer::renderScene()
 		
 		// extra custom draw calls
 		framebuffer.Bind();
+		shader.Activate();
+		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
+		shader.setMat4("matrix", modelMatrix);
+		shader.setMat4("mvp", camera.getMVP());
+		shader.setVec4("lightColor", light.color);
+		modelComponent.model_ptr->Draw(shader);
+
 		if (render_skybox)
 			skybox.render(*OpenGLController::cameraController);
 		framebuffer.Unbind();

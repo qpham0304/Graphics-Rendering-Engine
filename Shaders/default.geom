@@ -8,6 +8,10 @@ out vec2 uv;
 out vec3 normal;
 out vec3 updatedPos;
 out vec4 fragPosLight;
+out vec3 camPos;
+out vec3 lightPos;
+out mat3 TBN;
+out vec3 fragPos;
 
 uniform mat4 mvp;
 uniform float explodeRadius;
@@ -20,6 +24,10 @@ in VS_OUT {
     vec4 fragPosLight;
     vec4 totalPos;
     mat4 model;
+    vec3 camPos;
+    vec3 lightPos;
+    vec3 fragPos;
+    mat3 TBN;
 } frag_in[];
 
 in GEOM_OUT {
@@ -39,14 +47,16 @@ vec4 explodeFunction() {
 
 void main()
 {
-
-
 	gl_Position = mvp * (vec4(frag_in[0].updatedPos, 1.0f) + explodeFunction());
     color = frag_in[0].color;
     uv = frag_in[0].uv;
     normal = frag_in[0].normal;
     updatedPos = frag_in[0].updatedPos;
     fragPosLight = frag_in[0].fragPosLight;
+    camPos = frag_in[0].camPos;
+    lightPos = frag_in[0].lightPos;
+    fragPos = frag_in[0].fragPos;
+    TBN = frag_in[0].TBN;
     EmitVertex();
 
     gl_Position = mvp * (vec4(frag_in[1].updatedPos, 1.0f) + explodeFunction());
@@ -55,6 +65,10 @@ void main()
     normal = frag_in[1].normal;
     updatedPos = frag_in[1].updatedPos;
     fragPosLight = frag_in[1].fragPosLight;
+    camPos = frag_in[1].camPos;
+    lightPos = frag_in[1].lightPos;
+    fragPos = frag_in[1].fragPos;
+    TBN = frag_in[1].TBN;
     EmitVertex();
 
     gl_Position = mvp * (vec4(frag_in[2].updatedPos, 1.0f) + explodeFunction());
@@ -63,6 +77,10 @@ void main()
     normal = frag_in[2].normal;
     updatedPos = frag_in[2].updatedPos;
     fragPosLight = frag_in[2].fragPosLight;
+    camPos = frag_in[2].camPos;
+    lightPos = frag_in[2].lightPos;
+    fragPos = frag_in[2].fragPos;
+    TBN = frag_in[2].TBN;
     EmitVertex();
 
     EndPrimitive();

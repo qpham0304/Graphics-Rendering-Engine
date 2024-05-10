@@ -20,8 +20,11 @@ in vec2 uv;
 in vec3 normal;
 in vec3 updatedPos;
 in vec4 fragPosLight;
+in vec3 camPos;
+in vec3 lightPos;
+in mat3 TBN;
+in vec3 fragPos;
 
-uniform vec3 camPos;
 uniform bool useTexture = false;
 uniform bool enableFog = false;
 uniform sampler2D diffuse0;
@@ -33,7 +36,7 @@ uniform sampler2D normalMap0;
 uniform Material material;
 uniform Light light;
 vec4 lightColor = light.color;
-vec3 lightPos = light.position;
+//vec3 lightPos = light.position;
 
 out vec4 FragColor;
 
@@ -83,21 +86,24 @@ float calcShadow() {
 }
 
 vec4 pointLight() {
-    //vec3 normal = normalize(normal);
-    
+    //vec3 nm = texture(normalMap0, uv).rgb;
+	//nm = nm * 2.0 - 1.0;
+	//nm = normalize(nm * TBN);
+	vec3 nm = normal;
+
 	// ambient
     vec3 ambient = light.ambient * vec3(texture(diffuse0, uv));
 
 	// diffuse
-    vec3 lightDir = normalize(lightPos - updatedPos);
-    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 lightDir = normalize(lightPos - fragPos);
+    float diff = max(dot(lightDir, nm), 0.0);
     vec3 diffuse = light.diffuse * diff * vec3(texture(diffuse0, uv));
     
 	// specular
-    vec3 viewDir = normalize(camPos - updatedPos);
+    vec3 viewDir = normalize(camPos - fragPos);
     //vec3 reflectDir = reflect(-lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
-    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
+    float spec = pow(max(dot(nm, halfwayDir), 0.0), material.shininess);
     vec3 specular = light.specular * spec * vec3(texture(specular0, uv));
 
 	// calculate shadow

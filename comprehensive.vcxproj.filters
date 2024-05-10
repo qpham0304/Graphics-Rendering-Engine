@@ -304,6 +304,8 @@
     <None Include="Shaders\cellshadedModel.vert" />
     <None Include="Shaders\cellshadedModel.frag" />
     <None Include="Shaders\default.geom" />
+    <None Include="Shaders\default-2.frag" />
+    <None Include="Shaders\default-2.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

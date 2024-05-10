@@ -28,10 +28,78 @@ Component::Component(const char* path)
 	id = Utils::uuid::get_uuid();
 	name = id;
 	
-	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
+	//shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
+	shaderProgram_ptr.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
 	model_ptr.reset(new Model(path));
 	const char* fileName = std::strrchr(path, '/');
 	name = fileName + 1;
+}
+
+void Component::renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light> lights)
+{
+	shaderProgram_ptr->Activate();
+
+	normalMatrix = modelMatrix;
+	glm::transpose(glm::inverse(normalMatrix));
+	shaderProgram_ptr->setMat3("normalMatrix", normalMatrix);
+
+	shaderProgram_ptr->setMat4("matrix", modelMatrix);
+	shaderProgram_ptr->setMat4("mvp", camera.getMVP());
+	shaderProgram_ptr->setVec3("camPos", camera.getPosition());
+	shaderProgram_ptr->setBool("enableFog", uniforms.enableFog);
+	shaderProgram_ptr->setFloat("explodeRadius", uniforms.explodeRadius);
+	shaderProgram_ptr->setInt("shadowMap", 2);	// texture unit slot 2
+	shaderProgram_ptr->setBool("hasAnimation", hasAnimation);
+
+
+	// light properties
+	shaderProgram_ptr->setVec3("lightPos", light.position);
+	//shaderProgram_ptr->setVec3("light.position", light.position);
+	shaderProgram_ptr->setVec4("light.color", light.color);
+	shaderProgram_ptr->setVec3("light.ambient", light.ambient);
+	shaderProgram_ptr->setVec3("light.diffuse", light.diffuse);
+	shaderProgram_ptr->setVec3("light.specular", light.specular);
+	shaderProgram_ptr->setMat4("lightMVP", light.mvp);
+	shaderProgram_ptr->setInt("light.sampleRadius", light.sampleRadius);
+
+	// animation
+	// TODO: find a way to separate into 2 batches to set animate boolean in
+	// shader to be true or false -> avoid unecessary repeat
+	// same thing for shadowmaps shader
+	countVertices = model_ptr->getNumVertices();
+	if (hasAnimation) {
+		auto aru_transforms = animator_ptr->GetFinalBoneMatrices();
+		for (int i = 0; i < aru_transforms.size(); ++i)
+			shaderProgram_ptr->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
+	}
+
+	// material uniform
+	shaderProgram_ptr->setVec3("material.albedo", materialPBR.albedo);
+	shaderProgram_ptr->setFloat("material.metalic", materialPBR.metalic);
+	shaderProgram_ptr->setFloat("material.roughness", materialPBR.roughness);
+	shaderProgram_ptr->setFloat("material.ao", materialPBR.ao);
+
+	glm::vec3 lightPositions[] = {
+	glm::vec3(-10.0f,  10.0f, 10.0f),
+	glm::vec3(10.0f,  10.0f, 10.0f),
+	glm::vec3(-10.0f, -10.0f, 10.0f),
+	glm::vec3(10.0f, -10.0f, 10.0f),
+	};
+	glm::vec3 lightColors[] = {
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f),
+		glm::vec3(300.0f, 300.0f, 300.0f)
+	};
+	glm::mat4 model = glm::mat4(1.0f);
+	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+	{
+		glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+		newPos = lightPositions[i];
+		shaderProgram_ptr->setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
+		shaderProgram_ptr->setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+	}
+	model_ptr->Draw(*shaderProgram_ptr);
 }
 
 void Component::render(Camera& camera, const Light& light, const UniformProperties& uniforms)
@@ -56,7 +124,8 @@ void Component::render(Camera& camera, const Light& light, const UniformProperti
 	shaderProgram_ptr->setFloat("material.shininess", material.shininess);
 
 	// light properties
-	shaderProgram_ptr->setVec3("light.position", light.position);
+	shaderProgram_ptr->setVec3("lightPos", light.position);
+	//shaderProgram_ptr->setVec3("light.position", light.position);
 	shaderProgram_ptr->setVec4("light.color", light.color);
 	shaderProgram_ptr->setVec3("light.ambient", light.ambient);
 	shaderProgram_ptr->setVec3("light.diffuse", light.diffuse);

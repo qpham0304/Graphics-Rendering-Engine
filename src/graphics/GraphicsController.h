@@ -23,6 +23,7 @@ public:
 	static std::unordered_map<std::string, Light> lights;
 	static Camera* cameraController;
 
+	static void renderTest(Light& light, UniformProperties& uniforms, const std::vector<Light> lights);
 	static void render(Light& light, UniformProperties& uniforms);
 	static void renderShadow(Shader& shadowMapShader, Light& light);
 	static Component* getComponent(std::string id);

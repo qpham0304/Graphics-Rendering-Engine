@@ -6,6 +6,13 @@ Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
 std::unordered_map<std::string, Light> OpenGLController::lights = {};
 
+void OpenGLController::renderTest(Light& light, UniformProperties& uniforms, const std::vector<Light> lights)
+{
+	for (auto& pair : components) {
+		pair.second->renderPBR(*cameraController, light, uniforms, lights);
+	}
+}
+
 void OpenGLController::render(Light& light, UniformProperties& uniforms)
 {
 	for (auto& pair : components) {

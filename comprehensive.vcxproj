@@ -265,6 +265,8 @@
     <None Include="Shaders\cellshadedModel.vert" />
     <None Include="Shaders\cubemap.frag" />
     <None Include="Shaders\cubemap.vert" />
+    <None Include="Shaders\default-2.frag" />
+    <None Include="Shaders\default-2.vert" />
     <None Include="Shaders\default.frag" />
     <None Include="Shaders\default.geom" />
     <None Include="Shaders\default.vert" />

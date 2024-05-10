@@ -37,6 +37,18 @@ struct Light {
 	};
 };
 
+struct PointLight {
+
+};
+
+struct SpotLight {
+
+};
+
+struct DirectionLight {
+
+};
+
 struct Material {
 	glm::vec3 ambient;
 	glm::vec3 diffuse;
@@ -48,6 +60,20 @@ struct Material {
 		this->diffuse = diffuse;
 		this->specular = specular;
 		this->shininess = shininess;
+	}
+};
+
+struct MaterialPBR {
+	glm::vec3 albedo;
+	float metalic;
+	float roughness;
+	float ao;
+
+	MaterialPBR(const glm::vec3 albedo, const float metalic, const float roughness, const float ao) {
+		this->albedo = albedo;
+		this->metalic = metalic;
+		this->roughness = roughness;
+		this->ao = ao;
 	}
 };
 
@@ -77,7 +103,7 @@ protected:
 	std::string name;
 	std::unique_ptr<Animation> animation_ptr;
 	std::unique_ptr<Animator> animator_ptr;
-	
+
 
 public:
 	Component();
@@ -99,9 +125,12 @@ public:
 		32.0f
 	);
 
+	MaterialPBR materialPBR = MaterialPBR(glm::vec3(0.5, 0.5, 0.5), 1.0, 1.0, 1.0);
+
 
 	// renderer
 	virtual void setUniform();
+	virtual void renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light> lights);
 	virtual void render(Camera& camera, const Light& light, const UniformProperties& uniforms);
 	virtual void renderShadow(Shader& shader);
 	virtual void loadAnimation(const char* path);
@@ -112,14 +141,14 @@ public:
 	glm::mat4 getModelMatrix();
 	bool getShowAxisState();
 	std::vector<std::string> uniforms();
-	void select();
-	void unSelect();
 	bool isSelected();
 	std::string getID();
 	std::string getName();
 	bool canAnimate();
 
 	// setter
+	void select();
+	void unSelect();
 	void swapShader(Shader& shader);		// Ideally swap to a different shader
 	void translate(glm::vec3& translate);
 	void rotate(glm::vec3& matrix);

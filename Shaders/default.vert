@@ -4,8 +4,8 @@ layout (location = 0) in vec3 pos;
 layout (location = 1) in vec3 aColor;
 layout (location = 2) in vec2 vertexUV;
 layout (location = 3) in vec3 aNormal;
-// layout (location = 4) in vec3 tangent;
-// layout (location = 5) in vec3 bitangent;
+layout (location = 4) in vec3 tangent;
+layout (location = 5) in vec3 bitangent;
 layout (location = 6) in ivec4 boneIds;
 layout (location = 7) in vec4 weights;
 
@@ -17,6 +17,10 @@ out VS_OUT {
     vec4 fragPosLight;
     vec4 totalPos;
     mat4 model;
+    vec3 camPos;
+    vec3 lightPos;
+    vec3 fragPos;
+    mat3 TBN;
 } vert_out;
 
 
@@ -26,6 +30,8 @@ uniform mat4 mvp;
 uniform mat4 lightMVP;
 uniform mat4 normalMap;
 uniform bool hasAnimation = true;
+uniform vec3 camPos;
+uniform vec3 lightPos;
 
 
 const int MAX_BONES = 100;
@@ -62,6 +68,17 @@ void main()
 	vert_out.updatedPos = (matrix * totalPosition).xyz;
 	vert_out.fragPosLight = lightMVP * vec4(vert_out.updatedPos, 1.0f);
     vert_out.model = matrix;
+    
+    vec3 T = normalize(normalMatrix * tangent);
+    vec3 N = normalize(normalMatrix * aNormal);
+    T = normalize(T - dot(T, N) * N);
+    vec3 B = cross(N, T);
+
+    mat3 TBN = transpose(mat3(T, B, N));
+    vert_out.TBN = TBN;
+    vert_out.camPos = camPos;
+    vert_out.lightPos = lightPos;
+    vert_out.fragPos = vert_out.updatedPos;
     gl_Position = mvp * vec4(vert_out.updatedPos, 1.0f);
 }
 

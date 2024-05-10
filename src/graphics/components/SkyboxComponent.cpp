@@ -86,7 +86,7 @@ void SkyboxComponent::setUniform()
 {
 	shaderProgram_ptr->Activate();
 	glUniform1i(glGetUniformLocation(shaderProgram_ptr->ID, "skybox"), 0);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram_ptr->ID, "matrix"), 1, GL_FALSE, glm::value_ptr(glm::mat4(1.0f)));
+	shaderProgram_ptr->setMat4("matrix", glm::mat4(1.0f));
 }
 
 // should draw skybox last

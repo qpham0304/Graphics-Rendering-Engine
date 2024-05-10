@@ -145,10 +145,16 @@ void LeftSidebarWidget::render()
         Component* component = OpenGLController::getComponent(nodes[i]);
         if (component != nullptr) {
             if (selectedIndex == i) {
-                //ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.000f, 0.682f, 0.000f, 0.949f));
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.000f, 0.682f, 0.000f, 0.949f));
                 prevIndex = selectedIndex;
                 node_flags |= ImGuiTreeNodeFlags_Selected;
             }
+
+            std::string id_str = "ID: " + component->getID();
+            std::string selectState = "Selected: " + std::string(component->isSelected() ? "true" : "false");
+            std::string name = "Name: " + component->getName();
+            std::string hasAnimation = "Has Animation: " + std::string(component->canAnimate() ? "true" : "false");
+            static const std::string item_names[] = { id_str, selectState, name, hasAnimation };
             if (ImGui::TreeNodeEx(component->getName().c_str(), node_flags))
             {
                 if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
@@ -156,30 +162,16 @@ void LeftSidebarWidget::render()
                 selectedIndex == i ? component->select() : component->unSelect();
                 //if(component->isSelected())
                 //    node_flags |= ImGuiTreeNodeFlags_Selected;
-
-                static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
                 for (int n = 0; n < IM_ARRAYSIZE(item_names); n++)
                 {
-                    const char* item = item_names[n];
+                    const char* item = item_names[n].c_str();
                     ImGui::Selectable(item);
-
-                    //if (ImGui::IsItemActive())
-                    //{
-                    //    int n_next = n + (ImGui::GetMouseDragDelta(0).y < 0.f ? -1 : 1);
-                    //    if (n_next >= 0 && n_next < IM_ARRAYSIZE(item_names))
-                    //    {
-                    //        item_names[n] = item_names[n_next];
-                    //        item_names[n_next] = item;
-                    //        ImGui::ResetMouseDragDelta();
-                    //    }
-                    //}
                 }
                 ImGui::TreePop();
             }
         }
-        
-        //if (prevIndex == i)
-        //    ImGui::PopStyleColor();
+        if (prevIndex == i)
+            ImGui::PopStyleColor();
     }
 
     if (ImGui::Begin("Properties")) {
@@ -216,10 +208,10 @@ void LeftSidebarWidget::render()
                 //DrawVec3Control("Scale", component->scaleVector, 1.0f);
 
                 ImGui::Text("Material Properties");
-                //ImGui::SliderFloat3("Ambient", glm::value_ptr(component->material.ambient), 0.0f, 1.0f, 0);
-                //ImGui::SliderFloat3("Diffuse", glm::value_ptr(component->material.diffuse), 0.0f, 1.0f, 0);
-                ImGui::SliderFloat3("Specular", glm::value_ptr(component->material.specular), -1.0, 1.0f, 0);
-                ImGui::SliderFloat("Shininess", &component->material.shininess, 8.0f, 128.0f, 0);
+                ImGui::SliderFloat3("Albedo", glm::value_ptr(component->materialPBR.albedo), 0.0f, 1.0f, 0);
+                ImGui::SliderFloat("Metalic", &(component->materialPBR.metalic), 0.0f, 1.0f, 0);
+                ImGui::SliderFloat("Roughness", &(component->materialPBR.roughness), 0.0f, 1.0f, 0);
+                ImGui::SliderFloat("AO", &component->materialPBR.ao, 0.0f, 1.0f, 0);
             }
         }
     }
