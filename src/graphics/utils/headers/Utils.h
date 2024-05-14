@@ -27,7 +27,7 @@ namespace Utils::uuid {
 
 namespace Utils::Draw {
     void drawQuad();
-    void drawSphere(unsigned int sphereVAO, unsigned int indexCount);
+    void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
     unsigned int loadTexture(char const* path);
 }
 

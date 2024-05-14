@@ -209,9 +209,7 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	//glStencilMask(0xFF);
-	std::vector<Light> l = {};
-	UniformProperties uniforms = UniformProperties(false, false);
-	OpenGLController::renderTest(light, uniforms, l);
+	OpenGLController::renderTest(light, uniforms);
 	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	//glStencilMask(0x00);
 	//glDisable(GL_DEPTH_TEST);
@@ -259,8 +257,10 @@ int SceneRenderer::renderScene()
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-	Shader shader("Shaders/light.vert", "Shaders/light.frag");
-	Component modelComponent("Models/planet/planet.obj");
+
+
+	Shader testShader("Shaders/light.vert", "Shaders/light.frag");
+	Model testModel("Models/Planet/planet.obj");
 
 	glm::vec3 lightAmbient = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 lightDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -327,6 +327,7 @@ int SceneRenderer::renderScene()
 			ImGui::Checkbox("enable fog", &enablefog);
 			ImGui::SameLine();
 			ImGui::Checkbox("enable tencil", &enableTencil);
+			ImGui::Checkbox("Gamma Correction", &OpenGLController::gammaCorrection);
 			ImGui::End();
 		}
 
@@ -336,12 +337,8 @@ int SceneRenderer::renderScene()
 		
 		// extra custom draw calls
 		framebuffer.Bind();
-		shader.Activate();
 		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
-		shader.setMat4("matrix", modelMatrix);
-		shader.setMat4("mvp", camera.getMVP());
-		shader.setVec4("lightColor", light.color);
-		modelComponent.model_ptr->Draw(shader);
+
 
 		if (render_skybox)
 			skybox.render(*OpenGLController::cameraController);

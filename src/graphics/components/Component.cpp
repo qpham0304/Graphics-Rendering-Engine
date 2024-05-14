@@ -35,7 +35,7 @@ Component::Component(const char* path)
 	name = fileName + 1;
 }
 
-void Component::renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light> lights)
+void Component::renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light*> lights)
 {
 	shaderProgram_ptr->Activate();
 
@@ -48,6 +48,7 @@ void Component::renderPBR(Camera& camera, const Light& light, const UniformPrope
 	shaderProgram_ptr->setVec3("camPos", camera.getPosition());
 	shaderProgram_ptr->setBool("enableFog", uniforms.enableFog);
 	shaderProgram_ptr->setFloat("explodeRadius", uniforms.explodeRadius);
+	shaderProgram_ptr->setBool("gamma", uniforms.gammaCorrection);
 	shaderProgram_ptr->setInt("shadowMap", 2);	// texture unit slot 2
 	shaderProgram_ptr->setBool("hasAnimation", hasAnimation);
 
@@ -79,25 +80,13 @@ void Component::renderPBR(Camera& camera, const Light& light, const UniformPrope
 	shaderProgram_ptr->setFloat("material.roughness", materialPBR.roughness);
 	shaderProgram_ptr->setFloat("material.ao", materialPBR.ao);
 
-	glm::vec3 lightPositions[] = {
-	glm::vec3(-10.0f,  10.0f, 10.0f),
-	glm::vec3(10.0f,  10.0f, 10.0f),
-	glm::vec3(-10.0f, -10.0f, 10.0f),
-	glm::vec3(10.0f, -10.0f, 10.0f),
-	};
-	glm::vec3 lightColors[] = {
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f),
-		glm::vec3(300.0f, 300.0f, 300.0f)
-	};
 	glm::mat4 model = glm::mat4(1.0f);
-	for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
+	for (unsigned int i = 0; i < lights.size(); ++i)
 	{
-		glm::vec3 newPos = lightPositions[i] + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
-		newPos = lightPositions[i];
+		glm::vec3 newPos = lights[i]->position + glm::vec3(sin(glfwGetTime() * 5.0) * 5.0, 0.0, 0.0);
+		newPos = lights[i]->position;
 		shaderProgram_ptr->setVec3("lightPositions[" + std::to_string(i) + "]", newPos);
-		shaderProgram_ptr->setVec3("lightColors[" + std::to_string(i) + "]", lightColors[i]);
+		shaderProgram_ptr->setVec3("lightColors[" + std::to_string(i) + "]", lights[i]->color);
 	}
 	model_ptr->Draw(*shaderProgram_ptr);
 }

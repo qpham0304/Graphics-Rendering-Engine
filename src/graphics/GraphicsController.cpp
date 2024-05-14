@@ -4,12 +4,26 @@ std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::co
 std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
 Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
-std::unordered_map<std::string, Light> OpenGLController::lights = {};
+std::unordered_map<std::string, std::unique_ptr<LightComponent>> OpenGLController::lights = {};
 
-void OpenGLController::renderTest(Light& light, UniformProperties& uniforms, const std::vector<Light> lights)
+bool OpenGLController::gammaCorrection = true;
+
+void OpenGLController::renderTest(Light& light, UniformProperties& uniforms)
 {
+	//TODO: horrendous solution for now, find a better one
+	std::vector<Light*> ls;
+	for (auto& pair : lights) {
+		std::string id = pair.first;
+		LightComponent* lightComponent = lights[id].get();
+		if (lightComponent != nullptr && lightComponent->light.get() != nullptr) {
+			ls.push_back(lightComponent->light.get());
+			lightComponent->render(*cameraController);
+		}
+	}
+
+	uniforms.gammaCorrection = gammaCorrection;
 	for (auto& pair : components) {
-		pair.second->renderPBR(*cameraController, light, uniforms, lights);
+		pair.second->renderPBR(*cameraController, light, uniforms, ls);
 	}
 }
 
@@ -68,6 +82,18 @@ std::string OpenGLController::addComponent(const char* path)
 			components[component->getID()] = std::move(component);
 			return id;
 		}
+	}
+	catch (const std::runtime_error& e) {
+		return "";
+	}
+}
+
+std::string OpenGLController::addPointLight(glm::vec3 position, glm::vec4 color)
+{
+	try {
+		std::string id = Utils::uuid::get_uuid();
+		OpenGLController::lights[id].reset(new LightComponent(position, color));
+		return id;
 	}
 	catch (const std::runtime_error& e) {
 		return "";

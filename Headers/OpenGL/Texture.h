@@ -15,7 +15,6 @@ public:
 	std::string path;
 
 	Texture() = default;
-	Texture(const char* path);
 	Texture(const char* path, const char* texType, const std::string& directory);
 	~Texture() = default;
 

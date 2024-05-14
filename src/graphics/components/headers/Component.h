@@ -80,10 +80,12 @@ struct MaterialPBR {
 struct UniformProperties {
 	bool enableFog;
 	float explodeRadius;
+	bool gammaCorrection;
 
-	UniformProperties(const bool enableFog = false, const float explodeRadius = 0.0f) {
+	UniformProperties(const bool enableFog = false, const float explodeRadius = 0.0f, const bool gammaCorrection = true) {
 		this->enableFog = enableFog;
 		this->explodeRadius = explodeRadius;
+		this->gammaCorrection = gammaCorrection;
 	}
 };
 
@@ -130,7 +132,7 @@ public:
 
 	// renderer
 	virtual void setUniform();
-	virtual void renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light> lights);
+	virtual void renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light*> lights);
 	virtual void render(Camera& camera, const Light& light, const UniformProperties& uniforms);
 	virtual void renderShadow(Shader& shader);
 	virtual void loadAnimation(const char* path);

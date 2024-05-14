@@ -15,6 +15,9 @@ private:
 public:
 	LeftSidebarWidget();
 
+	void AddEntityButton();
+	void LightTab();
+	void EntityTab();
 	void render() override;
 };
 

@@ -27,7 +27,7 @@ uniform mat4 matrix;
 uniform mat3 normalMatrix;
 uniform mat4 mvp;
 uniform mat4 lightMVP;
-uniform mat4 normalMap;
+//uniform mat4 normalMap;
 uniform bool hasAnimation = true;
 uniform vec3 camPos;
 uniform vec3 lightPos;
@@ -47,7 +47,8 @@ void main()
     mat3 TBN = transpose(mat3(T, B, N));
 
 	vert_out.uv = vertexUV;
-	vert_out.normal = normalize(normalMatrix * aNormal);
+	//vert_out.normal = normalize(normalMatrix * aNormal);
+	vert_out.normal = (normalMatrix * aNormal);
 
 	vec4 totalPosition = vec4(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)

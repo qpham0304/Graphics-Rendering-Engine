@@ -51,8 +51,6 @@ private:
     std::vector<Texture> textures;
     int m_BoneCounter = 0;
 
-
-
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);

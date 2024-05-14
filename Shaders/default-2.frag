@@ -5,10 +5,10 @@ struct Material {
     sampler2D specular;    
     float shininess;
 
-	vec3 albedo;
-	float metalic;
-	float roughness;
-	float ao;
+	//vec3 albedo;
+	//float metallic;
+	//float roughness;
+	//float ao;
 }; 
 
 struct Light {
@@ -23,10 +23,17 @@ struct Light {
 uniform bool useTexture = false;
 uniform bool enableFog = false;
 uniform sampler2D diffuse0;
-uniform sampler2D diffuse1;
-uniform sampler2D shadowMap;
 uniform sampler2D specular0;
-uniform sampler2D normalMap0;
+uniform sampler2D normal0;
+uniform sampler2D ao0;
+uniform sampler2D shadowMap;
+uniform sampler2D roughness0;
+
+uniform sampler2D albedoMap;
+uniform sampler2D normalMap;
+uniform sampler2D metallicMap;
+uniform sampler2D roughnessMap;
+uniform sampler2D aoMap;
 
 uniform Material material;
 uniform Light light;
@@ -36,6 +43,7 @@ const int MAX_NUM_LIGHTS = 4;
 const float PI = 3.14159265359;
 uniform vec3 lightPositions[MAX_NUM_LIGHTS];
 uniform vec3 lightColors[MAX_NUM_LIGHTS];
+uniform bool gamma;
 
 in VS_OUT {
     vec2 uv;
@@ -143,15 +151,34 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
+vec3 getNormalFromMap()
+{
+    vec3 tangentNormal = texture(normalMap, frag_in.uv).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(frag_in.updatedPos);
+    vec3 Q2  = dFdy(frag_in.updatedPos);
+    vec2 st1 = dFdx(frag_in.uv);
+    vec2 st2 = dFdy(frag_in.uv);
+
+    vec3 N   = normalize(frag_in.normal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
+}
+
 vec4 pointLightPBR() {
-    vec3 albedo     = pow(texture(diffuse0, frag_in.uv).rgb, vec3(2.2));
-    float metallic  = texture(specular0, frag_in.uv).r;
-    //float roughness = texture(roughnessMap, TexCoords).r;
-    //float ao        = texture(aoMap, TexCoords).r;
+    vec3 albedo     = pow(texture(albedoMap, frag_in.uv).rgb, vec3(2.2));
+    float metallic  = texture(metallicMap, frag_in.uv).r;
+    float roughness = texture(roughnessMap, frag_in.uv).r;
+    float ao        = texture(aoMap, frag_in.uv).r;
 
-	vec3 N = normalize(frag_in.normal);
-	vec3 V = normalize(frag_in.camPos - frag_in.fragPos);
-
+    vec3 N = getNormalFromMap();
+    vec3 V = normalize(camPos - frag_in.updatedPos);
+	vec3 F0 = vec3(0.04);	//0.04 realistic for most dielectric surfaces
+	F0 = mix(F0, albedo, metallic);
+	
 	vec3 Lo = vec3(0.0);
 	for(int i = 0; i < MAX_NUM_LIGHTS; i++) {
 		vec3 L = normalize(lightPositions[i] - frag_in.fragPos);
@@ -161,12 +188,10 @@ vec4 pointLightPBR() {
 		float attenuation = 1.0 / (distance * distance);
 		vec3 radiance = lightColors[i] * attenuation;
 		
-		vec3 F0 = vec3(0.04);	//0.04 realistic for most dielectric surfaces
-		F0 = mix(F0, albedo, material.metalic);
+		//BRDF
 		vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
-
-		float NDF = DistributionGGX(N, H, material.roughness);       
-		float G   = GeometrySmith(N, V, L, material.roughness);
+		float NDF = DistributionGGX(N, H, roughness);       
+		float G   = GeometrySmith(N, V, L, roughness);
 
 		vec3 numerator    = NDF * G * F;
 		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0)  + 0.0001; // 0.0001 to prevent zero division
@@ -175,22 +200,22 @@ vec4 pointLightPBR() {
 		vec3 kS = F;
 		vec3 kD = vec3(1.0) - kS;
   
-		kD *= 1.0 - material.metalic;	
+		kD *= 1.0 - metallic;//material.metallic;	
 
 		float NdotL = max(dot(N, L), 0.0);
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
-	vec3 ambient = vec3(0.03) * albedo * material.ao;
+	vec3 ambient = vec3(0.03) * albedo * ao;
 	vec3 color   = ambient + Lo; 
 
-	color = color / (color + vec3(1.0));
-	color = pow(color, vec3(1.0/2.2)); 
+	color = color / (color + vec3(1.0));	// HDR tone mapping
+	color = gamma ? pow(color, vec3(1.0/2.2)) : color;		// Gamma correction
 	
 	return vec4(color, 1.0f);
 }
 //------------------------//
 vec4 pointLight() {
-    //vec3 normal = texture(normalMap0, frag_in.uv).rgb;
+    //vec3 normal = texture(normal0, frag_in.uv).rgb;
     //normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space
 	//normal = normal * 2.0 - 1.0;
 	//normal = normalize(normal * frag_in.TBN);
