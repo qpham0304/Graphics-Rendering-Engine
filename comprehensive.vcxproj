@@ -265,8 +265,11 @@
     <ResourceCompile Include="comprehensive.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\background.frag" />
+    <None Include="Shaders\background.vert" />
     <None Include="Shaders\cellshadedModel.frag" />
     <None Include="Shaders\cellshadedModel.vert" />
+    <None Include="Shaders\cubemap-hdr.vert" />
     <None Include="Shaders\cubemap.frag" />
     <None Include="Shaders\cubemap.vert" />
     <None Include="Shaders\default-2.frag" />
@@ -274,6 +277,8 @@
     <None Include="Shaders\default.frag" />
     <None Include="Shaders\default.geom" />
     <None Include="Shaders\default.vert" />
+    <None Include="Shaders\equireRectToCubemap.frag" />
+    <None Include="Shaders\irradiance-convolution.frag" />
     <None Include="Shaders\light.frag" />
     <None Include="Shaders\light.vert" />
     <None Include="Shaders\material.frag" />

@@ -318,6 +318,11 @@
     <None Include="Shaders\default.geom" />
     <None Include="Shaders\default-2.frag" />
     <None Include="Shaders\default-2.vert" />
+    <None Include="Shaders\equireRectToCubemap.frag" />
+    <None Include="Shaders\background.frag" />
+    <None Include="Shaders\background.vert" />
+    <None Include="Shaders\cubemap-hdr.vert" />
+    <None Include="Shaders\irradiance-convolution.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

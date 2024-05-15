@@ -47,13 +47,13 @@ private:
 	float sensitivity = DEFAULT_SENSITIVITY;
 	float yaw = DEFAULT_YAW;
 	float pitch = DEFAULT_PITCH;
-	float fov = DEFAULT_FOV;
 	float nearPlane = DEFAULT_NEARPLANE;
 	float farPlane = DEFAULT_FARPLANE;
 
 	float deltaTime = 0.0f;	// Time between current frame and last frame
 	float lastFrame = 0.0f; // Time of last frame
 public:
+	float fov = DEFAULT_FOV;
 
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	Camera(unsigned int width, unsigned int height, glm::vec3 position);

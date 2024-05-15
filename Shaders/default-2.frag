@@ -34,6 +34,7 @@ uniform sampler2D normalMap;
 uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
+uniform samplerCube irradianceMap;
 
 uniform Material material;
 uniform Light light;
@@ -116,6 +117,11 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+} 
+
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float a      = roughness*roughness;
@@ -176,6 +182,7 @@ vec4 pointLightPBR() {
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - frag_in.updatedPos);
+	
 	vec3 F0 = vec3(0.04);	//0.04 realistic for most dielectric surfaces
 	F0 = mix(F0, albedo, metallic);
 	
@@ -205,7 +212,14 @@ vec4 pointLightPBR() {
 		float NdotL = max(dot(N, L), 0.0);
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
-	vec3 ambient = vec3(0.03) * albedo * ao;
+	//vec3 ambient = vec3(0.03) * albedo * ao;
+	vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ao;
+
 	vec3 color   = ambient + Lo; 
 
 	color = color / (color + vec3(1.0));	// HDR tone mapping

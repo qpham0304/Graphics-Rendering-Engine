@@ -25,10 +25,15 @@ namespace Utils::uuid {
 
 }
 
+namespace Utils::filereader {
+    std::string loadHDRTexture(const char* path, unsigned int& texture);
+    unsigned int loadTexture(char const* path);
+}
+
 namespace Utils::Draw {
     void drawQuad();
+    void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
     void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
-    unsigned int loadTexture(char const* path);
 }
 
 namespace Utils::Window {
