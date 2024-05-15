@@ -159,7 +159,7 @@
     <ClCompile Include="src\graphics\components\LightComponent.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\pbr\pbr_demo.cpp">
+    <ClCompile Include="src\apps\image-based-rendering\pbr_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -287,7 +287,7 @@
     <ClInclude Include="src\graphics\components\headers\LightComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\apps\pbr\pbr_demo.h">
+    <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -313,8 +313,8 @@
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\skeletonModel.frag" />
     <None Include="Shaders\skeletonModel.vert" />
-    <None Include="Shaders\cellshadedModel.vert" />
-    <None Include="Shaders\cellshadedModel.frag" />
+    <None Include="Shaders\cellShader.vert" />
+    <None Include="Shaders\cellShader.frag" />
     <None Include="Shaders\default.geom" />
     <None Include="Shaders\default-2.frag" />
     <None Include="Shaders\default-2.vert" />
@@ -323,6 +323,9 @@
     <None Include="Shaders\background.vert" />
     <None Include="Shaders\cubemap-hdr.vert" />
     <None Include="Shaders\irradiance-convolution.frag" />
+    <None Include="Shaders\prefilter.frag" />
+    <None Include="Shaders\brdf.vert" />
+    <None Include="Shaders\brdf.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

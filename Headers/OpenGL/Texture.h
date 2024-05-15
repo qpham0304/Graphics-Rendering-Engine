@@ -6,6 +6,7 @@
 
 class Texture
 {
+
 private:
 	void loadTexture(const char* path, bool flip);
 public:
@@ -26,4 +27,15 @@ public:
 	void Unbind();
 	// Deletes a texture
 	void Delete();
+
+	static void BIND_ALBEDO();
+	static void BIND_NORMAL();
+	static void BIND_METALLIC();
+	static void BIND_ROUGHNESS();
+	static void BIND_AO();
+	static void BIND_IRRADIANCE();
+	static void BIND_PREFILTER();
+	static void BIND_BRDF_LUT_TEXTURE();
+	static void BIND_HEIGHT();
+	static void BIND_SHADOW();
 };

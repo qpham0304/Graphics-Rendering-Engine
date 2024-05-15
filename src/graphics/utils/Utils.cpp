@@ -288,6 +288,8 @@ namespace Utils::Draw {
 			unsigned int stride = (3 + 2 + 3) * sizeof(float);
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
 			glEnableVertexAttribArray(3);
@@ -344,13 +346,6 @@ namespace Utils::Window {
 		}
 		return filePath;
 	}
-}
-
-namespace Utils::BindTexture {
-	static const int TEXTURE_DIFFUSE = 0;
-	static const int TEXTURE_SPECULAR = 1;
-	static const int TEXTURE_SHADOW_MAP = 2;
-	static const int TEXTURE_NORMAL = 3;
 }
 
 std::string Utils::filereader::loadHDRTexture(const char* path, unsigned int& hdrTexture)

@@ -35,6 +35,8 @@ uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
 uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
 
 uniform Material material;
 uniform Light light;
@@ -182,6 +184,7 @@ vec4 pointLightPBR() {
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - frag_in.updatedPos);
+    vec3 R = reflect(-V, N); 
 	
 	vec3 F0 = vec3(0.04);	//0.04 realistic for most dielectric surfaces
 	F0 = mix(F0, albedo, metallic);
@@ -213,16 +216,25 @@ vec4 pointLightPBR() {
 		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 	}
 	//vec3 ambient = vec3(0.03) * albedo * ao;
-	vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+	//vec3 F = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+	vec3 kS = F;
     vec3 kD = 1.0 - kS;
     kD *= 1.0 - metallic;	  
+
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse      = irradiance * albedo;
-    vec3 ambient = (kD * diffuse) * ao;
+    vec3 diffuse = irradiance * albedo;
+
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+	vec3 ambient = (kD * diffuse + specular) * ao;
+	
 
 	vec3 color   = ambient + Lo; 
-
-	color = color / (color + vec3(1.0));	// HDR tone mapping
+	color = color / (color + vec3(1.0));					// HDR tone mapping
 	color = gamma ? pow(color, vec3(1.0/2.2)) : color;		// Gamma correction
 	
 	return vec4(color, 1.0f);

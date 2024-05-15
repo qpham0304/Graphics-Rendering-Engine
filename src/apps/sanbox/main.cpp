@@ -1,6 +1,6 @@
 
 #include "../../SceneRenderer.h"
-#include "../pbr/pbr_demo.h"
+#include "../image-based-rendering/pbr_demo.h"
 
 int main()
 {
