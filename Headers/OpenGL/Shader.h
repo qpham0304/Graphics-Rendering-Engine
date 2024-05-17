@@ -20,7 +20,6 @@ std::string get_file_contents(const char* filename);
 class Shader
 {
 private:
-	GLuint id;
 	GLuint getUniformLocation(const std::string& name) const;
 
 public:
@@ -30,8 +29,14 @@ public:
 	mutable std::unordered_map<std::string, GLuint> cache;
 	
 	Shader();
+	Shader(const Shader& other);
 	Shader(const char* vertexFile, const char* fragmentFile);
+	Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
 	Shader& operator=(const Shader& other);
+
+	Shader(Shader&& other) noexcept;
+	Shader& operator=(Shader&& other) noexcept;
+
 	~Shader();
 
 	void Activate();

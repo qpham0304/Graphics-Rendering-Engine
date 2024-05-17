@@ -2,13 +2,12 @@
 
 Shader::Shader() = default;
 
-Shader& Shader::operator=(const Shader& other) {
-	if (this != &other) {
-		this->ID = other.ID;
-	}
-	return *this;
+Shader::Shader(const Shader& other)
+{
+	this->ID = other.ID;
+	this->type = other.type;
+	this->cache = other.cache;
 }
-
 
 static bool validateFormat(const char* str) {
 	size_t len = std::strlen(str);
@@ -57,6 +56,74 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	glDeleteShader(fragmentShader);
 
 }
+
+Shader& Shader::operator=(const Shader& other) {
+	if (this != &other) {
+		this->ID = other.ID;
+	}
+	return *this;
+}
+
+Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+{
+	//TODO properly validate format 
+//if false, use a default shader or something to prevent crash maybe?
+	if (!(validateFormat(vertexFile) && validateFormat(fragmentFile))) {
+		std::cerr << "invalid file format, must be .frag or .vert" << std::endl;
+	}
+
+	const char* fileName = std::strrchr(fragmentFile, '/');
+	if (fileName != nullptr)
+		type = fileName + 1;
+	else
+		type = fragmentFile;
+	type = type.substr(0, type.size() - 5);
+
+	std::string vertexCode = get_file_contents(vertexFile);
+	std::string fragmentCode = get_file_contents(fragmentFile);
+	std::string geometryCode = get_file_contents(geometryFile);
+
+	const char* vertexSource = vertexCode.c_str();
+	const char* fragmentSource = fragmentCode.c_str();
+	const char* geometrySource = geometryCode.c_str();
+
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexSource, NULL);
+	glCompileShader(vertexShader);
+	compileErrors(vertexShader, "VERTEX");
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentSource, NULL);
+	glCompileShader(fragmentShader);
+	compileErrors(fragmentShader, "FRAGMENT");
+
+	GLuint geometryShader = glCreateShader(GL_GEOMETRY_SHADER);
+	glShaderSource(geometryShader, 1, &geometrySource, NULL);
+	glCompileShader(geometryShader);
+	compileErrors(geometryShader, "GEOMETRY");
+
+	ID = glCreateProgram();
+	glAttachShader(ID, vertexShader);
+	glAttachShader(ID, fragmentShader);
+	glAttachShader(ID, geometryShader);
+	glLinkProgram(ID);
+
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+	glDeleteShader(geometryShader);
+}
+
+Shader::Shader(Shader&& other) noexcept : ID(std::exchange(other.ID, 0)), type(std::move(other.type)), cache(std::move(other.cache)) {}
+
+Shader& Shader::operator=(Shader&& other) noexcept {
+	if (this != &other) {
+		ID = std::exchange(other.ID, 0);
+		type = std::move(other.type);
+		cache = std::move(other.cache);
+	}
+	return *this;
+}
+
 
 Shader::~Shader()
 {

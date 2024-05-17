@@ -1,20 +1,45 @@
 #include "GraphicsController.h"
 
-//std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
-//std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
-//Light OpenGLController::light;
+std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
+std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
+Camera* OpenGLController::cameraController = nullptr;
+std::string OpenGLController::selectedID = "";
+std::unordered_map<std::string, std::unique_ptr<LightComponent>> OpenGLController::lights = {};
 
-void OpenGLController::render(Camera& camera, Light& light)
+bool OpenGLController::gammaCorrection = true;
+
+void OpenGLController::renderTest(Light& light, UniformProperties& uniforms)
 {
-	for (auto& pair: components) {
-		pair.second->render(camera, light);
+	//TODO: horrendous solution for now, find a better one
+	std::vector<Light*> ls;
+	for (auto& pair : lights) {
+		std::string id = pair.first;
+		LightComponent* lightComponent = lights[id].get();
+		if (lightComponent != nullptr && lightComponent->light.get() != nullptr) {
+			ls.push_back(lightComponent->light.get());
+			lightComponent->render(*cameraController);
+		}
+	}
+
+	uniforms.gammaCorrection = gammaCorrection;
+	for (auto& pair : components) {
+		pair.second->renderPBR(*cameraController, light, uniforms, ls);
 	}
 }
 
-void OpenGLController::renderShadow(Shader& shadowMapShader, Camera& camera)
+void OpenGLController::render(Light& light, UniformProperties& uniforms)
 {
 	for (auto& pair : components) {
-		pair.second->renderShadow(shadowMapShader, camera);
+		pair.second->render(*cameraController, light, uniforms);
+	}
+}
+
+void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
+{
+	shadowMapShader.Activate();
+	shadowMapShader.setMat4("mvp", light.mvp);
+	for (auto& pair : components) {
+		pair.second->renderShadow(shadowMapShader);
 	}
 }
 
@@ -37,26 +62,42 @@ Component* OpenGLController::getSelectedComponent()
 std::string OpenGLController::addComponent(Component& component)
 {
 	std::string id = component.getID();
-	//std::unique_ptr<ModelComponent> c = std::make_unique<ModelComponent>(std::move(component));
+	//std::unique_ptr<Component> c = std::make_unique<Component>(std::move(component));
 	//if (components.find(id) == components.end()) {
 	//	components[id] = std::move(c);
 	//}
 	//std::cout << "component already exist: " << components[id].getID() << "\n";
+	//components[id] = std::move(c);
+
 	return id;
 }
 
 std::string OpenGLController::addComponent(const char* path)
 {
-	std::unique_ptr<ModelComponent> component = std::make_unique<ModelComponent>(path);
-	std::string id = component->getID();
-	
-	// assume all the model loaded model works as expected
-	// this would still add a component to the map if a model failed to load
-	if (components.find(component->getID()) == components.end()) {
-		components[component->getID()] = std::move(component);
+	try {
+		std::unique_ptr<Component> component = std::make_unique<Component>(path);
+		std::string id = component->getID();
+
+		if (components.find(component->getID()) == components.end()) {
+			components[component->getID()] = std::move(component);
+			return id;
+		}
+	}
+	catch (const std::runtime_error& e) {
+		return "";
+	}
+}
+
+std::string OpenGLController::addPointLight(glm::vec3 position, glm::vec4 color)
+{
+	try {
+		std::string id = Utils::uuid::get_uuid();
+		OpenGLController::lights[id].reset(new LightComponent(position, color));
 		return id;
 	}
-	return "";
+	catch (const std::runtime_error& e) {
+		return "";
+	}
 }
 
 void OpenGLController::updatecomponent(std::string id)
@@ -64,10 +105,9 @@ void OpenGLController::updatecomponent(std::string id)
 	components[id]->select();
 }
 
-
 void OpenGLController::removeComponent(std::string id)
 {
-	if (components.find(id) != components.end()) {
+	if (components.find(id) != components.end() && components[id]->isSelected()) {
 		components[id].reset();
 		components.erase(id);
 	}
@@ -84,6 +124,15 @@ void OpenGLController::addShader()
 void OpenGLController::removeShader()
 {
 
+}
+
+int OpenGLController::getNumVertices()
+{
+	int countVertices = 0;
+	for (auto& pair : components) {
+		countVertices += pair.second->getNumVertices();
+	}
+	return countVertices;
 }
 
 void OpenGLController::setSelectedID(std::string id)

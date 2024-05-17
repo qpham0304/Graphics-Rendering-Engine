@@ -1,29 +1,38 @@
 #include "SceneRenderer.h"
-#include "graphics/components/headers/ModelComponent.h"
 
-unsigned int SceneRenderer::width = 0;
-unsigned int SceneRenderer::height = 0;
+unsigned int SceneRenderer::width = DEFAULT_WIDTH;
+unsigned int SceneRenderer::height = DEFAULT_HEIGHT;
 
-float SceneRenderer::lastFrame = 0.0f;
-float SceneRenderer::lf = 0.0f;
-float SceneRenderer::lastTime = 0.0f;
-unsigned int SceneRenderer::frameCounter = 0;
-float SceneRenderer::rotationAngle = 0.0f;
-float SceneRenderer::angle = 0.0f;
-float SceneRenderer::radius = 0.0f;
-float SceneRenderer::angularSpeed = 0.0f;
 ImGuizmo::OPERATION SceneRenderer::GuizmoType = ImGuizmo::TRANSLATE;
 Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
-const Platform SceneRenderer::supportPlatform[] = { PLATFORM_OPENGL };	// add more platform when we support more
+const std::set<Platform> SceneRenderer::supportPlatform = { PLATFORM_OPENGL };	// add more platform when we support more
 
-float SceneRenderer::ambient = 0.5f;
-int SceneRenderer::sampleRadius = 2;
-glm::vec4 SceneRenderer::lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-glm::vec3 SceneRenderer::lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
+glm::vec4 bgColor(38/255.0f, 43/255.0f, 42/255.0f, 1.0f);
 
 GLFWwindow* SceneRenderer::window = nullptr;
-
 ImGuiController SceneRenderer::guiController(true);
+
+bool show_debug_window = true;
+bool face_culling_enabled = true;
+bool draw_frame_buffer = true;
+bool debug = false;
+bool animate_enable = true;
+bool show_navigator = true;
+bool show_post_processing = false;
+bool drawCube_enabled = false;
+bool drawGrid_enabled = false;
+bool configToggle = false;
+bool renderShadow = true;
+bool render_skybox = true;
+int cameraSpeed = 2;
+float lf = 0.0f;
+bool enablefog = false;
+float explodeRadius = 0.0f;
+bool enableTencil = true;
+UniformProperties uniforms = UniformProperties(enablefog, explodeRadius);
+std::string id = "";
 
 void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
 	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
@@ -67,27 +76,10 @@ void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, cons
 	}
 }
 
-void SceneRenderer::setUniform(Shader& shader, bool hasAnimation, Light& light, glm::mat4& lightCastMatrix, glm::mat4& modelMatrix, Camera& camera) {
-	shader.Activate();
-	glCullFace(GL_FRONT);
-	shader.setMat4("lightProjection", lightCastMatrix);
-	shader.setVec4("lightColor", lightColor);
-	shader.setInt("sampleRadius", sampleRadius);
-	shader.setFloat("ambientIntensity", ambient);
-	shader.setBool("hasAnimation", hasAnimation);
-	shader.setInt("shadowMap", 2);
-	shader.setVec3("lightPos", lightPos);
-	shader.setMat4("matrix", modelMatrix);
-	shader.setMat4("mvp", camera.getMVP());
-	glCullFace(GL_BACK);
-}
-
 int SceneRenderer::init(Platform platform) {
 	SceneRenderer::platform = platform;
-	for (auto& p : supportPlatform) {
-		if (platform != p) {
-			throw std::runtime_error("Platform unsupported");
-		}
+	if (supportPlatform.find(platform)  == supportPlatform.end()) {
+		throw std::runtime_error("Platform unsupported");
 	}
 
 	if (SceneRenderer::platform == PLATFORM_OPENGL) {
@@ -152,59 +144,111 @@ int SceneRenderer::end() {
 	return 0;
 }
 
-int SceneRenderer::renderScene() {
-	glViewport(0, 0, width, height);
+void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light) {
+	shadowMap.Bind();
+	glViewport(0, 0, shadowMap.SHADOW_WIDTH, shadowMap.SHADOW_HEIGHT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glActiveTexture(GL_TEXTURE0);
+
+	if (face_culling_enabled) {
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glCullFace(GL_FRONT);
+	}
+	else
+		glDisable(GL_CULL_FACE);
+	OpenGLController::renderShadow(shadowMapShader, light);
+
+	shadowMap.Unbind();
+}
+
+void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light) {
+	framebuffer.Bind();
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
+	glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+	glEnable(GL_DEPTH_CLAMP);
+	if (enableTencil) {
+		glEnable(GL_STENCIL_TEST);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	}
 
-	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+	if (face_culling_enabled) {
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
+	}
+	else
+		glDisable(GL_CULL_FACE);
+
+	if (configToggle) {
+		glEnable(GL_BLEND);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	// reset viewport
+	glViewport(0, 0, width, height);
+	glClearColor(bgColor.x, bgColor.y, bgColor.z, bgColor.w); // RGBA
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+	glActiveTexture(GL_TEXTURE0 + 2);
+	glBindTexture(GL_TEXTURE_2D, depthMap.texture);
+
+	float currentTime = static_cast<float>(glfwGetTime());
+	float dt = currentTime - lf;
+	lf = currentTime;
+	if (animate_enable && !id.empty()) {
+		if (OpenGLController::getComponent(id) != nullptr)
+			OpenGLController::getComponent(id)->updateAnimation(dt);
+	}
+
+	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	//glStencilMask(0xFF);
+	OpenGLController::renderTest(light, uniforms);
+	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	//glStencilMask(0x00);
+	//glDisable(GL_DEPTH_TEST);
+
+	framebuffer.Unbind();
+}
+
+int SceneRenderer::renderScene() 
+{
+	guiController.init(window, width, height);
+	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5f, -0.2f, -1.0f));
 	OpenGLController::cameraController = &camera;
-
-	auto start = std::chrono::high_resolution_clock::now();
-
-	Shader aruModelShader("Shaders/default.vert", "Shaders/default.frag");
-	glm::mat4 aruObjMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-5.0f, 0.0f, 0.0f));
-	aruModelShader.Activate();
-	aruModelShader.setMat4("matrix", aruObjMatrix);
-	Model aruModel("Models/aru/aru.gltf");
-	Animation aru_animation("Models/aru/aru.gltf", &aruModel);
-	Animator aru_animator(&aru_animation);
-
+	
 	SkyboxComponent skybox("Textures/skybox");
 	skybox.setUniform();
 
-
-	PlaneComponent plane;
+	glm::vec3 translate(5.0f, 0.0f, 2.0f);
+	glm::vec3 scaleVector(0.5f, 0.5f, 0.5f);
+	std::string cubeID = OpenGLController::addComponent("Models/planet/planet.obj");
+	OpenGLController::getComponent(cubeID)->translate(translate);
+	std::string reimuID = OpenGLController::addComponent("Models/reimu/reimu.obj");
+	translate += glm::vec3(0.0f, 3.0f, 0.0f);
+	OpenGLController::getComponent(reimuID)->translate(translate);
+	OpenGLController::getComponent(reimuID)->scale(scaleVector);
+	id = OpenGLController::addComponent("Models/aru/aru.gltf");
+	OpenGLController::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
+	translate += glm::vec3(-9.0f, 1.0f, 2.0f);
+	OpenGLController::getComponent(id)->translate(translate);
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
 	DepthMap depthMap;
-
-
-	bool show_debug_window = true;
-	bool face_culling_enabled = true;
-	bool draw_frame_buffer = true;
-	bool debug = false;
-	bool animate_enable = true;
-	bool show_navigator = true;
-	bool show_post_processing = false;
-	bool drawCube_enabled = false;
-	bool drawGrid_enabled = false;
-	bool configToggle = false;
-
-	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = end - start;
-	std::cout << "-----Time taken to load scene: " << duration.count() << " seconds-----\n";
-
 	FrameBuffer framebuffer(width, height);
 	FrameBuffer postRenderFrame(width, height);
 
 	Shader frameShaderProgram("src/apps/frame-buffer/framebuffer.vert", "src/apps/frame-buffer/framebuffer.frag");
 	frameShaderProgram.Activate();
 	frameShaderProgram.setFloat("screenTexture", 0);
-
-
-	guiController.init(window, width, height);
 
 	float near_plane = 1.0f, far_plane = 12.5f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
@@ -213,220 +257,130 @@ int SceneRenderer::renderScene() {
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-	int cameraSpeed = 2;
+
+
+	Shader testShader("Shaders/light.vert", "Shaders/light.frag");
+	Model testModel("Models/Planet/planet.obj");
+
+	glm::vec3 lightAmbient = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+	glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
+	Light light = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	
+	glm::vec3 lightPos_1 = glm::vec3(5.5f, 0.5f, 0.5f);
+	glm::vec3 lightPos_2 = glm::vec3(-1.5f, 3.5f, 0.5f);
+	glm::vec3 lightPos_3 = glm::vec3(1.0f, 1.0f, 1.0f);
+	Light sunLight = Light(lightPos_1, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light pointLight = Light(lightPos_2, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	Light spotLight = Light(lightPos_3, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+	std::vector<Light> lights = { sunLight , pointLight, spotLight };
 
 	// Main while loop
+	glEnable(GL_DEPTH_TEST);
 	while (!glfwWindowShouldClose(window))
 	{
-		int countDrawCall = 0;
-
 		guiController.start();
 		guiController.render();
 
+		uniforms = UniformProperties(enablefog, explodeRadius);
+		lightPos = light.position;
+		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+		lightMVP = lightProjection * lightView;
+		light.mvp = lightMVP;
+		OpenGLController::cameraController->cameraViewUpdate();
+
+
 		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		if (ImGui::Begin("Global Control")) {
-			ImGui::SliderFloat("Ambient", &ambient, 0.0f, 20.0f);
-			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10)) {
+			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10))
 				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
-			}
-			ImGui::SliderFloat3("light pos", &lightPos[0], 0.0f, 20.0f);
+			ImGui::SliderFloat3("light pos", &light.position[0], -20.0f, 20.0f);
+			ImGui::SliderFloat3("ambient", &light.ambient[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("diffuse", &light.diffuse[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("specular", &light.specular[0], 0.0f, 1.0f);
+			ImGui::SliderFloat("explode radius", &explodeRadius, 0, 10.f);
 
 			if (ImGui::Button("+"))
-				sampleRadius++;
+				light.sampleRadius++;
 			ImGui::SameLine();
-			if (ImGui::Button("-") && sampleRadius >= 0)
-				sampleRadius--;
+			if (ImGui::Button("-") && light.sampleRadius >= 0)
+				light.sampleRadius--;
 			ImGui::SameLine();
-			ImGui::Text("counter = %d", sampleRadius);
+			ImGui::Text("counter = %d", light.sampleRadius);
 			ImGui::Text("Hello from another window!");
 			ImGui::Checkbox("Debug Mode", &debug);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::ColorEdit4("Global Color", &lightColor[0]);
+			ImGui::ColorEdit4("Sun position", &light.color[0]);
+			ImGui::ColorEdit4("Background Color", &bgColor[0]);
 			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
+			ImGui::SameLine();
 			ImGui::Checkbox("Enable animation", &animate_enable);
 			ImGui::Checkbox("Show navigator", &show_navigator);
 			ImGui::SameLine();
-			ImGui::Checkbox("Draw Debug Cube", &drawCube_enabled);
-			ImGui::SameLine();
 			ImGui::Checkbox("Draw Debug Grid", &drawGrid_enabled);
 			ImGui::Checkbox("post frame process", &show_post_processing);
+			ImGui::SameLine();
 			ImGui::Checkbox("toggle config", &configToggle);
+			ImGui::Checkbox("render skybox", &render_skybox);
+			ImGui::SameLine();
+			ImGui::Checkbox("enable fog", &enablefog);
+			ImGui::SameLine();
+			ImGui::Checkbox("enable tencil", &enableTencil);
+			ImGui::Checkbox("Gamma Correction", &OpenGLController::gammaCorrection);
 			ImGui::End();
 		}
 
 
-		float currentTime = static_cast<float>(glfwGetTime());
-		float timeDiff = currentTime - lastTime;
-		frameCounter++;
-
-		if (timeDiff >= 1 / 2) {
-			std::string FPS = std::to_string((1.0 / timeDiff) * frameCounter);
-			std::string ms = std::to_string((timeDiff / frameCounter) * 1000);
-			std::string updatedTitle = "Graphic Engine - " + FPS + "FPS / " + ms + "ms";
-			glfwSetWindowTitle(window, updatedTitle.c_str());
-			lastTime = currentTime;
-			frameCounter = 0;
-		}
-
-		OpenGLController::cameraController->cameraViewUpdate();
-		// render scene from light's point of view
-		depthMap.Bind();
-		glViewport(0, 0, depthMap.SHADOW_WIDTH, depthMap.SHADOW_HEIGHT);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glActiveTexture(GL_TEXTURE0);
-
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-		lightMVP = lightProjection * lightView;
-		Light light = Light(lightPos, lightColor, ambient, lightMVP, sampleRadius);
-		shadowMapShader.Activate();
-		shadowMapShader.setMat4("mvp", lightMVP);
-
-		if (face_culling_enabled) {
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glFrontFace(GL_CCW);
-		}
-		else {
-			glDisable(GL_CULL_FACE);
-		}
-
-		glCullFace(GL_FRONT);
-
-		plane.renderShadow(shadowMapShader, *OpenGLController::cameraController);
-		OpenGLController::renderShadow(shadowMapShader, camera);
-
-		shadowMapShader.setBool("hasAnimation", true);
-		shadowMapShader.setMat4("matrix", aruObjMatrix);
-
-		auto aru_transforms_shadow = aru_animator.GetFinalBoneMatrices();
-		for (int i = 0; i < aru_transforms_shadow.size(); ++i)
-			shadowMapShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms_shadow[i]);
-		aruModel.Draw(shadowMapShader, camera);
-
-		depthMap.Unbind();
-
+		renderShadowScene(depthMap, shadowMapShader, light);
+		renderObjectsScene(framebuffer, depthMap, light);
+		
+		// extra custom draw calls
 		framebuffer.Bind();
-		// reset viewport
-		if (face_culling_enabled) {
-			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_BACK);
-			glFrontFace(GL_CCW);
-		}
-		else {
-			glDisable(GL_CULL_FACE);
-		}
+		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
 
-		if (configToggle) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_LINE_SMOOTH);
-			glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-		}
 
-		glViewport(0, 0, width, height);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		debugDepthQuad.Activate();
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, depthMap.texture);
-		if (debug) Utils::Draw::drawQuad();
-
-		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_2D, depthMap.texture);
-
-		float cf = glfwGetTime();
-		float dt = cf - lf;
-		lf = cf;
-		if (animate_enable)
-			aru_animator.UpdateAnimation(dt);
-
-		OpenGLController::render(camera, light);
-
-		plane.render(camera, light);
-
-		setUniform(aruModelShader, true, light, lightMVP, aruObjMatrix, camera);
-		auto aru_transforms = aru_animator.GetFinalBoneMatrices();
-		for (int i = 0; i < aru_transforms.size(); ++i)
-			aruModelShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", aru_transforms[i]);
-		aruModel.Draw(aruModelShader, camera);
-
-		skybox.render(camera);
-
+		if (render_skybox)
+			skybox.render(*OpenGLController::cameraController);
 		framebuffer.Unbind();
 
-
-		
 		if(ImGui::Begin("Application Window"))
 		{
-			// Using a Child allow to fill all the space of the window.
 			ImGui::BeginChild("View window");
-			// Get the size of the child (i.e. the whole draw size of the windows).
 			ImVec2 wsize = ImGui::GetWindowSize();
 			int wWidth = static_cast<int>(ImGui::GetWindowWidth());
 			int wHeight = static_cast<int>(ImGui::GetWindowHeight());
+			OpenGLController::cameraController->updateViewResize(wWidth, wHeight);
 
 			if (show_post_processing) {
 				postRenderFrame.Bind();
-				if (face_culling_enabled) {
-					glEnable(GL_DEPTH_TEST);
-					glEnable(GL_CULL_FACE);
-					glCullFace(GL_BACK);
-					glFrontFace(GL_CCW);
-				}
-				else {
-					glDisable(GL_CULL_FACE);
-				}
-
 				frameShaderProgram.Activate();
 				glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
-				glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
 				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
 				Utils::Draw::drawQuad();
 				postRenderFrame.Unbind();
-
 				ImGui::Image((ImTextureID)postRenderFrame.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 			}
 			else
 				ImGui::Image((ImTextureID)framebuffer.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-			// camera inputs
-			OpenGLController::cameraController->updateViewResize(wWidth, wHeight);
 			if (ImGui::IsItemHovered())
 				OpenGLController::cameraController->processInput(window);
-
-
 			if (show_navigator) {
 				Component* component = OpenGLController::getSelectedComponent();
-				if(component != nullptr && component->isSelected() && !debug)
+				if (component != nullptr && component->isSelected() && !debug)
 					renderGuizmo(*component, drawCube_enabled, drawGrid_enabled);
 			}
+			ImGui::SetNextItemAllowOverlap();
+			guiController.applicationWindow();
 			ImGui::EndChild();
 		}
 		ImGui::End();
 
-
-		ImGui::Begin("Debug Window");
-		{
-			std::string countVertices = "Vertices: " + std::to_string(countDrawCall * 3);
-			ImGui::Text(countVertices.c_str());
-			countVertices = "Triangles: " + std::to_string(countDrawCall);
-			ImGui::Text(countVertices.c_str());
-			// Using a Child allow to fill all the space of the window.
-			// It also alows customization
-			ImGui::BeginChild("Debug shadow window");
-			// Get the size of the child (i.e. the whole draw size of the windows).
-			ImVec2 wsize = ImGui::GetWindowSize();
-			if (show_debug_window) 
-				ImGui::Image((ImTextureID)depthMap.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-			ImGui::EndChild();
-		}
-		ImGui::End();
-
+		if (show_debug_window)
+			guiController.debugWindow((ImTextureID) depthMap.texture);
 
 		guiController.end();
-
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 		processProgramInput(window);
 		glfwSwapBuffers(window);

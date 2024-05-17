@@ -5,7 +5,6 @@
 #include <imgui_impl_opengl3.h>
 #include <memory>
 #include <ImGuizmo.h>
-#include <GLFW/glfw3.h>
 #include "headers/widget.h"
 #include "headers/Themes.h"
 #include "headers/MenuWidget.h"
@@ -65,6 +64,8 @@ public:
 
 	void init(GLFWwindow* window, int width, int height) override;
 	void start() override;
+	void debugWindow(ImTextureID texture);
+	void applicationWindow();
 	void render() override;
 	void end() override;
 

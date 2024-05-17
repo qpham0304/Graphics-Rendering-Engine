@@ -19,6 +19,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <chrono>
 
 
 struct BoneInfo
@@ -36,11 +37,11 @@ class Model
 
 public:
     Model(const char* path);
-    void Draw(Shader& shader, Camera& camera);
+    void Draw(Shader& shader);
 
     std::map<std::string, BoneInfo> GetBoneInfoMap();
     int& GetBoneCount();
-    int getCountDrawCall();
+    int getNumVertices();
     std::map<std::string, BoneInfo> m_BoneInfoMap;
 
 private:
@@ -49,9 +50,6 @@ private:
     std::string directory;
     std::vector<Texture> textures;
     int m_BoneCounter = 0;
-    int countDrawCall = 0;
-
-
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);

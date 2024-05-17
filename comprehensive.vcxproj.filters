@@ -84,9 +84,6 @@
     <ClCompile Include="src\graphics\core\OpenGL\DepthMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\components\PlaneComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\gui\GuiController.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -105,22 +102,19 @@
     <ClCompile Include="src\graphics\core\OpenGL\Animator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\components\ModelComponent.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\widgets\SidebarRightWidget.cpp">
+    <ClCompile Include="src\gui\widgets\RightSidebarWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\widgets\Widget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\gui\widgets\SidebarLeftWidget.cpp">
+    <ClCompile Include="src\gui\widgets\LeftSidebarWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\gui\widgets\MainViewWidget.cpp">
@@ -162,6 +156,15 @@
     <ClCompile Include="src\graphics\utils\Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\components\LightComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\image-based-rendering\pbr_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\area-light\area_light_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -197,9 +200,6 @@
     <ClInclude Include="Headers\OpenGL\DepthMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\graphics\components\headers\PlaneComponent.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\gui\GuiController.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -219,9 +219,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\Bone.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\graphics\components\headers\ModelComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\FrameBuffer.h">
@@ -290,6 +287,18 @@
     <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\components\headers\LightComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\area-light\area_light_demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -313,8 +322,21 @@
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\skeletonModel.frag" />
     <None Include="Shaders\skeletonModel.vert" />
-    <None Include="Shaders\cellshadedModel.vert" />
-    <None Include="Shaders\cellshadedModel.frag" />
+    <None Include="Shaders\cellShader.vert" />
+    <None Include="Shaders\cellShader.frag" />
+    <None Include="Shaders\default.geom" />
+    <None Include="Shaders\default-2.frag" />
+    <None Include="Shaders\default-2.vert" />
+    <None Include="Shaders\equireRectToCubemap.frag" />
+    <None Include="Shaders\background.frag" />
+    <None Include="Shaders\background.vert" />
+    <None Include="Shaders\cubemap-hdr.vert" />
+    <None Include="Shaders\irradianceConvolution.frag" />
+    <None Include="Shaders\prefilter.frag" />
+    <None Include="Shaders\brdf.vert" />
+    <None Include="Shaders\brdf.frag" />
+    <None Include="Shaders\areaLight.vert" />
+    <None Include="Shaders\areaLight.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

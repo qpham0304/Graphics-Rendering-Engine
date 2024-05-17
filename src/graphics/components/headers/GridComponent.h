@@ -7,6 +7,7 @@ class GridComponent : public Component {
     int slices = 10;
     float length = 10.0f;
 
+public:
     GridComponent() {
         shaderProgram_ptr.reset(new Shader("Shaders/light.vert", "Shaders/light.frag"));
         setup();
@@ -58,8 +59,12 @@ class GridComponent : public Component {
 
         length = (GLuint)indices.size() * 4;
     }
-    void Draw() {
+    void Draw(Camera& camera, Light& light) {
         glEnable(GL_DEPTH_TEST);
+
+        shaderProgram_ptr->setMat4("matrix", glm::mat4(1.0f));
+        shaderProgram_ptr->setMat4("mvp", camera.getMVP());
+        shaderProgram_ptr->setVec4("lightColor", light.color);
 
         glBindVertexArray(vao);
 
