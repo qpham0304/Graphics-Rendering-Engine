@@ -1,6 +1,7 @@
 
 #include "../../SceneRenderer.h"
 #include "../image-based-rendering/pbr_demo.h"
+#include "../area-light/area_light_demo.h"
 
 int main()
 {
@@ -8,7 +9,8 @@ int main()
 		SceneRenderer::init(PLATFORM_OPENGL);
 		SceneRenderer::start("OpenGL Game Engine");
 		//SceneRenderer::renderScene();
-        DemoPBR::run();
+        //DemoPBR::run();
+		AreaLightDemo::run();
 		SceneRenderer::end();
 	}
 	catch (const std::runtime_error& e) {

@@ -9,9 +9,7 @@
 #include <stb/stb_image.h>
 
 namespace Utils::Math {
-
 	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
-
 
 }
 
@@ -28,6 +26,7 @@ namespace Utils::uuid {
 namespace Utils::filereader {
     std::string loadHDRTexture(const char* path, unsigned int& texture);
     unsigned int loadTexture(char const* path);
+    unsigned int loadMTexture(const float* ltc);
 }
 
 namespace Utils::Draw {

@@ -162,6 +162,9 @@
     <ClCompile Include="src\apps\image-based-rendering\pbr_demo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\apps\area-light\area_light_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -290,6 +293,12 @@
     <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\apps\area-light\area_light_demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -322,10 +331,12 @@
     <None Include="Shaders\background.frag" />
     <None Include="Shaders\background.vert" />
     <None Include="Shaders\cubemap-hdr.vert" />
-    <None Include="Shaders\irradiance-convolution.frag" />
+    <None Include="Shaders\irradianceConvolution.frag" />
     <None Include="Shaders\prefilter.frag" />
     <None Include="Shaders\brdf.vert" />
     <None Include="Shaders\brdf.frag" />
+    <None Include="Shaders\areaLight.vert" />
+    <None Include="Shaders\areaLight.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

@@ -60,11 +60,11 @@ int DemoPBR::show_demo() {
     Texture roughness5("pbr/caved-floor/roughness.png", "roughnessMap", "Textures");
     Texture ao5("pbr/caved-floor/ao.png", "aoMap", "Textures");
 
-    Texture albedo6("pbr/concerte/albedo.png", "albedoMap", "Textures");
-    Texture normal6("pbr/concerte/normal.png", "normalMap", "Textures");
-    Texture metallic6("pbr/concerte/metallic.png", "metallicMap", "Textures");
-    Texture roughness6("pbr/concerte/roughness.png", "roughnessMap", "Textures");
-    Texture ao6("pbr/concerte/ao.png", "aoMap", "Textures");
+    Texture albedo6("pbr/concrete/albedo.png", "albedoMap", "Textures");
+    Texture normal6("pbr/concrete/normal.png", "normalMap", "Textures");
+    Texture metallic6("pbr/concrete/metallic.png", "metallicMap", "Textures");
+    Texture roughness6("pbr/concrete/roughness.png", "roughnessMap", "Textures");
+    Texture ao6("pbr/concrete/ao.png", "aoMap", "Textures");
 
     std::vector<Texture> albedoMaps = { albedo0, albedo1, albedo2, albedo3, albedo4, albedo5, albedo6 };
     std::vector<Texture> normalMaps = { normal0, normal1, normal2, normal3, normal4, normal5, normal6 };
@@ -78,8 +78,8 @@ int DemoPBR::show_demo() {
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
     Shader equirectangularToCubemapShader("Shaders/cubemap-hdr.vert", "Shaders/equireRectToCubemap.frag");
+    Shader irradianceShader("Shaders/cubemap-hdr.vert", "Shaders/irradianceConvolution.frag");
     Shader backgroundShader("Shaders/background.vert", "Shaders/background.frag");
-    Shader irradianceShader("Shaders/cubemap-hdr.vert", "Shaders/irradiance-convolution.frag");
     Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
     Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
 
@@ -302,7 +302,7 @@ int DemoPBR::show_demo() {
         if (deltaTime >= 1 / 2) {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
-            std::string updatedTitle = "Graphic Engine - " + FPS + "FPS / " + ms + "ms";
+            std::string updatedTitle = "PBR - IBL demo - " + FPS + "FPS / " + ms + "ms";
             glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
             lastFrame = currentTime;
             frameCounter = 0;
@@ -315,6 +315,7 @@ int DemoPBR::show_demo() {
 
         camera.cameraViewUpdate();
         camera.processInput(SceneRenderer::window);
+        glm::mat4 model = glm::mat4(1.0f);
 
         pbrShader.Activate();
         pbrShader.setMat4("matrix", glm::mat4(1.0f));
@@ -323,10 +324,6 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("gamma", true);
 
         // bind pre-computed IBL data
-        glm::mat4 model = glm::mat4(1.0f);
-        for (int col = 0; col < nrColumns; ++col) {
-
-        }
         glActiveTexture(GL_TEXTURE0 + 5);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE0 + 6);
