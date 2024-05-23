@@ -39,6 +39,14 @@ void Texture::loadTexture(const char* path, bool flip)
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+Texture::Texture(const char* path, const char* texType)
+{
+	this->type = texType;
+	this->path = path;
+
+	loadTexture(path, false);
+}
+
 Texture::Texture(const char* fileName, const char* texType, const std::string& directory)
 {
 	std::string finalPath = std::string(fileName);

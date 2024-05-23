@@ -11,6 +11,7 @@ uniform mat4 mvp;
 out vec3 worldPos;
 out vec3 worldNormal;
 out vec2 uv;
+out vec4 clipSpace;
 
 void main()
 {
@@ -19,5 +20,6 @@ void main()
 	worldNormal = normalMatrix * aNormal;
 	uv = aTexcoord;
 
-	gl_Position = mvp * worldpos;
+	clipSpace = mvp * worldpos;
+	gl_Position = clipSpace;
 }

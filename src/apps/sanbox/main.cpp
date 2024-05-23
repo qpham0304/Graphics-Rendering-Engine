@@ -8,9 +8,10 @@ int main()
 	try {
 		SceneRenderer::init(PLATFORM_OPENGL);
 		SceneRenderer::start("OpenGL Game Engine");
-		//SceneRenderer::renderScene();
+		//glfwSwapInterval(0);
+		SceneRenderer::renderScene();
         //DemoPBR::run();
-		AreaLightDemo::run();
+		//AreaLightDemo::run();
 		SceneRenderer::end();
 	}
 	catch (const std::runtime_error& e) {

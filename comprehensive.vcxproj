@@ -295,6 +295,11 @@
     <None Include="Shaders\prefilter.frag" />
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\shadowMap.vert" />
+    <None Include="Shaders\shadow\pointShadow.vert" />
+    <None Include="Shaders\shadow\pointShadowsDepth.frag" />
+    <None Include="Shaders\shadow\pointShadowsDepth.geom" />
+    <None Include="Shaders\shadow\pointShadowsDepth.vert" />
+    <None Include="Shaders\shadow\pointShadow.frag" />
     <None Include="Shaders\skeletonModel.frag" />
     <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\skybox.frag" />

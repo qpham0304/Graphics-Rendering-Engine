@@ -16,7 +16,8 @@ public:
 	std::string path;
 
 	Texture() = default;
-	Texture(const char* path, const char* texType, const std::string& directory);
+	Texture(const char* path, const char* texType);
+	Texture(const char* fileName, const char* texType, const std::string& directory);
 	~Texture() = default;
 
 	// Assigns a texture unit to a texture

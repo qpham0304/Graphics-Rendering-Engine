@@ -42,7 +42,7 @@ public:
 	static int start(const char* title);	// start creating windows and context
 	static int end();						// close and terminate the program
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
-	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light);
+	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light, unsigned int depthMapPoint);
 	static int renderScene();				// the main rendering part that run the ui and the graphics
 	static void renderGuizmo(Component& component, const bool drawCube, const bool drawGrid);
 

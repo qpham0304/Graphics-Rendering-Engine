@@ -109,3 +109,23 @@ void SkyboxComponent::render(Camera& camera)
 	glBindVertexArray(0);
 	glDepthFunc(GL_LESS); // set depth function back to default
 }
+
+void SkyboxComponent::render(Camera& camera, unsigned int ID)
+{
+	glm::mat4 projection = camera.getProjectionMatrix();
+	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.getViewMatrix()));	 // remove translation from the view matrix
+
+	// change depth function so depth test passes when values are equal to depth buffer's content
+	glDepthFunc(GL_LEQUAL);
+	shaderProgram_ptr->Activate();
+	shaderProgram_ptr->setMat4("view", viewMatrix);
+	shaderProgram_ptr->setMat4("projection", projection);
+
+	// skybox cube
+	glBindVertexArray(VAO);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, ID);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+	glDepthFunc(GL_LESS); // set depth function back to default
+}

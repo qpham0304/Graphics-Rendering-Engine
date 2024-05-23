@@ -337,6 +337,11 @@
     <None Include="Shaders\brdf.frag" />
     <None Include="Shaders\areaLight.vert" />
     <None Include="Shaders\areaLight.frag" />
+    <None Include="Shaders\shadow\pointShadowsDepth.vert" />
+    <None Include="Shaders\shadow\pointShadowsDepth.geom" />
+    <None Include="Shaders\shadow\pointShadowsDepth.frag" />
+    <None Include="Shaders\shadow\pointShadow.vert" />
+    <None Include="Shaders\shadow\pointShadow.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">
