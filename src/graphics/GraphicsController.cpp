@@ -34,8 +34,18 @@ void OpenGLController::renderPBR(Light& light, UniformProperties& uniforms)
 	}
 }
 
-void OpenGLController::render(Light& light, UniformProperties& uniforms)
+void OpenGLController::render(std::vector<Light> lights, UniformProperties& uniforms)
 {
+	//for (auto& pair : lights) {
+	//	std::string id = pair.first;
+	//	LightComponent* lightComponent = lights[id].get();
+	//	if (lightComponent != nullptr && lightComponent->light.get() != nullptr) {
+	//		ls.push_back(lightComponent->light.get());
+	//		lightComponent->render(*cameraController);
+	//	}
+	//}
+
+	auto& light = lights[1];
 	for (auto& pair : components) {
 		pair.second->render(*cameraController, light, uniforms);
 	}

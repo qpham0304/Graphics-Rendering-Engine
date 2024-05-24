@@ -32,7 +32,7 @@ public:
 	static bool gammaCorrection;
 
 	static void renderPBR(Light& light, UniformProperties& uniforms);
-	static void render(Light& light, UniformProperties& uniforms);
+	static void render(std::vector<Light> light, UniformProperties& uniforms);
 	static void renderShadow(Shader& shadowMapShader, Light& light);
 	static Component* getComponent(std::string id);
 	static Component* getSelectedComponent();

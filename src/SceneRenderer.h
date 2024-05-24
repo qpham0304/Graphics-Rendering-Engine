@@ -4,6 +4,7 @@
 #include <Animator.h>
 #include <FrameBuffer.h>
 #include <DepthMap.h>
+#include <DepthCubeMap.h>
 #include <imgui_internal.h>
 #include <camera.h>
 #include <set>
@@ -42,7 +43,7 @@ public:
 	static int start(const char* title);	// start creating windows and context
 	static int end();						// close and terminate the program
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
-	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light, unsigned int depthMapPoint);
+	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
 	static int renderScene();				// the main rendering part that run the ui and the graphics
 	static void renderGuizmo(Component& component, const bool drawCube, const bool drawGrid);
 

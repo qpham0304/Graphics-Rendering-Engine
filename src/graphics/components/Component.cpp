@@ -30,7 +30,6 @@ Component::Component(const char* path)
 	
 	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
 	//shaderProgram_ptr.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
-	//shaderProgram_ptr.reset(new Shader("Shaders/shadow/pointShadow.vert", "Shaders/shadow/pointShadow.frag"));
 	model_ptr.reset(new Model(path));
 	const char* fileName = std::strrchr(path, '/');
 	name = fileName + 1;
@@ -98,7 +97,7 @@ void Component::render(Camera& camera, const Light& light, const UniformProperti
 	normalMatrix = modelMatrix;
 	glm::transpose(glm::inverse(normalMatrix));
 	shaderProgram_ptr->setMat3("normalMatrix", normalMatrix);
-	shaderProgram_ptr->setFloat("far_plane", 25.0);
+	shaderProgram_ptr->setFloat("far_plane", 50.0);	// TODO: make a constant somewhere for far plane
 
 	shaderProgram_ptr->setMat4("matrix", modelMatrix);
 	shaderProgram_ptr->setMat4("mvp", camera.getMVP());

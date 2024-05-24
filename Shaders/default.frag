@@ -221,7 +221,7 @@ float linearizeDepth(float depth) {
     return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
-float logDepth(float depth, float steepness = 0.5f, float offset = 5.0f) {
+float logDepth(float depth, float steepness, float offset) {
 	float zVal = linearizeDepth(depth);
 	return (1 / (1 + exp(-steepness * (zVal - offset))));
 }
@@ -233,7 +233,7 @@ void main()
 	// toon shading option
 	vec4 toonShading = toonShader();
     // fog effect
-    float depth = logDepth(gl_FragCoord.z, 0.2f);
+    float depth = logDepth(gl_FragCoord.z, 0.2f, 0.5);
     vec4 depthVal = vec4(depth * vec3(0.90f, 0.90f, 0.90f), 1.0f);
 
 /*
@@ -266,6 +266,7 @@ void main()
 	//vec3 lighting = spotLight(vec3(0.0f, -1.0f, 0.0f)).xyz;
 	
 	//vec4 res = enableFog ? (1.0 - depth) * vec4(lighting, 1.0) + depthVal : vec4(lighting, 1.0);
-	vec4 res = mix(vec4(lighting, 1.0), (1.0 - depth) * vec4(lighting, 1.0) + depthVal, enableFog);
+	
+	vec4 res = mix(vec4(lighting, 1.0), (1.0 - depth) * vec4(lighting, 1.0) + depthVal, float(enableFog));
 	FragColor = res;
 }
