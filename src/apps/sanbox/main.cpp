@@ -9,8 +9,8 @@ int main()
 		SceneRenderer::init(PLATFORM_OPENGL);
 		SceneRenderer::start("OpenGL Game Engine");
 		//glfwSwapInterval(0);
-		SceneRenderer::renderScene();
-        //DemoPBR::run();
+		//SceneRenderer::renderScene();
+        DemoPBR::run();
 		//AreaLightDemo::run();
 		SceneRenderer::end();
 	}

@@ -83,15 +83,20 @@ int DemoPBR::show_demo() {
     Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
     Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
 
+    Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
+    Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+    Model backpackModel("Models/backpack/backpack.obj");
+
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);
     pbrShader.setInt("normalMap", 1);
     pbrShader.setInt("metallicMap", 2);
     pbrShader.setInt("roughnessMap", 3);
     pbrShader.setInt("aoMap", 4);
-    pbrShader.setInt("irradianceMap", 5);
-    pbrShader.setInt("prefilterMap", 6);
-    pbrShader.setInt("brdfLUT", 7);
+    pbrShader.setInt("emissiveMap", 5);
+    pbrShader.setInt("irradianceMap", 6);
+    pbrShader.setInt("prefilterMap", 7);
+    pbrShader.setInt("brdfLUT", 8);
 
     backgroundShader.Activate();
     backgroundShader.setInt("environmentMap", 0);
@@ -293,6 +298,8 @@ int DemoPBR::show_demo() {
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
+
+    
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -324,14 +331,14 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("gamma", true);
 
         // bind pre-computed IBL data
-        glActiveTexture(GL_TEXTURE0 + 5);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE0 + 6);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE0 + 7);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glActiveTexture(GL_TEXTURE0 + 8);
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
         // use slot 8 for height map
-        // use slot 9 for shadowmap
+        // use slot 9 for shadowmap, first slot should be directional light
         
         // render rows*column number of spheres with material properties defined by textures (they all have the same material properties)
         for (int row = 0; row < nrRows; ++row)
@@ -354,11 +361,27 @@ int DemoPBR::show_demo() {
                     (float)(row - (nrRows / 2)) * spacing,
                     0.0f
                 ));
+
                 pbrShader.setMat4("matrix", model);
+                pbrShader.setBool("hasAnimation", false);
+                pbrShader.setBool("hasEmission", false);
                 pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
                 Utils::Draw::drawSphere(sphereVAO, indexCount);
             }
         }
+        
+        model = glm::rotate(glm::mat4(1.0), 90.0f, glm::vec3(1.0, 0.0, 0.0));
+        model = glm::translate(model, glm::vec3(0.0f, 3.0f, 0.0f));
+        pbrShader.setMat4("matrix", model);
+        pbrShader.setBool("hasAnimation", false);
+        pbrShader.setBool("hasEmission", true);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        helmetModel.Draw(pbrShader);
+
+        model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 3.0f, 3.0f));
+        pbrShader.setMat4("matrix", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        backpackModel.Draw(pbrShader);
 
         for (unsigned int i = 0; i < sizeof(lightPositions) / sizeof(lightPositions[0]); ++i)
         {
@@ -375,6 +398,8 @@ int DemoPBR::show_demo() {
             Utils::Draw::drawSphere(sphereVAO, indexCount);
         }
 
+
+
         // render skybox (render as last to prevent overdraw)
         backgroundShader.Activate();
         backgroundShader.setMat4("view", camera.getViewMatrix());
@@ -385,6 +410,7 @@ int DemoPBR::show_demo() {
         glfwPollEvents();
         glfwSwapBuffers(SceneRenderer::window);
     }
+    return 0;
 
 }
 

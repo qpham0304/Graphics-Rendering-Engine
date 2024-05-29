@@ -6,6 +6,7 @@ void Texture::loadTexture(const char* path, bool flip)
 
 	int width, height, nrComponents;
 	stbi_set_flip_vertically_on_load(flip);
+	//TODO: stb loading task can be done in a separate thread, create the texture and populate later
 	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (!data)
 	{
@@ -61,6 +62,7 @@ void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
 {
 	this->unit = unit;
 	shader.Activate();
+	//std::cout << "unit: " << unit << " texture: " << uniform << std::endl;
 	shader.setInt(uniform, unit);
 }
 

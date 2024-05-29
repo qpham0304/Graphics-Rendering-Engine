@@ -107,14 +107,27 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "normal");
+        //std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
+        //textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+        //std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
+        //textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+        //std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "normal");
+        //textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+        //std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "height");
+        //textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+
+        std::vector<Texture> albedoMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "albedoMap"); //aiTextureType_BASE_COLOR
+        textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normalMap");
         textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "height");
-        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        std::vector<Texture> metalnessMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metallicMap");
+        textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
+        std::vector<Texture> roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughnessMap");
+        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+        std::vector<Texture> aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "aoMap");
+        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+        std::vector<Texture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissiveMap");
+        textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
     }
 
     ExtractBoneWeightForVertices(vertices, mesh, scene);
@@ -128,26 +141,21 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     std::vector<Texture> textures = {};
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
+
         aiString str;
         mat->GetTexture(type, i, &str);
-        // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-        bool skip = false;
-        for (unsigned int j = 0; j < textures.size(); j++)
-        {
-            if (std::strcmp(textures[j].path.data(), str.C_Str()) == 0)
-            {
-                textures.push_back(textures[j]);
-                skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-                break;
-            }
+
+        std::string path = directory + '/' + std::string(str.C_Str());
+
+        if (loaded_textures.find(path.data()) != loaded_textures.end()) {
+            textures.push_back(loaded_textures[path.data()]);
+            break;
         }
-        if (!skip)
-        {   // if texture hasn't been loaded already, load it
-            std::string path = directory + '/' + std::string(str.C_Str());
-            Texture texture(path.c_str(), typeName.c_str());
-            textures.push_back(texture);
-            textures.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
-        }
+
+        Texture texture(path.c_str(), typeName.c_str());
+        textures.push_back(texture);
+        
+        loaded_textures[path.data()] = texture;
     }
     return textures;
 }
@@ -220,33 +228,3 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
         }
     }
 }
-
-
-
-struct Material {
-    glm::vec3 Diffuse;
-    glm::vec3 Specular;
-    glm::vec3 Ambient;
-    float Shininess;
-};
-
-Material loadMaterial(aiMaterial* mat) {
-    Material material;
-    aiColor3D color(0.f, 0.f, 0.f);
-    float shininess;
-
-    mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-    material.Diffuse = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
-    material.Ambient = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
-    material.Specular = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_SHININESS, shininess);
-    material.Shininess = shininess;
-
-    return material;
-}
-

@@ -48,7 +48,7 @@ private:
     // model data
     std::vector<Mesh> meshes;
     std::string directory;
-    std::vector<Texture> textures;
+    std::unordered_map<std::string, Texture> loaded_textures;
     int m_BoneCounter = 0;
 
     void loadModel(std::string path);

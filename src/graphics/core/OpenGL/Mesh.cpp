@@ -76,35 +76,15 @@ void Mesh::Draw(Shader& shader)
     unsigned int countHeight = 0;
 
     if (!textures.empty()) {
-        shader.setBool("useTexture", true);
-        for (unsigned int i = 0; i < textures.size(); i++)
-        {
-            std::string number; // retrieve texture number (the N in diffuse_textureN)
-            std::string name = textures[i].type;
-            if (name == "diffuse")
-                number = std::to_string(countDiffuse++);
-            else if (name == "specular")
-                number = std::to_string(countSpecular++); // transfer unsigned int to string
-            else if (name == "normal")
-                number = std::to_string(countNormal++); // transfer unsigned int to string
-            else if (name == "height")
-                number = std::to_string(countHeight++); // transfer unsigned int to string
-            textures[i].texUnit(shader, (name + number).c_str(), i);
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            textures[i].texUnit(shader, textures[i].type.c_str(), i);
             textures[i].Bind();
         }
     }
-    else
-        shader.setBool("useTexture", false);
 
     // draw mesh
     glBindVertexArray(VAO);
-
-    if (!indices.empty()) {
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-    }
-    else {
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(vertices.size()));
-    }
+    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
     
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0);

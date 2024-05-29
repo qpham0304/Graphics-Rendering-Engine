@@ -24,7 +24,7 @@
     <ProjectGuid>{4180436d-b904-423f-8d98-3fea60dec034}</ProjectGuid>
     <RootNamespace>comprehensive</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>OpenGL Game Engine</ProjectName>
+    <ProjectName>Graphics Renderer Engine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
