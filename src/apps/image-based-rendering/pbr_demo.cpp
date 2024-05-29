@@ -73,7 +73,7 @@ int DemoPBR::show_demo() {
     std::vector<Texture> aoMaps = { ao0, albedo1, ao2, ao3, ao4, ao5, ao6 };
 
     unsigned int hdrTexture;
-    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/dikhololo_night_1k.hdr", hdrTexture);
+    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/newport_loft.hdr", hdrTexture);
     std::cout << texRes << std::endl;
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
@@ -85,7 +85,7 @@ int DemoPBR::show_demo() {
 
     Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
     Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    Model backpackModel("Models/backpack/backpack.obj");
+    Model backpackModel("Models/aru/aru.gltf");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);
@@ -299,6 +299,7 @@ int DemoPBR::show_demo() {
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
 
+    Texture emissiveMap("Textures/default/emissive.png", "emissiveMap");
     
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
 
@@ -331,6 +332,7 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("gamma", true);
 
         // bind pre-computed IBL data
+
         glActiveTexture(GL_TEXTURE0 + 6);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE0 + 7);
@@ -355,6 +357,8 @@ int DemoPBR::show_demo() {
                 glBindTexture(GL_TEXTURE_2D, roughnessMaps[col].ID);
                 glActiveTexture(GL_TEXTURE0 + 4);
                 glBindTexture(GL_TEXTURE_2D, aoMaps[col].ID);
+                glActiveTexture(GL_TEXTURE0 + 5);
+                glBindTexture(GL_TEXTURE_2D, emissiveMap.ID);
                 model = glm::mat4(1.0f);
                 model = glm::translate(model, glm::vec3(
                     (float)(col - (nrColumns / 2)) * spacing,
@@ -378,6 +382,8 @@ int DemoPBR::show_demo() {
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         helmetModel.Draw(pbrShader);
 
+        pbrShader.setBool("hasAnimation", false);
+        pbrShader.setBool("hasEmission", false);
         model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 3.0f, 3.0f));
         pbrShader.setMat4("matrix", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));

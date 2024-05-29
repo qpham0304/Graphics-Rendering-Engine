@@ -232,11 +232,12 @@ vec4 pointLightPBR() {
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 	vec3 ambient = (kD * diffuse + specular) * ao;
 	
-	vec3 color   = ambient + Lo + emissive; 
+	vec3 color = ambient + Lo + emissive; 
 	color = color / (color + vec3(1.0));					// HDR tone mapping
 	color = gamma ? pow(color, vec3(1.0/2.2)) : color;		// Gamma correction
 	
 	return vec4(color, 1.0f);
+	// return texture(metallicMap, frag_in.uv);
 }
 //------------------------//
 vec4 pointLight() {
