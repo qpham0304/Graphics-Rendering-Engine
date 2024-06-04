@@ -216,9 +216,6 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         else if (typeName == "emissiveMap")
             textures.push_back(loaded_textures["Textures/default/emissive.png"]);
     }
-    for (int i = 0; i < textures.size(); i++) {
-        std::cout << "---------------------type: " + textures[i].type + " " << i << "\n";
-    }
     return textures;
 }
 

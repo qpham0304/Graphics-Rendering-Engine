@@ -168,6 +168,15 @@
     <ClCompile Include="src\graphics\core\OpenGL\DepthCubeMap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\apps\deferred-rendering\deferred_render_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\OpenGL\BloomFBO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -305,6 +314,15 @@
     <ClInclude Include="Headers\OpenGL\DepthCubeMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\apps\deferred-rendering\deferred_render_demo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\OpenGL\BloomFBO.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\OpenGL\BloomRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -346,6 +364,12 @@
     <None Include="Shaders\shadow\pointShadowsDepth.vert" />
     <None Include="Shaders\shadow\pointShadowsDepth.geom" />
     <None Include="Shaders\shadow\pointShadowsDepth.frag" />
+    <None Include="Shaders\deferredShading\deferredShading.vert" />
+    <None Include="Shaders\deferredShading\deferredShadinw.frag" />
+    <None Include="Shaders\godRays\godRays.vert" />
+    <None Include="Shaders\godRays\godRays.frag" />
+    <None Include="Shaders\godRays\blackScreen.vert" />
+    <None Include="Shaders\godRays\blackScreen.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

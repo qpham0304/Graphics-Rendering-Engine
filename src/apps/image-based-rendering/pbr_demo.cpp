@@ -1,15 +1,15 @@
 
 #include "pbr_demo.h"
-unsigned int sphereVAO = 0;
-unsigned int indexCount;
-
-unsigned int cubeVAO = 0;
-unsigned int cubeVBO = 0;
 
 int DemoPBR::show_demo() {
     Camera camera(SceneRenderer::width, SceneRenderer::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    unsigned int sphereVAO = 0;
+    unsigned int indexCount;
+    unsigned int cubeVAO = 0;
+    unsigned int cubeVBO = 0;
 
     glm::vec3 lightPositions[] = {
         glm::vec3(-5.0f,  5.0f, 5.0f),
@@ -73,7 +73,7 @@ int DemoPBR::show_demo() {
     std::vector<Texture> aoMaps = { ao0, albedo1, ao2, ao3, ao4, ao5, ao6 };
 
     unsigned int hdrTexture;
-    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/newport_loft.hdr", hdrTexture);
+    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/dikhololo_night_1k.hdr", hdrTexture);
     std::cout << texRes << std::endl;
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
@@ -85,7 +85,7 @@ int DemoPBR::show_demo() {
 
     Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
     Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    Model backpackModel("Models/aru/aru.gltf");
+    Model backpackModel("Models/sponza/sponza.obj");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);
@@ -276,8 +276,6 @@ int DemoPBR::show_demo() {
     //-----------------------------------------------------------//
 
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
-    pbrShader.Activate();
-    pbrShader.setMat4("projection", projection);
     backgroundShader.Activate();
     backgroundShader.setMat4("projection", projection);
 
@@ -289,8 +287,6 @@ int DemoPBR::show_demo() {
     int nrRows = 7;
     int nrColumns = 7;
     float spacing = 2.5;
-    unsigned int sphereVAO = 0;
-    unsigned int indexCount;
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
@@ -332,16 +328,16 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("gamma", true);
 
         // bind pre-computed IBL data
-
         glActiveTexture(GL_TEXTURE0 + 6);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
         glActiveTexture(GL_TEXTURE0 + 7);
         glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
         glActiveTexture(GL_TEXTURE0 + 8);
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-        // use slot 8 for height map
-        // use slot 9 for shadowmap, first slot should be directional light
-        
+        // use slot 9 for height map
+        // use slot 10 for shadowmap directional, first slot should be directional light
+        // use 11 for shadowmap point/spotlight
+
         // render rows*column number of spheres with material properties defined by textures (they all have the same material properties)
         for (int row = 0; row < nrRows; ++row)
         {
