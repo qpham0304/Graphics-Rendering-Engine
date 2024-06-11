@@ -1,12 +1,10 @@
 #include "../../SceneRenderer.h"
-#include "BloomRenderer.h"
 
 #pragma once
-class DeferredRender
+class VolumetricLightDemo
 {
 public:
 	static int show_demo();
 
 	static int run();
 };
-

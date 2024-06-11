@@ -221,6 +221,7 @@
     <ClCompile Include="src\graphics\core\OpenGL\VBO.cpp" />
     <ClCompile Include="src\gui\widgets\Widget.cpp" />
     <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
+    <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\BloomRenderer.h" />
@@ -271,6 +272,7 @@
     <ClInclude Include="src\gui\GuiController.h" />
     <ClInclude Include="src\gui\headers\Widget.h" />
     <ClInclude Include="src\gui\headers\SubViewWidget.h" />
+    <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

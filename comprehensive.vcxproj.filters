@@ -177,6 +177,9 @@
     <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -321,6 +324,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\OpenGL\BloomRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

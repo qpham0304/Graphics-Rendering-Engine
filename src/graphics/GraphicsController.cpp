@@ -6,12 +6,6 @@ Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
 std::unordered_map<std::string, std::unique_ptr<LightComponent>> OpenGLController::lights = {};
 
-//Texture OpenGLController::defaultAlbedo = Texture("Textures/default/albedo.png", "albedo");
-//Texture OpenGLController::defaultNormal = Texture("Textures/default/defaultNormal.png", "Normal");
-//Texture OpenGLController::defaultMetallic = Texture("Textures/default/defaultMetallic.png", "Metallic");
-//Texture OpenGLController::defaultRoughness = Texture("Textures/default/defaultRoughness.png", "Roughness");
-//Texture OpenGLController::defaultAO = Texture("Textures/default/defaultAO.png", "AO");
-
 
 bool OpenGLController::gammaCorrection = true;
 

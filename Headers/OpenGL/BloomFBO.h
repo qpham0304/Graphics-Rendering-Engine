@@ -5,25 +5,27 @@
 #include<vector>
 #include<iostream>
 
-struct BloomMip {
+struct bloomMip
+{
 	glm::vec2 size;
 	glm::ivec2 intSize;
 	unsigned int texture;
 };
 
-class BloomFBO {
+
+class bloomFBO
+{
 public:
-    BloomFBO();
-    ~BloomFBO();
-    bool Init(unsigned int windowWidth, unsigned int windowHeight, unsigned int mipChainLength);
-    void Destroy();
-    void Bind();
-    void UnBind();
-    const std::vector<BloomMip>& MipChain() const;
+	bloomFBO();
+	~bloomFBO();
+	bool Init(unsigned int windowWidth, unsigned int windowHeight, unsigned int mipChainLength);
+	void Destroy();
+	void BindForWriting();
+	const std::vector<bloomMip>& MipChain() const;
 
 private:
-    bool mInit;
-    unsigned int mFBO;
-    std::vector<BloomMip> mMipChain;
+	bool mInit;
+	unsigned int mFBO;
+	std::vector<bloomMip> mMipChain;
 };
 

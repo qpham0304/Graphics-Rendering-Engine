@@ -9,28 +9,16 @@ layout (location = 5) in vec3 bitangent;
 layout (location = 6) in ivec4 boneIds;
 layout (location = 7) in vec4 weights;
 
-out VS_OUT {
-    vec2 uv;
-    vec3 normal;
-    vec3 updatedPos;
-    vec4 fragPosLight;
-    vec4 totalPos;
-    mat4 model;
-    vec3 lightPos;
-    vec3 camPos;
-    vec3 fragPos;
-    mat3 TBN;
-} vert_out;
-
+out vec2 uv;
+out vec3 normal;
+out vec3 updatedPos;
+out vec4 fragPosLight;
 
 uniform mat4 matrix;
 uniform mat3 normalMatrix;
 uniform mat4 mvp;
 uniform mat4 lightMVP;
-//uniform mat4 normalMap;
 uniform bool hasAnimation = false;
-uniform vec3 camPos;
-uniform vec3 lightPos;
 
 
 const int MAX_BONES = 100;
@@ -46,9 +34,9 @@ void main()
     vec3 B = cross(N, T);
     mat3 TBN = transpose(mat3(T, B, N));
 
-	vert_out.uv = vertexUV;
-	//vert_out.normal = normalize(normalMatrix * aNormal);
-	vert_out.normal = (normalMatrix * aNormal);
+	uv = vertexUV;
+	normal = normalize(normalMatrix * aNormal);
+	// normal = normalize(aNormal);    //TODO fix normal matrix
 
 	vec4 totalPosition = vec4(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
@@ -62,24 +50,15 @@ void main()
         }
         vec4 localPosition = finalBonesMatrices[boneIds[i]] * vec4(pos,1.0f);
         totalPosition += localPosition * weights[i];
-        vec3 localNormal = mat3(finalBonesMatrices[boneIds[i]]) * vert_out.normal;
+        vec3 localNormal = mat3(finalBonesMatrices[boneIds[i]]) * normal;
     }
 
     
     int condition = int(hasAnimation);
     totalPosition = condition * totalPosition + (1 - condition) * vec4(pos, 1.0f);
 
-    vert_out.totalPos = totalPosition;
-	vert_out.updatedPos = (matrix * totalPosition).xyz;
-	vert_out.fragPosLight = lightMVP * vec4(vert_out.updatedPos, 1.0f);
-    vert_out.model = matrix;
-    vert_out.TBN = TBN;
-    vert_out.lightPos = lightPos;
-    vert_out.camPos = camPos;
-    vert_out.fragPos = vert_out.updatedPos;
-    gl_Position = mvp * vec4(vert_out.updatedPos, 1.0f);
+	updatedPos = (matrix * totalPosition).xyz;
+	fragPosLight = lightMVP * vec4(updatedPos, 1.0f);
+    TBN = TBN;
+    gl_Position = mvp * vec4(updatedPos, 1.0f);
 }
-
-
-
-
