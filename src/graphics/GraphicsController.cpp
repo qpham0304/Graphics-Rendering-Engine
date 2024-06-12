@@ -6,9 +6,10 @@ Camera* OpenGLController::cameraController = nullptr;
 std::string OpenGLController::selectedID = "";
 std::unordered_map<std::string, std::unique_ptr<LightComponent>> OpenGLController::lights = {};
 
+
 bool OpenGLController::gammaCorrection = true;
 
-void OpenGLController::renderTest(Light& light, UniformProperties& uniforms)
+void OpenGLController::renderPBR(Light& light, UniformProperties& uniforms)
 {
 	//TODO: horrendous solution for now, find a better one
 	std::vector<Light*> ls;
@@ -27,8 +28,18 @@ void OpenGLController::renderTest(Light& light, UniformProperties& uniforms)
 	}
 }
 
-void OpenGLController::render(Light& light, UniformProperties& uniforms)
+void OpenGLController::render(std::vector<Light> lights, UniformProperties& uniforms)
 {
+	//for (auto& pair : lights) {
+	//	std::string id = pair.first;
+	//	LightComponent* lightComponent = lights[id].get();
+	//	if (lightComponent != nullptr && lightComponent->light.get() != nullptr) {
+	//		ls.push_back(lightComponent->light.get());
+	//		lightComponent->render(*cameraController);
+	//	}
+	//}
+
+	auto& light = lights[1];
 	for (auto& pair : components) {
 		pair.second->render(*cameraController, light, uniforms);
 	}
@@ -37,7 +48,7 @@ void OpenGLController::render(Light& light, UniformProperties& uniforms)
 void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
 {
 	shadowMapShader.Activate();
-	shadowMapShader.setMat4("mvp", light.mvp);
+	//shadowMapShader.setMat4("mvp", light.mvp);
 	for (auto& pair : components) {
 		pair.second->renderShadow(shadowMapShader);
 	}
@@ -68,6 +79,7 @@ std::string OpenGLController::addComponent(Component& component)
 	//}
 	//std::cout << "component already exist: " << components[id].getID() << "\n";
 	//components[id] = std::move(c);
+	//components[id].reset(new Component(component));
 
 	return id;
 }

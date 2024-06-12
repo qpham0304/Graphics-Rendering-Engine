@@ -34,6 +34,10 @@ struct BoneInfo
 
 class Model
 {
+    struct MaterialPBR {
+        const char* materialMap;
+        const unsigned int materialType;
+    };
 
 public:
     Model(const char* path);
@@ -48,8 +52,10 @@ private:
     // model data
     std::vector<Mesh> meshes;
     std::string directory;
-    std::vector<Texture> textures;
+    std::unordered_map<std::string, Texture> loaded_textures;
     int m_BoneCounter = 0;
+    std::string path;
+    std::string extension;
 
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);

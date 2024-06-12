@@ -16,7 +16,8 @@ void LightComponent::render(Camera& camera)
 	shaderProgram_ptr->Activate();
 	shaderProgram_ptr->setMat4("matrix", modelMatrix);
 	shaderProgram_ptr->setMat4("mvp", camera.getMVP());
-	shaderProgram_ptr->setVec4("lightColor", light->color);
+	std::cout << light->color.x << ", " << light->color.y << std::endl;
+	shaderProgram_ptr->setVec3("lightColor", light->color);
 	translate(light->position);
 	model_ptr->Draw(*shaderProgram_ptr);
 }

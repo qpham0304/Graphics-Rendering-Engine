@@ -28,8 +28,8 @@ Component::Component(const char* path)
 	id = Utils::uuid::get_uuid();
 	name = id;
 	
-	//shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
-	shaderProgram_ptr.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
+	shaderProgram_ptr.reset(new Shader("Shaders/default.vert", "Shaders/default.frag", "Shaders/default.geom"));
+	//shaderProgram_ptr.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
 	model_ptr.reset(new Model(path));
 	const char* fileName = std::strrchr(path, '/');
 	name = fileName + 1;
@@ -94,18 +94,20 @@ void Component::renderPBR(Camera& camera, const Light& light, const UniformPrope
 void Component::render(Camera& camera, const Light& light, const UniformProperties& uniforms)
 {
 	shaderProgram_ptr->Activate();
-
 	normalMatrix = modelMatrix;
 	glm::transpose(glm::inverse(normalMatrix));
 	shaderProgram_ptr->setMat3("normalMatrix", normalMatrix);
+	shaderProgram_ptr->setFloat("far_plane", 50.0);	// TODO: make a constant somewhere for far plane
 
 	shaderProgram_ptr->setMat4("matrix", modelMatrix);
 	shaderProgram_ptr->setMat4("mvp", camera.getMVP());
+
 	shaderProgram_ptr->setVec3("camPos", camera.getPosition());
 	shaderProgram_ptr->setBool("enableFog", uniforms.enableFog);
 	shaderProgram_ptr->setFloat("explodeRadius", uniforms.explodeRadius);
 	shaderProgram_ptr->setInt("shadowMap", 2);	// texture unit slot 2
 	shaderProgram_ptr->setBool("hasAnimation", hasAnimation);
+	shaderProgram_ptr->setInt("shadowMapPoint", 5);
 
 	// material uniform
 	shaderProgram_ptr->setVec3("material.diffuse", material.diffuse);

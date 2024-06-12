@@ -11,12 +11,23 @@ private:
 	void loadTexture(const char* path, bool flip);
 public:
 	GLuint ID;
-	const char* type;
+	std::string type;
 	GLuint unit = 0;
 	std::string path;
 
 	Texture() = default;
-	Texture(const char* path, const char* texType, const std::string& directory);
+	Texture(const char* path, const char* texType);
+	Texture(const char* fileName, const char* texType, const std::string& directory);
+
+	//// Copy constructor
+	//Texture(const Texture& other);
+	//// Copy assignment operator
+	//Texture& operator=(const Texture& other);
+
+	//Texture(Texture&& other) noexcept;
+
+	//Texture& operator=(Texture&& other) noexcept;
+
 	~Texture() = default;
 
 	// Assigns a texture unit to a texture

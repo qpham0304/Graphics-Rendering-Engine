@@ -2,6 +2,18 @@
 
 Model::Model(const char* path)
 {
+    this->path = path;
+    size_t dotPosition = this->path.find_last_of('.');
+    extension = this->path.substr(dotPosition);
+
+    loaded_textures["Textures/default/albedo.png"] = Texture("Textures/default/albedo.png", "albedoMap");
+    loaded_textures["Textures/default/normal.png"] = Texture("Textures/default/normal.png", "normalMap");
+    loaded_textures["Textures/default/metallic.png"] = Texture("Textures/default/metallic.png", "metallicMap");
+    loaded_textures["Textures/default/roughness.png"] = Texture("Textures/default/roughness.png", "roughnessMap");
+    loaded_textures["Textures/default/ao.png"] = Texture("Textures/default/ao.png", "aoMap");
+    loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
+    loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
+
     loadModel(path);
 }
 
@@ -107,17 +119,60 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
     if (mesh->mMaterialIndex >= 0)
     {
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-        std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "specular");
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-        std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "normal");
-        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-        std::vector<Texture> heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "height");
-        textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+        std::vector<Texture> albedoMaps;
+        std::vector<Texture> normalMaps;
+        std::vector<Texture> metalnessMaps;
+        std::vector<Texture> roughnessMaps;
+        std::vector<Texture> aoMaps;
+        std::vector<Texture> emissiveMaps;
+
+        // support gltf for pbr materials
+        if (this->extension == ".gltf") {
+            albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "albedoMap"); //aiTextureType_BASE_COLOR
+            textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+            
+            normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normalMap");
+            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+            
+            metalnessMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metallicMap");
+            textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
+            
+            roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughnessMap");
+            textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+            aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "aoMap");
+            textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+            
+            emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissiveMap");
+            textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
+        }
+
+        // try to set up as much materials as possible (might looks wrong in PBR shading)
+        else {
+            albedoMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "albedoMap");
+            textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
+
+            normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normalMap");
+            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
+
+            roughnessMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "metallicMap");
+            textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+            roughnessMaps = loadMaterialTextures(material, aiTextureType_SHININESS, "roughnessMap");
+            textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
+
+            aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "aoMap");
+            textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
+
+            emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissiveMap");
+            textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
+        }
+
     }
 
     ExtractBoneWeightForVertices(vertices, mesh, scene);
+
+
 
     return Mesh(vertices, indices, textures);
 }
@@ -130,23 +185,36 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
     {
         aiString str;
         mat->GetTexture(type, i, &str);
-        // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
-        bool skip = false;
-        for (unsigned int j = 0; j < textures.size(); j++)
-        {
-            if (std::strcmp(textures[j].path.data(), str.C_Str()) == 0)
-            {
-                textures.push_back(textures[j]);
-                skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
-                break;
-            }
+
+
+        std::string path = directory + '/' + std::string(str.C_Str());
+
+        if (loaded_textures.find(path.data()) != loaded_textures.end()) {
+            textures.push_back(loaded_textures[path.data()]);
+            if (typeName == "roughnessMap") // roughnessMap uses the same file as metallicMap which will cause wrong type as map only store one path
+                textures[textures.size() - 1].type = "roughnesMap";
+            break;
         }
-        if (!skip)
-        {   // if texture hasn't been loaded already, load it
-            Texture texture(str.C_Str(), typeName.c_str(), directory.c_str());
-            textures.push_back(texture);
-            textures.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
+
+        Texture texture(path.c_str(), typeName.c_str());
+        textures.push_back(texture);
+        loaded_textures[path.data()] = texture;
+    }
+    if (textures.empty()) {
+        if (typeName == "albedoMap")
+            textures.push_back(loaded_textures["Textures/default/albedo.png"]);
+        else if (typeName == "normalMap")
+            textures.push_back(loaded_textures["Textures/default/normal.png"]);
+        else if (typeName == "metallicMap")
+            textures.push_back(loaded_textures["Textures/default/metallic.png"]);
+        else if (typeName == "roughnessMap") {
+            textures.push_back(loaded_textures["Textures/default/roughness.png"]);
+            textures[textures.size() - 1].type = "roughnesMap";
         }
+        else if (typeName == "aoMap")
+            textures.push_back(loaded_textures["Textures/default/ao.png"]);
+        else if (typeName == "emissiveMap")
+            textures.push_back(loaded_textures["Textures/default/emissive.png"]);
     }
     return textures;
 }
@@ -219,33 +287,3 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
         }
     }
 }
-
-
-
-struct Material {
-    glm::vec3 Diffuse;
-    glm::vec3 Specular;
-    glm::vec3 Ambient;
-    float Shininess;
-};
-
-Material loadMaterial(aiMaterial* mat) {
-    Material material;
-    aiColor3D color(0.f, 0.f, 0.f);
-    float shininess;
-
-    mat->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-    material.Diffuse = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_COLOR_AMBIENT, color);
-    material.Ambient = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_COLOR_SPECULAR, color);
-    material.Specular = glm::vec3(color.r, color.b, color.g);
-
-    mat->Get(AI_MATKEY_SHININESS, shininess);
-    material.Shininess = shininess;
-
-    return material;
-}
-

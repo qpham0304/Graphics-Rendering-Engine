@@ -24,7 +24,7 @@
     <ProjectGuid>{4180436d-b904-423f-8d98-3fea60dec034}</ProjectGuid>
     <RootNamespace>comprehensive</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>OpenGL Game Engine</ProjectName>
+    <ProjectName>Graphics Renderer Engine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -170,6 +170,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\BloomFBO.cpp" />
+    <ClCompile Include="src\apps\deferred-rendering\deferred_render_demo.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\DepthCubeMap.cpp" />
     <ClCompile Include="src\apps\area-light\area_light_demo.cpp" />
     <ClCompile Include="Libraries\include\ImGuizmo\GraphEditor.cpp" />
     <ClCompile Include="Libraries\include\ImGuizmo\ImCurveEdit.cpp" />
@@ -217,8 +221,12 @@
     <ClCompile Include="src\graphics\core\OpenGL\VBO.cpp" />
     <ClCompile Include="src\gui\widgets\Widget.cpp" />
     <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
+    <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Headers\OpenGL\BloomRenderer.h" />
+    <ClInclude Include="Headers\OpenGL\BloomFBO.h" />
+    <ClInclude Include="Headers\OpenGL\DepthCubeMap.h" />
     <ClInclude Include="src\apps\area-light\area_light_demo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\GraphEditor.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImCurveEdit.h" />
@@ -227,6 +235,7 @@
     <ClInclude Include="Libraries\include\ImGuizmo\ImSequencer.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h" />
     <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h" />
+    <ClInclude Include="src\apps\deferred-rendering\deferred_render_demo.h" />
     <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h" />
     <ClInclude Include="src\graphics\components\headers\LightComponent.h" />
     <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h" />
@@ -263,6 +272,7 @@
     <ClInclude Include="src\gui\GuiController.h" />
     <ClInclude Include="src\gui\headers\Widget.h" />
     <ClInclude Include="src\gui\headers\SubViewWidget.h" />
+    <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />
@@ -284,7 +294,13 @@
     <None Include="Shaders\default.frag" />
     <None Include="Shaders\default.geom" />
     <None Include="Shaders\default.vert" />
+    <None Include="Shaders\deferredShading\deferredShading.vert" />
+    <None Include="Shaders\deferredShading\deferredShadinw.frag" />
     <None Include="Shaders\equireRectToCubemap.frag" />
+    <None Include="Shaders\godRays\blackScreen.frag" />
+    <None Include="Shaders\godRays\blackScreen.vert" />
+    <None Include="Shaders\godRays\godRays.frag" />
+    <None Include="Shaders\godRays\godRays.vert" />
     <None Include="Shaders\irradianceConvolution.frag" />
     <None Include="Shaders\light.frag" />
     <None Include="Shaders\light.vert" />
@@ -295,6 +311,9 @@
     <None Include="Shaders\prefilter.frag" />
     <None Include="Shaders\shadowMap.frag" />
     <None Include="Shaders\shadowMap.vert" />
+    <None Include="Shaders\shadow\pointShadowsDepth.frag" />
+    <None Include="Shaders\shadow\pointShadowsDepth.geom" />
+    <None Include="Shaders\shadow\pointShadowsDepth.vert" />
     <None Include="Shaders\skeletonModel.frag" />
     <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\skybox.frag" />

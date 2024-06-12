@@ -32,6 +32,8 @@ uniform sampler2D diffuse1;
 uniform sampler2D shadowMap;
 uniform sampler2D specular0;
 uniform sampler2D normalMap0;
+uniform float far_plane;
+uniform samplerCube shadowMapPoint;
 
 uniform Material material;
 uniform Light light;
@@ -58,14 +60,48 @@ vec4 toonShader() {
 	return color;
 }
 
+vec3 gridSamplingDisk[20] = vec3[]
+(
+   vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1), 
+   vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+   vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+   vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+   vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
+float calcPointShadow(vec3 fragPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+	float currentDepth = length(fragToLight);
+
+    float shadow = 0.0;
+    float bias = 0.15;
+    int samples = 20;
+    float viewDistance = length(camPos - fragPos);
+    float diskRadius = (1.0 + (viewDistance / far_plane)) / 25.0;
+    for(int i = 0; i < samples; ++i)
+    {
+        float closestDepth = texture(shadowMapPoint, fragToLight + gridSamplingDisk[i] * diskRadius).r;
+        closestDepth *= far_plane;   // undo mapping [0;1]
+        if(currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
+    shadow /= float(samples);
+	return shadow;
+} 
+
 float calcShadow() {
 	vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
 	projCoords = projCoords * 0.5 + 0.5;
 	float closestDepth = texture(shadowMap, projCoords.xy).r;   
 	float currentDepth = projCoords.z;  
+	
 	float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 	
 	float shadow = 0.0;
+	if(currentDepth > 1.0f)
+		return shadow;
 	//shadow = (currentDepth > closestDepth + bias ) ? 1.0 : 0.0; 
 	
 	// sample area for soft shadow
@@ -101,13 +137,13 @@ vec4 pointLight() {
     
 	// specular
     vec3 viewDir = normalize(camPos - fragPos);
-    //vec3 reflectDir = reflect(-lightDir, normal);
     vec3 halfwayDir = normalize(lightDir + viewDir);  
     float spec = pow(max(dot(nm, halfwayDir), 0.0), material.shininess);
     vec3 specular = light.specular * spec * vec3(texture(specular0, uv));
 
 	// calculate shadow
-    float shadow = calcShadow();
+    //float shadow = calcShadow();
+    float shadow = calcPointShadow(fragPos);
 
 	//TODO: add attenuation for light fall off
 	diffuse *= (1.0 - shadow);
@@ -185,7 +221,7 @@ float linearizeDepth(float depth) {
     return (2.0 * near * far) / (far + near - z * (far - near));
 }
 
-float logDepth(float depth, float steepness = 0.5f, float offset = 5.0f) {
+float logDepth(float depth, float steepness, float offset) {
 	float zVal = linearizeDepth(depth);
 	return (1 / (1 + exp(-steepness * (zVal - offset))));
 }
@@ -197,7 +233,7 @@ void main()
 	// toon shading option
 	vec4 toonShading = toonShader();
     // fog effect
-    float depth = logDepth(gl_FragCoord.z, 0.2f);
+    float depth = logDepth(gl_FragCoord.z, 0.2f, 0.5);
     vec4 depthVal = vec4(depth * vec3(0.90f, 0.90f, 0.90f), 1.0f);
 
 /*
@@ -230,6 +266,7 @@ void main()
 	//vec3 lighting = spotLight(vec3(0.0f, -1.0f, 0.0f)).xyz;
 	
 	//vec4 res = enableFog ? (1.0 - depth) * vec4(lighting, 1.0) + depthVal : vec4(lighting, 1.0);
-	vec4 res = mix(vec4(lighting, 1.0), (1.0 - depth) * vec4(lighting, 1.0) + depthVal, enableFog);
+	
+	vec4 res = mix(vec4(lighting, 1.0), (1.0 - depth) * vec4(lighting, 1.0) + depthVal, float(enableFog));
 	FragColor = res;
 }

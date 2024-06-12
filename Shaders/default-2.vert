@@ -28,7 +28,7 @@ uniform mat3 normalMatrix;
 uniform mat4 mvp;
 uniform mat4 lightMVP;
 //uniform mat4 normalMap;
-uniform bool hasAnimation = true;
+uniform bool hasAnimation = false;
 uniform vec3 camPos;
 uniform vec3 lightPos;
 

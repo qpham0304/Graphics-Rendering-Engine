@@ -163,7 +163,7 @@ void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShad
 	shadowMap.Unbind();
 }
 
-void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, Light& light) {
+void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint) {
 	framebuffer.Bind();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -198,6 +198,8 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 
 	glActiveTexture(GL_TEXTURE0 + 2);
 	glBindTexture(GL_TEXTURE_2D, depthMap.texture);
+	glActiveTexture(GL_TEXTURE0 + 5);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthMapPoint);
 
 	float currentTime = static_cast<float>(glfwGetTime());
 	float dt = currentTime - lf;
@@ -209,7 +211,7 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	//glStencilMask(0xFF);
-	OpenGLController::renderTest(light, uniforms);
+	OpenGLController::render(lights, uniforms);
 	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	//glStencilMask(0x00);
 	//glDisable(GL_DEPTH_TEST);
@@ -240,6 +242,9 @@ int SceneRenderer::renderScene()
 	OpenGLController::getComponent(id)->translate(translate);
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
+	Shader pointShadowShader("Shaders/shadow/pointShadowsDepth.vert", 
+							"Shaders/shadow/pointShadowsDepth.frag", 
+							"Shaders/shadow/pointShadowsDepth.geom");
 	Shader debugDepthQuad("src/apps/shadow-map/debug.vert", "src/apps/shadow-map/debug.frag");
 
 	DepthMap depthMap;
@@ -250,30 +255,28 @@ int SceneRenderer::renderScene()
 	frameShaderProgram.Activate();
 	frameShaderProgram.setFloat("screenTexture", 0);
 
-	float near_plane = 1.0f, far_plane = 12.5f;
+	float near_plane = 1.00f, far_plane = 25.0f;
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
 	glm::mat4 lightMVP;
 	glm::mat4 lightView;
 	debugDepthQuad.Activate();
 	debugDepthQuad.setInt("depthMap", 0);
 
-
-
-	Shader testShader("Shaders/light.vert", "Shaders/light.frag");
-	Model testModel("Models/Planet/planet.obj");
-
 	glm::vec3 lightAmbient = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 lightDiffuse = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
-	Light light = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	
-	glm::vec3 lightPos_1 = glm::vec3(5.5f, 0.5f, 0.5f);
-	glm::vec3 lightPos_2 = glm::vec3(-1.5f, 3.5f, 0.5f);
-	glm::vec3 lightPos_3 = glm::vec3(1.0f, 1.0f, 1.0f);
-	Light sunLight = Light(lightPos_1, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	Light pointLight = Light(lightPos_2, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	Light spotLight = Light(lightPos_3, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
-	std::vector<Light> lights = { sunLight , pointLight, spotLight };
+	//Light light = Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
+
+	Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
+	Model light1("Models/Planet/planet.obj");
+	glm::vec3 lightPos_1 = glm::vec3(0.0f, 0.0f, 0.0f);
+	Light l1 = Light(lightPos_1, lightColor);
+
+	std::vector<Light> lights = { Light(lightPos, lightColor, lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2), l1 };
+	//lightPos = lights[0].position;
+	lightView = glm::lookAt(lights[0].position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
+	DepthCubeMap depthCubeMap;
 
 	// Main while loop
 	glEnable(GL_DEPTH_TEST);
@@ -283,35 +286,35 @@ int SceneRenderer::renderScene()
 		guiController.render();
 
 		uniforms = UniformProperties(enablefog, explodeRadius);
-		lightPos = light.position;
-		lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+
 		lightMVP = lightProjection * lightView;
-		light.mvp = lightMVP;
-		OpenGLController::cameraController->cameraViewUpdate();
+		lights[0].mvp = lightMVP;
+
 
 
 		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		if (ImGui::Begin("Global Control")) {
 			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10))
 				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
-			ImGui::SliderFloat3("light pos", &light.position[0], -20.0f, 20.0f);
-			ImGui::SliderFloat3("ambient", &light.ambient[0], 0.0f, 1.0f);
-			ImGui::SliderFloat3("diffuse", &light.diffuse[0], 0.0f, 1.0f);
-			ImGui::SliderFloat3("specular", &light.specular[0], 0.0f, 1.0f);
+			//ImGui::SliderFloat3("Light position", &light.position[0], -20.0f, 20.0f);
+			ImGui::SliderFloat3("Direcion Light position", &lights[0].position[0], -20.0f, 20.0f);
+			ImGui::SliderFloat3("Point Light position", &lights[1].position[0], -20.0f, 20.0f);
+			ImGui::SliderFloat3("ambient", &lights[0].ambient[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("diffuse", &lights[0].diffuse[0], 0.0f, 1.0f);
+			ImGui::SliderFloat3("specular", &lights[0].specular[0], 0.0f, 1.0f);
 			ImGui::SliderFloat("explode radius", &explodeRadius, 0, 10.f);
 
 			if (ImGui::Button("+"))
-				light.sampleRadius++;
+				lights[0].sampleRadius++;
 			ImGui::SameLine();
-			if (ImGui::Button("-") && light.sampleRadius >= 0)
-				light.sampleRadius--;
+			if (ImGui::Button("-") && lights[0].sampleRadius >= 0)
+				lights[0].sampleRadius--;
 			ImGui::SameLine();
-			ImGui::Text("counter = %d", light.sampleRadius);
-			ImGui::Text("Hello from another window!");
+			ImGui::Text("counter = %d", lights[0].sampleRadius);
 			ImGui::Checkbox("Debug Mode", &debug);
 			ImGui::SameLine();
 			ImGui::Checkbox("Show debug window", &show_debug_window);
-			ImGui::ColorEdit4("Sun position", &light.color[0]);
+			ImGui::ColorEdit4("Light Color", &lights[0].color[0]);
 			ImGui::ColorEdit4("Background Color", &bgColor[0]);
 			ImGui::Checkbox("Enable face culling", &face_culling_enabled);
 			ImGui::SameLine();
@@ -332,12 +335,39 @@ int SceneRenderer::renderScene()
 		}
 
 
-		renderShadowScene(depthMap, shadowMapShader, light);
-		renderObjectsScene(framebuffer, depthMap, light);
+		OpenGLController::cameraController->cameraViewUpdate();
+		glm::mat4 pointLightProjection = glm::perspective(glm::radians(90.0f), float(depthCubeMap.SHADOW_WIDTH) / float(depthCubeMap.SHADOW_HEIGHT), near_plane, far_plane * 2);
+		std::vector<glm::mat4> pointShadowMVP;
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)));
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
+
+		depthCubeMap.Bind();
+		glViewport(0, 0, depthCubeMap.SHADOW_WIDTH, depthCubeMap.SHADOW_HEIGHT);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		pointShadowShader.Activate();
+		for (unsigned int i = 0; i < 6; ++i)
+			pointShadowShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", pointShadowMVP[i]);
+		pointShadowShader.setFloat("far_plane", far_plane * 2);
+		pointShadowShader.setVec3("lightPos", lights[1].position);
+		OpenGLController::renderShadow(pointShadowShader, lights[1]);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap.texture);
+		depthCubeMap.Unbind();
+		renderShadowScene(depthMap, shadowMapShader, lights[0]);
+		
+		//glActiveTexture(GL_TEXTURE5);
+		//glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemapTexture);
+		//renderObjectsScene(framebuffer, depthMap, light);
+
+		renderObjectsScene(framebuffer, depthMap, lights, depthCubeMap.texture);
 		
 		// extra custom draw calls
 		framebuffer.Bind();
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), light.position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
+		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), lights[0].position) * glm::scale(glm::mat4(1.0f), glm::vec3(0.25f));
 
 
 		if (render_skybox)
@@ -409,6 +439,6 @@ void SceneRenderer::framebuffer_size_callback(GLFWwindow* window, int w, int h)
 {
 	width = w;
 	height = h;
-	OpenGLController::cameraController->updateViewResize(width, height);
+	//OpenGLController::cameraController->updateViewResize(width, height);
 	glViewport(0, 0, width, height);
 }

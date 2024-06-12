@@ -5,6 +5,7 @@ out vec4 fragColor;
 in vec3 worldPos;
 in vec3 worldNormal;
 in vec2 uv;
+in vec4 clipSpace;
 
 struct Light
 {
@@ -26,6 +27,7 @@ uniform Material material;
 uniform vec3 viewPosition;
 uniform sampler2D LTC1; // for inverse M
 uniform sampler2D LTC2; // GGX norm, fresnel, 0(unused), sphere
+uniform sampler2D reflectedScene;
 
 const float LUT_SIZE  = 64.0; // ltc_texture size
 const float LUT_SCALE = (LUT_SIZE - 1.0)/LUT_SIZE;
@@ -130,8 +132,13 @@ vec3 ToSRGB(vec3 v)   { return PowVec3(v, 1.0/gamma); }
 void main()
 {
     // gamma correction
-    vec3 mDiffuse = texture(material.diffuse, uv).xyz;// * vec3(0.7f, 0.8f, 0.96f);
+    vec3 mDiffuse = texture(material.diffuse, uv).xyz;
     vec3 mSpecular = ToLinear(vec3(0.23f, 0.23f, 0.23f)); // mDiffuse
+
+    vec2 ndc = (clipSpace.xy/clipSpace.w);
+    ndc = ndc * 0.5 + 0.5;
+    vec4 reflection = texture(reflectedScene, ndc);
+    mDiffuse = mix(mDiffuse * reflection.xyz, mDiffuse, material.albedoRoughness.w);
 
     vec3 result = vec3(0.0f);
 

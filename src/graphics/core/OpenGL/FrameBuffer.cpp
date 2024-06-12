@@ -31,6 +31,7 @@ FrameBuffer::FrameBuffer(int width, int height)
 void FrameBuffer::Bind()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
 }
 
 void FrameBuffer::Unbind()

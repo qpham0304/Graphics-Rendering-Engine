@@ -22,21 +22,18 @@ struct Light {
 
 uniform bool useTexture = false;
 uniform bool enableFog = false;
-uniform sampler2D diffuse0;
-uniform sampler2D specular0;
-uniform sampler2D normal0;
-uniform sampler2D ao0;
-uniform sampler2D shadowMap;
-uniform sampler2D roughness0;
-
 uniform sampler2D albedoMap;
 uniform sampler2D normalMap;
 uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D aoMap;
+uniform sampler2D emissiveMap;
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
+
+uniform sampler2D specular0;
+uniform sampler2D shadowMap;
 
 uniform Material material;
 uniform Light light;
@@ -47,6 +44,7 @@ const float PI = 3.14159265359;
 uniform vec3 lightPositions[MAX_NUM_LIGHTS];
 uniform vec3 lightColors[MAX_NUM_LIGHTS];
 uniform bool gamma;
+uniform bool hasEmission = false;
 
 in VS_OUT {
     vec2 uv;
@@ -177,10 +175,13 @@ vec3 getNormalFromMap()
 }
 
 vec4 pointLightPBR() {
-    vec3 albedo     = pow(texture(albedoMap, frag_in.uv).rgb, vec3(2.2));
-    float metallic  = texture(metallicMap, frag_in.uv).r;
-    float roughness = texture(roughnessMap, frag_in.uv).r;
-    float ao        = texture(aoMap, frag_in.uv).r;
+    vec3 albedo = pow(texture(albedoMap, frag_in.uv).rgb, vec3(2.2));
+    float metallic = texture(metallicMap, frag_in.uv).b;
+    float roughness = texture(roughnessMap, frag_in.uv).g;
+    float ao = texture(aoMap, frag_in.uv).r;
+	vec3 emissive = vec3(0.0f);
+	if(hasEmission) // check if there is emissive material through another uniform
+		emissive = texture(emissiveMap, frag_in.uv).rgb;
 
     vec3 N = getNormalFromMap();
     vec3 V = normalize(camPos - frag_in.updatedPos);
@@ -231,11 +232,12 @@ vec4 pointLightPBR() {
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 	vec3 ambient = (kD * diffuse + specular) * ao;
 	
-	vec3 color   = ambient + Lo; 
+	vec3 color = ambient + Lo + emissive; 
 	color = color / (color + vec3(1.0));					// HDR tone mapping
 	color = gamma ? pow(color, vec3(1.0/2.2)) : color;		// Gamma correction
 	
 	return vec4(color, 1.0f);
+	// return texture(metallicMap, frag_in.uv);
 }
 //------------------------//
 vec4 pointLight() {
@@ -246,12 +248,12 @@ vec4 pointLight() {
 	vec3 normal = frag_in.normal;
 
 	// ambient
-    vec3 ambient = light.ambient * vec3(texture(diffuse0, frag_in.uv));
+    vec3 ambient = light.ambient * vec3(texture(albedoMap, frag_in.uv));
 
 	// diffuse
     vec3 lightDir = normalize(frag_in.lightPos - updatedPos);
     float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = light.diffuse * diff * vec3(texture(diffuse0, frag_in.uv));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(albedoMap, frag_in.uv));
     
 	// specular
     vec3 viewDir = normalize(camPos - updatedPos);
@@ -276,12 +278,12 @@ vec4 spotLight(vec3 lightDirection) {
 	float innerCone = 0.95f;
 
 	// ambient
-    vec3 ambient = light.ambient * vec3(texture(diffuse0, frag_in.uv));
+    vec3 ambient = light.ambient * vec3(texture(albedoMap, frag_in.uv));
 
 	// diffuse
     vec3 lightDir = normalize(frag_in.lightPos - updatedPos);
     float diff = max(dot(lightDir, frag_in.normal), 0.0);
-    vec3 diffuse = light.diffuse * diff * vec3(texture(diffuse0, frag_in.uv));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(albedoMap, frag_in.uv));
     
 	// specular
     vec3 viewDir = normalize(camPos - updatedPos);
@@ -309,12 +311,12 @@ vec4 directionalLight(vec3 lightDirection) {
 	vec3 normal = normalize(frag_in.normal);
 
 	// ambient
-    vec3 ambient = light.ambient * vec3(texture(diffuse0, frag_in.uv));
+    vec3 ambient = light.ambient * vec3(texture(albedoMap, frag_in.uv));
 
 	// diffuse
     vec3 lightDir = normalize(-lightDirection);
     float diff = max(dot(lightDir, normal), 0.0);
-    vec3 diffuse = light.diffuse * diff * vec3(texture(diffuse0, frag_in.uv));
+    vec3 diffuse = light.diffuse * diff * vec3(texture(albedoMap, frag_in.uv));
     
 	// specular
     vec3 viewDir = normalize(camPos - updatedPos);

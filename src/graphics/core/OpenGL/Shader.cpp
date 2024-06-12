@@ -51,6 +51,7 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	glAttachShader(ID, vertexShader);
 	glAttachShader(ID, fragmentShader);
 	glLinkProgram(ID);
+	compileErrors(fragmentShader, "PROGRAM");
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);

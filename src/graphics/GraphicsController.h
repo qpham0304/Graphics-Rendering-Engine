@@ -20,13 +20,19 @@ private:
 	OpenGLController();
 
 public:
+	static Texture defaultAlbedo;
+	static Texture defaultNormal;
+	static Texture defaultMetallic;
+	static Texture defaultRoughness;
+	static Texture defaultAO;
+
 	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
 	static std::unordered_map<std::string, std::unique_ptr<LightComponent>> lights;
 	static Camera* cameraController;
 	static bool gammaCorrection;
 
-	static void renderTest(Light& light, UniformProperties& uniforms);
-	static void render(Light& light, UniformProperties& uniforms);
+	static void renderPBR(Light& light, UniformProperties& uniforms);
+	static void render(std::vector<Light> light, UniformProperties& uniforms);
 	static void renderShadow(Shader& shadowMapShader, Light& light);
 	static Component* getComponent(std::string id);
 	static Component* getSelectedComponent();

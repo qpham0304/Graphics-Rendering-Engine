@@ -31,5 +31,6 @@ public:
 
 	void setUniform();
 	void render(Camera& camera);
+	void render(Camera& camera, unsigned int ID);
 };
 

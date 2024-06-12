@@ -30,9 +30,7 @@ private:
 	glm::vec3 up = defaultUp;
 
 
-	glm::mat4 view;
-	glm::mat4 projection;
-	glm::mat4 mvp;
+
 
 	bool firstClick = true;
 	bool shiftPressed = false;
@@ -54,6 +52,9 @@ private:
 	float lastFrame = 0.0f; // Time of last frame
 public:
 	float fov = DEFAULT_FOV;
+	glm::mat4 view;
+	glm::mat4 projection;
+	glm::mat4 mvp;
 
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	Camera(unsigned int width, unsigned int height, glm::vec3 position);

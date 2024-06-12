@@ -19,7 +19,7 @@ struct Light {
     vec3 specular;
 };
 
-uniform sampler2D diffuse0;
+uniform sampler2D diffuse;
 uniform vec3 viewPos;
 uniform Material material;
 uniform Light light;
@@ -46,5 +46,5 @@ void main()
     FragColor = vec4(result, 1.0);
 */
 
-    FragColor = texture(diffuse0, uv);
+    FragColor = texture(diffuse, uv);
 }
