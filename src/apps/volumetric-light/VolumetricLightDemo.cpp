@@ -117,6 +117,8 @@ int VolumetricLightDemo::show_demo() {
         pbrShader.setFloat("intensity", intensity);
         pbrShader.setFloat("scatterScale", scatterScale);
         pbrShader.setVec3("lightColor", glm::vec3(light.color));
+        pbrShader.setFloat("time", static_cast<float>(glfwGetTime()));
+        pbrShader.setVec3("windDirection", glm::vec3(1.0f));
         pbrShader.setMat4("lightMVP", light.mvp);
         pbrShader.setInt("depthMap", 10);
 

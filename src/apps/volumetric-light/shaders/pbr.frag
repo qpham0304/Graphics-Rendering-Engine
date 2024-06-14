@@ -20,6 +20,8 @@ uniform float G = 0.7f; // Controls how much light will scatter in the forward d
 uniform float intensity = 1.0f;
 uniform float scatterScale = 1.0f;
 uniform vec3 lightColor;
+uniform float time;
+uniform vec3 windDirection;
 
 const float PI = 3.14159265359f;
 const mat4 DITHER_PATTERN = mat4
@@ -30,12 +32,85 @@ const mat4 DITHER_PATTERN = mat4
 	 
 // Henyey-Greenstein phase function
 float mieScattering(float cosTheta) {
-	float numerator = (1.0f - G*G);
-	float denominator =  (4.0f * PI * pow(1.0f + G * G - 2.0f * G * cosTheta, 1.5f));
-	return numerator / denominator;
-// 	float result = 1.0f - G * G;
-// 	result /= (4.0f * PI * pow(1.0f + G * G - (2.0f * G) * cosTheta, 1.5f));
-// 	return result;
+	// float numerator = (1.0f - G*G);
+	// float denominator =  (4.0f * PI * pow(1.0f + G * G - 2.0f * G * cosTheta, 1.5f));
+	// return numerator / denominator;
+	float result = 1.0f - G * G;
+	result /= (4.0f * PI * pow(1.0f + G * G - (2.0f * G) * cosTheta, 1.5f));
+	return result;
+}
+
+
+float rand(vec3 p) 
+{
+    return fract(sin(dot(p, vec3(12.345, 67.89, 412.12))) * 42123.45) * 2.0 - 1.0;
+}
+
+float valueNoise(vec3 p) 
+{
+    vec3 u = floor(p);
+    vec3 v = fract(p);
+    vec3 s = smoothstep(0.0, 1.0, v);
+    
+    float a = rand(u);
+    float b = rand(u + vec3(1.0, 0.0, 0.0));
+    float c = rand(u + vec3(0.0, 1.0, 0.0));
+    float d = rand(u + vec3(1.0, 1.0, 0.0));
+    float e = rand(u + vec3(0.0, 0.0, 1.0));
+    float f = rand(u + vec3(1.0, 0.0, 1.0));
+    float g = rand(u + vec3(0.0, 1.0, 1.0));
+    float h = rand(u + vec3(1.0, 1.0, 1.0));
+    
+    return mix(mix(mix(a, b, s.x), mix(c, d, s.x), s.y),
+               mix(mix(e, f, s.x), mix(g, h, s.x), s.y),
+               s.z);
+}
+
+
+float fbm(vec3 p) 
+{
+    vec3 q = p;
+    int numOctaves = 8;
+    float weight = 0.5;
+    float ret = 0.0;
+    
+    // fbm
+    for (int i = 0; i < numOctaves; i++)
+    {
+        ret += weight * valueNoise(q); 
+        q *= 2.0;
+        weight *= 0.5;
+    }
+    return clamp(ret, 0.0, 1.0);
+}
+
+vec3 volumetricMarch()
+{
+    float fogVolume = 0.0;
+    vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
+    
+    for (int i = 0; i < 150; i++)
+    {
+        // vec3 p = ro + fogVolume * rd;
+		vec3 p = vec3(fogVolume);
+        float density = fbm(p);
+        
+        // If density is unignorable...
+        if (density > 1e-3)
+        {
+            // We estimate the color with w.r.t. density
+            vec4 c = vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), density), density);
+            // Multiply it by a factor so that it becomes softer
+            c.a *= 0.4;
+            c.rgb *= c.a;
+            color += c * (1.0 - color.a);
+        }
+        
+        // March forward a fixed distance
+        fogVolume += max(0.05, 0.02 * fogVolume);
+    }
+    
+    return clamp(color.rgb, 0.0, 1.0);
 }
 
 
@@ -105,23 +180,58 @@ void main() {
 	vec3 position = camPos;
 	position += step * DITHER_PATTERN[int(uv.x * SCREEN_WIDTH) % 4][int(uv.y * SCREEN_HEIGHT) % 4];
 	vec3 volume = vec3(0.0f);
+	
+	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
 	for(int i = 0; i < NUM_STEPS_INT; ++i) {
 		vec4 fragPosLight = lightSpaceVP * vec4(position, 1.0f);
 		vec3 projCoords = fragPosLight.xyz / fragPosLight.w * 0.5f + 0.5f;
 
 		float depth = texture(depthMap, projCoords.xy).r;
-		// float currentDepth = projCoords.z;
-		float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
+		// float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 		
+
+		float density = fbm(position);	// TODO: THIS IS REALLY SLOW, find better approach when have time
+		if (density > 1e-3) {	// If density is unignorable...
+			// We estimate the color with w.r.t. density
+			vec4 c = vec4(mix(vec3(1.0, 1.0, 1.0), vec3(0.0, 0.0, 0.0), density), density);
+			// Multiply it by a factor so that it becomes softer
+			c.a *= 0.4;
+			c.rgb *= c.a;
+			color += c * (1.0 - color.a) * mieScattering(dot(V, -L)) * (scatterScale * 0.5);
+		}
+
+
 		if(depth > projCoords.z){
+		/*
+			vec3 lightRayStep = lightPos - position;
+			int numLightSteps = int(length(lightRayStep) / stepSize);  // Calculate number of steps for light ray
+			lightRayStep /= float(numLightSteps);  // Normalize the light ray step
+			float lightTransmittance = 1.0;
+			vec3 lightRayPos = position;
+
+			// March along the light ray
+			for (int j = 0; j < numLightSteps; ++j) {
+				vec4 lightPosLightSpace = lightSpaceVP * vec4(lightRayPos, 1.0f);
+				vec3 lightProjCoords = lightPosLightSpace.xyz / lightPosLightSpace.w * 0.5f + 0.5f;
+				
+				// Sample the depth along the light ray
+				float lightDepth = texture(depthMap, lightProjCoords.xy).r;
+				if (lightDepth <= lightProjCoords.z) {
+					// Calculate the attenuation for this segment
+					float segmentAttenuation = exp(-scatterScale * stepSize);
+					lightTransmittance *= segmentAttenuation;
+				}
+				lightRayPos += lightRayStep;
+			}
+		*/
+
 			volume += mieScattering(dot(V, -L)) * scatterScale * lightColor;
 		}
 		position += step;
 	}
 	volume /= NUM_STEPS;
-
+	vec3 cl = clamp(color.rgb, 0.0, 1.0);
     float shadow = calcShadow();
-	FragColor = vec4(vec3(ambient) + (1.0f - shadow) * (diffuse + specular) + volume, 1.0f) * attenuation;
-
-	FragColor = FragColor / (FragColor + vec4(1.0));
+	FragColor = vec4(vec3(ambient) + (1.0f - shadow) * (diffuse + specular) + cl + volume, 1.0f) * attenuation;
+	FragColor = FragColor / (FragColor + vec4(1.0));	//tone mapping
 }
