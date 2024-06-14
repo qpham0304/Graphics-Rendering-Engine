@@ -1,10 +1,5 @@
 #include "DepthCubeMap.h"
 
-float DepthCubeMap::shadowCalculation(glm::vec4 fragPosLightSpace)
-{
-	return 0.0f;
-}
-
 DepthCubeMap::DepthCubeMap()
 {
 	glGenFramebuffers(1, &FBO);

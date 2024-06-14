@@ -146,7 +146,7 @@ int SceneRenderer::end() {
 
 void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light) {
 	shadowMap.Bind();
-	glViewport(0, 0, shadowMap.SHADOW_WIDTH, shadowMap.SHADOW_HEIGHT);
+	glViewport(0, 0, shadowMap.getWidth(), shadowMap.getHeight());
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glActiveTexture(GL_TEXTURE0);
 

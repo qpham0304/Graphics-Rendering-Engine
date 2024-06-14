@@ -1,5 +1,5 @@
 #include "../../SceneRenderer.h"
-#include "BloomRenderer.h"
+#include "../../graphics/core/OpenGL/BloomRenderer.h"
 
 #pragma once
 class DeferredRender

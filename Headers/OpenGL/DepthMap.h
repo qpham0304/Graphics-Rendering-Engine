@@ -8,25 +8,27 @@
 #include<glm/gtx/vector_angle.hpp>
 
 class DepthMap {
-private:
-	float shadowCalculation(glm::vec4 fragPosLightSpace);
+protected:
+	void setup(unsigned int width, unsigned int height);
+	const unsigned int DEFAULT_HEIGHT = 2048;
+	const unsigned int DEFAULT_WIDTH = 2048;
+	unsigned int width;
+	unsigned int height;
+
 public:
-	const GLuint SHADOW_HEIGHT = 8192;
-	const GLuint SHADOW_WIDTH = 8192;
-
-	float near_plane = 1.0f, far_plane = 12.5f;
-
-	GLuint FBO;
-	GLuint texture;
+	unsigned int FBO;
+	unsigned int texture;
 	glm::mat4 lightProjection = glm::mat4(1.0f);
 	glm::mat4 lightView;
 	glm::mat4 lightSpaceMatrix;
 
 	DepthMap();
+	DepthMap(unsigned int width, unsigned int height);
+
 	void Bind();
 	void Unbind();
 	void Delete();
+	unsigned int getWidth();
+	unsigned int getHeight();
 
-	void depthMapViewUpdate();
-	void depthMapViewObject(GLuint shaderID, const char* uniform);
 };

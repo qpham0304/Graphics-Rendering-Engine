@@ -5,7 +5,7 @@ out vec4 FragColor;
 in vec2 uv;
 in vec3 normal;
 in vec3 updatedPos;
-in vec4 fragPosLight;
+in mat4 lightSpaceVP;
 
 uniform vec3 lightPos;
 uniform vec3 camPos;
@@ -13,13 +13,15 @@ uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
 uniform sampler2D depthMap;
 
-const int SCREEN_WIDTH = 2460;
-const int SCREEN_HEIGHT = 1440;
-const int NUM_STEPS_INT = 15;
-const float NUM_STEPS = float(NUM_STEPS_INT);
-const float G = 0.7f; // Controls how much light will scatter in the forward direction
+uniform int SCREEN_WIDTH;
+uniform int SCREEN_HEIGHT;
+uniform int NUM_STEPS_INT = 15;
+uniform float G = 0.7f; // Controls how much light will scatter in the forward direction
+uniform float intensity = 1.0f;
+uniform float scatterScale = 1.0f;
+uniform vec3 lightColor;
+
 const float PI = 3.14159265359f;
-const float SPECULAR_FACTOR = 16.0f;
 const mat4 DITHER_PATTERN = mat4
     (vec4(0.0f, 0.5f, 0.125f, 0.625f),
      vec4(0.75f, 0.22f, 0.875f, 0.375f),
@@ -31,11 +33,15 @@ float mieScattering(float cosTheta) {
 	float numerator = (1.0f - G*G);
 	float denominator =  (4.0f * PI * pow(1.0f + G * G - 2.0f * G * cosTheta, 1.5f));
 	return numerator / denominator;
+// 	float result = 1.0f - G * G;
+// 	result /= (4.0f * PI * pow(1.0f + G * G - (2.0f * G) * cosTheta, 1.5f));
+// 	return result;
 }
 
 
 
 float calcShadow() {
+	vec4 fragPosLight = lightSpaceVP * vec4(updatedPos, 1.0f);
 	vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
 	projCoords = projCoords * 0.5 + 0.5;
 	float closestDepth = texture(depthMap, projCoords.xy).r;   
@@ -44,8 +50,8 @@ float calcShadow() {
 	float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 	
 	float shadow = 0.0;
-	if(currentDepth > 1.0f)
-		return shadow;
+	// if(currentDepth > 1.0f)
+	// 	return shadow;
 	//shadow = (currentDepth > closestDepth + bias ) ? 1.0 : 0.0; 
 	
 	// sample area for soft shadow
@@ -79,6 +85,7 @@ void main() {
     float lightLinear = 0.09f;
     float lightQuadratic = 0.032f;
     float attenuation = 1.0 / (lightConstant + lightLinear * distance + lightQuadratic * (distance * distance));
+	attenuation *= intensity;
 
     float NdotL = max(0.0, dot(normal, lightDir));
     vec3 diffuse = NdotL * texture(diffuseMap, uv).rgb;
@@ -87,32 +94,34 @@ void main() {
     float NdotR = max(0.0, dot(normal, halfwayDir));
     vec3 specular = pow(NdotR, 32) * texture(specularMap, uv).rgb;
 
-	vec3 L = normalize(-lightDir);
+	// vec3 L = normalize(-lightDir);
+	vec3 L = lightDir;
+	// vec3 V = updatedPos - camPos;
 	vec3 V = updatedPos - camPos;
+	const float NUM_STEPS = float(NUM_STEPS_INT);
 	float stepSize = length(V) / NUM_STEPS;
 	V = normalize(V);
 	vec3 step = V * stepSize;
 	vec3 position = camPos;
 	position += step * DITHER_PATTERN[int(uv.x * SCREEN_WIDTH) % 4][int(uv.y * SCREEN_HEIGHT) % 4];
 	vec3 volume = vec3(0.0f);
-	for(int i = 0; i < NUM_STEPS; i++) {
-		vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
-		projCoords = projCoords * 0.5 + 0.5;
-		float closestDepth = texture(depthMap, projCoords.xy).r;
-		float currentDepth = projCoords.z;
+	for(int i = 0; i < NUM_STEPS_INT; ++i) {
+		vec4 fragPosLight = lightSpaceVP * vec4(position, 1.0f);
+		vec3 projCoords = fragPosLight.xyz / fragPosLight.w * 0.5f + 0.5f;
+
+		float depth = texture(depthMap, projCoords.xy).r;
+		// float currentDepth = projCoords.z;
+		float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 		
-		if(closestDepth > currentDepth)
-			volume += mieScattering(dot(V, -L)) * vec3(1.0, 1.0, 1.0);
+		if(depth > projCoords.z){
+			volume += mieScattering(dot(V, -L)) * scatterScale * lightColor;
+		}
 		position += step;
 	}
 	volume /= NUM_STEPS;
 
-
     float shadow = calcShadow();
-    diffuse *= (1.0 - shadow);
-    specular *= (1.0 - shadow);
-    vec3 light = vec3(ambient) + diffuse + specular + volume;
-    light *= attenuation;
+	FragColor = vec4(vec3(ambient) + (1.0f - shadow) * (diffuse + specular) + volume, 1.0f) * attenuation;
 
-    FragColor = vec4(light, 1.0);
+	FragColor = FragColor / (FragColor + vec4(1.0));
 }

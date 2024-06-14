@@ -170,6 +170,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\DeferredRenderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\ImageBasedRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomFBO.cpp" />
     <ClCompile Include="src\apps\deferred-rendering\deferred_render_demo.cpp" />
@@ -224,9 +227,12 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\OpenGL\BloomRenderer.h" />
+    <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h" />
+    <ClInclude Include="src\graphics\core\OpenGL\BloomRenderer.h" />
     <ClInclude Include="Headers\OpenGL\BloomFBO.h" />
     <ClInclude Include="Headers\OpenGL\DepthCubeMap.h" />
+    <ClInclude Include="src\graphics\core\OpenGL\ImageBasedRenderer.h" />
+    <ClInclude Include="src\graphics\core\OpenGL\ShadowMapRenderer.h" />
     <ClInclude Include="src\apps\area-light\area_light_demo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\GraphEditor.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImCurveEdit.h" />
