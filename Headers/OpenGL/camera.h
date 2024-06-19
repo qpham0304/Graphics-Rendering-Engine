@@ -5,8 +5,6 @@
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
-#include<glm/gtx/rotate_vector.hpp>
-#include<glm/gtx/vector_angle.hpp>
 #include "Shader.h"
 
 //Camera* currentCamera = nullptr;
@@ -28,9 +26,6 @@ private:
 	glm::vec3 position;
 	glm::vec3 orientation;
 	glm::vec3 up = defaultUp;
-
-
-
 
 	bool firstClick = true;
 	bool shiftPressed = false;

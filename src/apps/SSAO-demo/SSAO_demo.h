@@ -3,7 +3,7 @@
 #include "../../SceneRenderer.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 
-class DeferredRender
+class SSAO_Demo
 {
 public:
 	static int show_demo();

@@ -9,7 +9,7 @@
 
 class DepthCubeMap {
 private:
-	float shadowCalculation(glm::vec4 fragPosLightSpace);
+
 public:
 	const GLuint SHADOW_HEIGHT = 8192;
 	const GLuint SHADOW_WIDTH = 8192;
@@ -26,8 +26,5 @@ public:
 	void Bind();
 	void Unbind();
 	void Delete();
-
-	void depthCubeMapViewUpdate();
-	void depthCubeMapViewObject(GLuint shaderID, const char* uniform);
 };
 

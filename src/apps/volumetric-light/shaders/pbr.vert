@@ -12,7 +12,7 @@ layout (location = 7) in vec4 weights;
 out vec2 uv;
 out vec3 normal;
 out vec3 updatedPos;
-out vec4 fragPosLight;
+out mat4 lightSpaceVP;
 
 uniform mat4 matrix;
 uniform mat3 normalMatrix;
@@ -58,7 +58,7 @@ void main()
     totalPosition = condition * totalPosition + (1 - condition) * vec4(pos, 1.0f);
 
 	updatedPos = (matrix * totalPosition).xyz;
-	fragPosLight = lightMVP * vec4(updatedPos, 1.0f);
+	lightSpaceVP = lightMVP;
     TBN = TBN;
     gl_Position = mvp * vec4(updatedPos, 1.0f);
 }

@@ -10,16 +10,17 @@ out vec3 normal;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform bool invertedNormals = false;
 
 void main()
 {
     vec4 worldPos = model * vec4(aPos, 1.0);
     fragPos = worldPos.xyz; 
     uv = aTexCoords;
-    uv.y *= -1;
+    uv.y *= -1; // TODO: only use this to flip texture horizontally
     
     mat3 normalMatrix = transpose(inverse(mat3(model)));
-    normal = normalMatrix * aNormal;
+    normal = normalMatrix * (invertedNormals ? -aNormal : aNormal);
 
     gl_Position = projection * view * worldPos;
 }

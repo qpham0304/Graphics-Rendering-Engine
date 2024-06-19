@@ -180,6 +180,18 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\core\OpenGL\DeferredRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\OpenGL\ImageBasedRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -323,10 +335,22 @@
     <ClInclude Include="Headers\OpenGL\BloomFBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\OpenGL\BloomRenderer.h">
+    <ClInclude Include="src\graphics\core\OpenGL\BloomRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\core\OpenGL\ImageBasedRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\graphics\core\OpenGL\ShadowMapRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,5 @@
 #include "VolumetricLightDemo.h"
+#include "../../graphics/core/OpenGL/ShadowMapRenderer.h"
 
 int VolumetricLightDemo::show_demo() {
     float width = SceneRenderer::width;
@@ -13,7 +14,7 @@ int VolumetricLightDemo::show_demo() {
         guiController.init(SceneRenderer::window, width, height);
 
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
-    Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
+    //Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 
@@ -24,27 +25,53 @@ int VolumetricLightDemo::show_demo() {
     unsigned int cubeVAO = 0;
     unsigned int cubeVBO = 0;
 
-    DepthMap depthMap;
+    ShadowMapRenderer shadowMapRenderer(2048, 2048);
+
+
 
     glm::vec4 lightColor(1.0, 1.0, 1.0, 1.0);
     glm::vec3 lightPosition(5.0, 5.0, 5.0);
-    glm::mat4 model = glm::mat4(1.0f);
+    Light light(lightPosition, lightColor);
+    glm::mat4 model(1.0f);
+    std::vector<glm::mat4> modelMatrices;
+    std::vector<Model> models;
+
+    int numSteps = 15;
+    float G = 0.0f;
+    float intensity = 1.0f;
+    float scatterScale = 1.0f;
+
+    GLuint byteSize = 32;
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, byteSize, nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightColor), GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float), &intensity, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 
     postProcessShader.Activate();
     postProcessShader.setInt("scene", 0);
 
-    //Texture planeTex("Textures/wood.png", "diffuseMap");
-
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
+
+    model = glm::scale(model, glm::vec3(0.10));
+    modelMatrices.push_back(model);
+    models.push_back(reimu);
+
+    model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
+    modelMatrices.push_back(model);
+    models.push_back(sponza);
+
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
         camera.cameraViewUpdate();
-        camera.processInput(SceneRenderer::window);
+        camera.setCameraSpeed(5);
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -59,47 +86,39 @@ int VolumetricLightDemo::show_demo() {
             frameCounter = 0;
         }
 
-        Light light(lightPosition, lightColor);
-        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 25.0f);
-        glm::mat4 lightView = glm::lookAt(light.position, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+        glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+        glm::mat4 lightView = glm::lookAt(light.position, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 lightMVP = lightProjection * lightView;
         light.mvp = lightMVP;
+
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), &light.color[0]);
+        glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(float), &intensity);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-        depthMap.Bind();
-        glViewport(0, 0, depthMap.SHADOW_WIDTH, depthMap.SHADOW_HEIGHT);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
-        glClear(GL_DEPTH_BUFFER_BIT);
-        shadowMapShader.Activate();
-        model = glm::mat4(1.0f);
-        model = glm::scale(model, glm::vec3(0.10));
-        shadowMapShader.setMat4("mvp", light.mvp);
-        shadowMapShader.setMat4("matrix", model);
-        shadowMapShader.setBool("hasAnimation", false);
-        reimu.Draw(shadowMapShader);
-
-        model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
-        pbrShader.setMat4("matrix", model);
-        sponza.Draw(pbrShader);
-        depthMap.Unbind();
+        shadowMapRenderer.renderShadow(light, models, modelMatrices);
 
         applicationFBO.Bind();
         glViewport(0, 0, width, height);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        //Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
         lightShader.Activate();
         model = glm::mat4(1.0);
         lightShader.setMat4("mvp", camera.getMVP());
         model = glm::translate(model, light.position);
         model = glm::scale(model, glm::vec3(0.125f));
         lightShader.setMat4("matrix", model);
-        lightShader.setVec3("lightColor", light.color);
+        lightShader.setVec3("lightColor", glm::vec3(light.color));
         Utils::Draw::drawSphere(cubeVAO, cubeVBO);
         
+        Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
+        //pbrShader.reloadShader();
         pbrShader.Activate();
         model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.10));
@@ -110,14 +129,23 @@ int VolumetricLightDemo::show_demo() {
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(normalMatrix)));
         pbrShader.setVec3("lightPos", light.position);
         pbrShader.setVec3("camPos", camera.getPosition());
+        pbrShader.setInt("SCREEN_WIDTH", width);
+        pbrShader.setInt("SCREEN_HEIGHT", height);
+        pbrShader.setInt("NUM_STEPS_INT", numSteps);
+        pbrShader.setFloat("G", G);
+        pbrShader.setFloat("intensity", intensity);
+        pbrShader.setFloat("scatterScale", scatterScale);
+        pbrShader.setVec3("lightColor", glm::vec3(light.color));
+        pbrShader.setFloat("time", static_cast<float>(glfwGetTime()));
+        pbrShader.setVec3("windDirection", glm::vec3(1.0f));
         pbrShader.setMat4("lightMVP", light.mvp);
         pbrShader.setInt("depthMap", 10);
 
         glActiveTexture(GL_TEXTURE10);
-        glBindTexture(GL_TEXTURE_2D, depthMap.texture);
+        glBindTexture(GL_TEXTURE_2D, shadowMapRenderer.depthTexture());
         reimu.Draw(pbrShader);
 
-        model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f));
+        model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
         pbrShader.setMat4("matrix", model);
         //Utils::Draw::drawQuad();
         sponza.Draw(pbrShader);
@@ -128,9 +156,15 @@ int VolumetricLightDemo::show_demo() {
         if (guiOn) {
             guiController.start();
             if (ImGui::Begin("control")) {
+                ImGui::SliderFloat3("Direcion Light position", &light.position[0], -100.0f, 100.0f);
+                ImGui::SliderInt("Steps", &numSteps, 0, 100);
+                ImGui::SliderFloat("G", &G, -1.0f, 1.0f);
+                ImGui::SliderFloat("intensity", &intensity, 0.0f, 100.0f);
+                ImGui::SliderFloat("scatter scale", &scatterScale, 0.0f, 100.0f);
+                ImGui::ColorEdit4("Light Color", &light.color[0]);
                 ImGui::BeginChild("gBuffers textures");
                 ImVec2 wsize = ImGui::GetWindowSize();
-                ImGui::Image((ImTextureID)depthMap.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)shadowMapRenderer.depthTexture(), wsize, ImVec2(0, 1), ImVec2(1, 0));
 
                 ImGui::EndChild();
                 ImGui::End();

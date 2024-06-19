@@ -1,17 +1,11 @@
 #include "DepthMap.h"
 
-float DepthMap::shadowCalculation(glm::vec4 fragPosLightSpace)
-{
-	return 0.0f;
-}
-
-DepthMap::DepthMap()
-{
+void DepthMap::setup(unsigned int width, unsigned int height) {
 	glGenFramebuffers(1, &FBO);
 
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
@@ -28,6 +22,20 @@ DepthMap::DepthMap()
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+DepthMap::DepthMap()
+{
+	setup(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+	this->width = DEFAULT_WIDTH;
+	this->height = DEFAULT_HEIGHT;
+}
+
+DepthMap::DepthMap(unsigned int width, unsigned int height)
+{
+	this->width = width;
+	this->height = height;
+	setup(width, height);
+}
+
 void DepthMap::Bind() {
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 }
@@ -42,20 +50,14 @@ void DepthMap::Delete() {
 	glDeleteTextures(1, &texture);
 }
 
-
-void DepthMap::depthMapViewUpdate()
+unsigned int DepthMap::getWidth()
 {
-	lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
-	lightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f),
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(0.0f, 1.0f, 0.0f));
-
-	lightSpaceMatrix = lightProjection * lightView;
+	return width;
 }
 
-void DepthMap::depthMapViewObject(GLuint shaderID, const char* uniform) {
-	lightSpaceMatrix = lightProjection * lightView;
-	GLuint uniformLocation = glGetUniformLocation(shaderID, "lightSpaceMatrix");
-	glUniformMatrix4fv(uniformLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+unsigned int DepthMap::getHeight()
+{
+	return height;
 }
+
 
