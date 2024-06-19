@@ -7,6 +7,10 @@ in vec3 normal;
 in vec3 updatedPos;
 in mat4 lightSpaceVP;
 
+layout(std140, binding = 0) uniform Vec3Buffer {
+	vec3 lc;
+};
+
 uniform vec3 lightPos;
 uniform vec3 camPos;
 uniform sampler2D diffuseMap;
@@ -113,7 +117,17 @@ vec3 volumetricMarch()
     return clamp(color.rgb, 0.0, 1.0);
 }
 
+float linearizeDepth(float depth) {
+	float near = 0.1f;
+	float far = 100.0f;
+    float z = depth * 2.0 - 1.0;
+    return (2.0 * near * far) / (far + near - z * (far - near));
+}
 
+float logDepth(float depth, float steepness, float offset) {
+	float zVal = linearizeDepth(depth);
+	return (1 / (1 + exp(-steepness * (zVal - offset))));
+}
 
 float calcShadow() {
 	vec4 fragPosLight = lightSpaceVP * vec4(updatedPos, 1.0f);
@@ -189,7 +203,7 @@ void main() {
 		float depth = texture(depthMap, projCoords.xy).r;
 		// float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 		
-
+		float beersLaw = logDepth(projCoords.z, 0.2f, 0.5);
 		float density = fbm(position);	// TODO: THIS IS REALLY SLOW, find better approach when have time
 		if (density > 1e-3) {	// If density is unignorable...
 			// We estimate the color with w.r.t. density
@@ -224,7 +238,6 @@ void main() {
 				lightRayPos += lightRayStep;
 			}
 		*/
-
 			volume += mieScattering(dot(V, -L)) * scatterScale * lightColor;
 		}
 		position += step;

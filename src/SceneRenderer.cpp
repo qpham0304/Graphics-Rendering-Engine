@@ -34,6 +34,12 @@ bool enableTencil = true;
 UniformProperties uniforms = UniformProperties(enablefog, explodeRadius);
 std::string id = "";
 
+void getUniformBlockSize() {
+	GLint maxUniformBlockSize;
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
+	std::cout << "Max Uniform Block Size: " << maxUniformBlockSize << std::endl;
+}
+
 void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
 	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
 	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);

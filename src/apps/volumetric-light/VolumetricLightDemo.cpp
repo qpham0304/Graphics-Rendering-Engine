@@ -14,7 +14,7 @@ int VolumetricLightDemo::show_demo() {
         guiController.init(SceneRenderer::window, width, height);
 
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
-    Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
+    //Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 
@@ -27,13 +27,28 @@ int VolumetricLightDemo::show_demo() {
 
     ShadowMapRenderer shadowMapRenderer(2048, 2048);
 
+
+
     glm::vec4 lightColor(1.0, 1.0, 1.0, 1.0);
     glm::vec3 lightPosition(5.0, 5.0, 5.0);
     Light light(lightPosition, lightColor);
     glm::mat4 model(1.0f);
-
     std::vector<glm::mat4> modelMatrices;
     std::vector<Model> models;
+
+    int numSteps = 15;
+    float G = 0.0f;
+    float intensity = 1.0f;
+    float scatterScale = 1.0f;
+
+    GLuint byteSize = 32;
+    GLuint ubo;
+    glGenBuffers(1, &ubo);
+    glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+    glBufferData(GL_UNIFORM_BUFFER, byteSize, nullptr, GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(glm::vec3), glm::value_ptr(lightColor), GL_STATIC_DRAW);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(float), &intensity, GL_STATIC_DRAW);
+    glBindBufferBase(GL_UNIFORM_BUFFER, 0, ubo);
 
     postProcessShader.Activate();
     postProcessShader.setInt("scene", 0);
@@ -50,10 +65,6 @@ int VolumetricLightDemo::show_demo() {
     modelMatrices.push_back(model);
     models.push_back(sponza);
 
-    int numSteps = 15;
-    float G = 0.0f;
-    float intensity = 1.0f;
-    float scatterScale = 1.0f;
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
@@ -80,6 +91,11 @@ int VolumetricLightDemo::show_demo() {
         glm::mat4 lightMVP = lightProjection * lightView;
         light.mvp = lightMVP;
 
+        glBindBuffer(GL_UNIFORM_BUFFER, ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::vec3), &light.color[0]);
+        glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(float), &intensity);
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -91,6 +107,7 @@ int VolumetricLightDemo::show_demo() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        //Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
         lightShader.Activate();
         model = glm::mat4(1.0);
         lightShader.setMat4("mvp", camera.getMVP());
@@ -100,6 +117,8 @@ int VolumetricLightDemo::show_demo() {
         lightShader.setVec3("lightColor", glm::vec3(light.color));
         Utils::Draw::drawSphere(cubeVAO, cubeVBO);
         
+        Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
+        //pbrShader.reloadShader();
         pbrShader.Activate();
         model = glm::mat4(1.0f);
         model = glm::scale(model, glm::vec3(0.10));

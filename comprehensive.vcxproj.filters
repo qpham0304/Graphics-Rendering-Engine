@@ -189,6 +189,9 @@
     <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -345,6 +348,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\graphics\core\OpenGL\ShadowMapRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

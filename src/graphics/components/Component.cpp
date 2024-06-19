@@ -164,7 +164,7 @@ void Component::updateAnimation(float deltaTime)
 	animator_ptr->UpdateAnimation(deltaTime);
 }
 
-void Component::translate(glm::vec3& translate)
+void Component::translate(glm::vec3 translate)
 {
 	translateVector = translate;
 	modelMatrix = glm::translate(glm::mat4(1.0f), translate);
@@ -192,7 +192,7 @@ glm::mat4  Component::getTransform()
 	return modelMatrix;
 }
 
-void Component::rotate(glm::vec3& rotate)
+void Component::rotate(glm::vec3 rotate)
 {	
 	//TODO: broken if used with slider but guizmo works fine, fix if have time
 	//rotationVector = rotate;
@@ -202,7 +202,7 @@ void Component::rotate(glm::vec3& rotate)
 	modelMatrix = glm::scale(modelMatrix, scaleVector);
 }
 
-void Component::scale(glm::vec3& scale)
+void Component::scale(glm::vec3 scale)
 {
 	scaleVector = scale;
 	modelMatrix = glm::translate(translateVector);
@@ -215,17 +215,14 @@ glm::mat4 Component::getModelMatrix()
 	return modelMatrix;
 }
 
+glm::mat4 Component::getNormalMatrix()
+{
+	return normalMatrix;
+}
+
 bool Component::getShowAxisState()
 {
 	return showAxis;
-}
-
-std::vector<std::string> Component::uniforms()
-{
-	//TODO: conditional to list the uniforms that can be altered
-	//edit*: nvm, just use a map to map with the shader type 
-	//if no match throw error or use a default one
-	return {};
 }
 
 void Component::select()

@@ -225,6 +225,7 @@
     <ClCompile Include="src\gui\widgets\Widget.cpp" />
     <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
+    <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h" />
@@ -279,6 +280,7 @@
     <ClInclude Include="src\gui\headers\Widget.h" />
     <ClInclude Include="src\gui\headers\SubViewWidget.h" />
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
+    <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

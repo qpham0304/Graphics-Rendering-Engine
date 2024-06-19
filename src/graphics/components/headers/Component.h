@@ -106,6 +106,9 @@ protected:
 	std::unique_ptr<Animation> animation_ptr;
 	std::unique_ptr<Animator> animator_ptr;
 
+	std::unique_ptr<Shader> shaderProgram_ptr;
+	glm::mat4 modelMatrix;
+	glm::mat3 normalMatrix;
 
 public:
 	Component();
@@ -113,9 +116,7 @@ public:
 	~Component() = default;
 
 	std::unique_ptr<Model> model_ptr;
-	std::unique_ptr<Shader> shaderProgram_ptr;
-	glm::mat4 modelMatrix;
-	glm::mat3 normalMatrix;
+
 	glm::vec3 scaleVector = glm::vec3(1.0f, 1.0f, 1.0f);
 	glm::vec3 translateVector = glm::vec3(0.0f, 0.0f, 0.0f);
 	glm::vec3 rotationVector = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -141,8 +142,8 @@ public:
 	// getter
 	int getNumVertices();
 	glm::mat4 getModelMatrix();
+	glm::mat4 getNormalMatrix();
 	bool getShowAxisState();
-	std::vector<std::string> uniforms();
 	bool isSelected();
 	std::string getID();
 	std::string getName();
@@ -152,9 +153,9 @@ public:
 	void select();
 	void unSelect();
 	void swapShader(Shader& shader);		// Ideally swap to a different shader
-	void translate(glm::vec3& translate);
-	void rotate(glm::vec3& matrix);
-	void scale(glm::vec3& scale);
+	void translate(glm::vec3 translate);
+	void rotate(glm::vec3 matrix);
+	void scale(glm::vec3 scale);
 	glm::mat4 getTransform();
 };
 

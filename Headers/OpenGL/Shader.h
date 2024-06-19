@@ -15,33 +15,48 @@
 #include<unordered_map>
 #include <cstring>
 
-std::string get_file_contents(const char* filename);
+struct UniformData {
+	std::string type;
+	std::string name;
+};
 
 class Shader
 {
 private:
+	static std::string get_file_contents(const char* filename);
+	static std::vector<std::string> split(const std::string& str);
+	static std::vector<UniformData> parseShaderUniforms(const std::string& content);
+	
 	GLuint getUniformLocation(const std::string& name) const;
+	GLuint createShader(const char* vertexFile, const char* fragmentFile);
+	GLuint createShader(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
+	
+	mutable std::unordered_map<std::string, GLuint> cache;
+	std::vector<UniformData> uniforms;
+
+	std::string vertPath;
+	std::string fragPath;
+	std::string geomPath;
+	std::string tessPath;
 
 public:
 	// Reference ID of the Shader Program
 	GLuint ID;
 	std::string type;
-	mutable std::unordered_map<std::string, GLuint> cache;
 	
-	Shader();
-	Shader(const Shader& other);
 	Shader(const char* vertexFile, const char* fragmentFile);
 	Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
-	Shader& operator=(const Shader& other);
-
-	Shader(Shader&& other) noexcept;
-	Shader& operator=(Shader&& other) noexcept;
-
+	//Shader();
+	//Shader(const Shader& other);
+	//Shader& operator=(const Shader& other);
+	//Shader(Shader&& other) noexcept;
+	//Shader& operator=(Shader&& other) noexcept;
 	~Shader();
 
 	void Activate();
 	void Delete();
 	void compileErrors(unsigned int shader, const char* type);
+	void reloadShader();
 
 	// utility uniform functions
 	void setBool(const std::string& name, bool value);
@@ -56,7 +71,6 @@ public:
     void setMat2(const std::string& name, const glm::mat2& mat);
     void setMat3(const std::string& name, const glm::mat3& mat);
     void setMat4(const std::string& name, const glm::mat4& mat);
-
 };
 
 #endif

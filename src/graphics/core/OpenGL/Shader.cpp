@@ -1,14 +1,5 @@
 #include"Shader.h"
 
-Shader::Shader() = default;
-
-Shader::Shader(const Shader& other)
-{
-	this->ID = other.ID;
-	this->type = other.type;
-	this->cache = other.cache;
-}
-
 static bool validateFormat(const char* str) {
 	size_t len = std::strlen(str);
 	if (len >= 5)	// .frag and .vert length
@@ -17,6 +8,152 @@ static bool validateFormat(const char* str) {
 }
 
 Shader::Shader(const char* vertexFile, const char* fragmentFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile, geometryFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+Shader::~Shader()
+{
+	glDeleteProgram(ID);
+}
+
+// Activates the Shader Program
+void Shader::Activate()
+{
+	glUseProgram(ID);
+}
+
+// Deletes the Shader Program
+void Shader::Delete()
+{
+	glDeleteProgram(ID);
+}
+
+std::vector<std::string> Shader::split(const std::string& str) {
+	std::istringstream iss(str);
+	std::vector<std::string> tokens;
+	std::string token;
+
+	while (iss >> token) {
+		tokens.push_back(token);
+	}
+	return tokens;
+}
+
+std::vector<UniformData> Shader::parseShaderUniforms(const std::string& content) {
+	std::vector<std::string> tokens = split(content);
+	std::vector<UniformData> uniforms;
+
+	// Iterate through tokens to find uniform declarations
+	for (size_t i = 0; i < tokens.size(); ++i) {
+		if (tokens[i] == "uniform" && i + 2 < tokens.size()) {
+			UniformData uniform;
+			uniform.type = tokens[i + 1];
+			uniform.name = tokens[i + 2];
+
+			// Remove trailing semicolon from the name if present
+			if (!uniform.name.empty() && uniform.name.back() == ';') {
+				uniform.name.pop_back();
+			}
+
+			uniforms.push_back(uniform);
+			i += 2; // Move past the type and name tokens
+		}
+	}
+
+	return uniforms;
+}
+
+// Reads a text file and outputs a string with everything in the text file
+std::string Shader::get_file_contents(const char* filepath)
+{
+	std::ifstream file(filepath);
+	if (!file.is_open()) {
+		std::cerr << "Error opening file: " << filepath << std::endl;
+		return "";
+	}
+
+	//typedef std::istreambuf_iterator<char> charStreamIterator;
+	using charStreamIterator = std::istreambuf_iterator<char>;
+	std::string content((charStreamIterator(file)), (charStreamIterator()));
+	file.close();
+
+	return content;
+}
+
+// Checks if the different Shaders have compiled properly
+void Shader::compileErrors(unsigned int shader, const char* type)
+{
+	// Stores status of compilation
+	GLint hasCompiled;
+	// Character array to store error message in
+	char infoLog[1024];
+	if (type != "PROGRAM")
+	{
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &hasCompiled);
+		if (hasCompiled == GL_FALSE)
+		{
+			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+			std::string msg = "SHADER_COMPILATION_ERROR for " + std::string(type) + ": " + infoLog;
+			throw std::runtime_error(msg.c_str());
+			//std::cout << "SHADER_COMPILATION_ERROR for:" << type << "\n" << infoLog << std::endl;
+		}
+	}
+	else
+	{
+		glGetProgramiv(shader, GL_LINK_STATUS, &hasCompiled);
+		if (hasCompiled == GL_FALSE)
+		{
+			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+			std::string msg = "SHADER_LINKING_ERROR for " + std::string(type) + ": " + infoLog;
+			throw std::runtime_error(msg.c_str());
+			//std::cout << "SHADER_LINKING_ERROR for:" << type << "\n" << infoLog << std::endl;
+		}
+	}
+}
+
+void Shader::reloadShader()
+{
+	try {
+		GLuint newID;
+		if(!geomPath.empty())
+			newID = createShader(vertPath.c_str(), fragPath.c_str(), geomPath.c_str());
+		else
+			newID = createShader(vertPath.c_str(), fragPath.c_str());
+		glDeleteProgram(ID);
+		this->ID = newID;
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+GLuint Shader::getUniformLocation(const std::string& name) const
+{
+	if (cache.find(name) != cache.end())
+		return cache[name];
+	GLuint location = glGetUniformLocation(ID, name.c_str());
+	cache[name] = location;
+	return location;
+
+}
+
+GLuint Shader::createShader(const char* vertexFile, const char* fragmentFile)
 {
 	//TODO properly validate format 
 	//if false, use a default shader or something to prevent crash maybe?
@@ -31,8 +168,13 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 		type = fragmentFile;
 	type = type.substr(0, type.size() - 5);
 
-	std::string vertexCode = get_file_contents(vertexFile);
-	std::string fragmentCode = get_file_contents(fragmentFile);
+	vertPath = vertexFile;
+	fragPath = fragmentFile;
+
+	std::string vertexCode = get_file_contents(vertPath.c_str());
+	std::string fragmentCode = get_file_contents(fragPath.c_str());
+
+	uniforms = parseShaderUniforms(vertexCode + '\t' + fragmentCode);
 
 	const char* vertexSource = vertexCode.c_str();
 	const char* fragmentSource = fragmentCode.c_str();
@@ -47,28 +189,21 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	glCompileShader(fragmentShader);
 	compileErrors(fragmentShader, "FRAGMENT");
 
-	ID = glCreateProgram();
-	glAttachShader(ID, vertexShader);
-	glAttachShader(ID, fragmentShader);
-	glLinkProgram(ID);
+	GLuint id = glCreateProgram();
+	glAttachShader(id, vertexShader);
+	glAttachShader(id, fragmentShader);
+	glLinkProgram(id);
 	compileErrors(fragmentShader, "PROGRAM");
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
-
+	return id;
 }
 
-Shader& Shader::operator=(const Shader& other) {
-	if (this != &other) {
-		this->ID = other.ID;
-	}
-	return *this;
-}
-
-Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+GLuint Shader::createShader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
 {
 	//TODO properly validate format 
-//if false, use a default shader or something to prevent crash maybe?
+	//if false, use a default shader or something to prevent crash maybe?
 	if (!(validateFormat(vertexFile) && validateFormat(fragmentFile))) {
 		std::cerr << "invalid file format, must be .frag or .vert" << std::endl;
 	}
@@ -80,9 +215,13 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 		type = fragmentFile;
 	type = type.substr(0, type.size() - 5);
 
-	std::string vertexCode = get_file_contents(vertexFile);
-	std::string fragmentCode = get_file_contents(fragmentFile);
-	std::string geometryCode = get_file_contents(geometryFile);
+	vertPath = vertexFile;
+	fragPath = fragmentFile;
+	geomPath = geometryFile;
+
+	std::string vertexCode = get_file_contents(vertPath.c_str());
+	std::string fragmentCode = get_file_contents(fragPath.c_str());
+	std::string geometryCode = get_file_contents(geomPath.c_str());
 
 	const char* vertexSource = vertexCode.c_str();
 	const char* fragmentSource = fragmentCode.c_str();
@@ -103,100 +242,17 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 	glCompileShader(geometryShader);
 	compileErrors(geometryShader, "GEOMETRY");
 
-	ID = glCreateProgram();
-	glAttachShader(ID, vertexShader);
-	glAttachShader(ID, fragmentShader);
-	glAttachShader(ID, geometryShader);
-	glLinkProgram(ID);
+	GLuint id = glCreateProgram();
+	glAttachShader(id, vertexShader);
+	glAttachShader(id, fragmentShader);
+	glAttachShader(id, geometryShader);
+	glLinkProgram(id);
 
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	glDeleteShader(geometryShader);
-}
 
-Shader::Shader(Shader&& other) noexcept : ID(std::exchange(other.ID, 0)), type(std::move(other.type)), cache(std::move(other.cache)) {}
-
-Shader& Shader::operator=(Shader&& other) noexcept {
-	if (this != &other) {
-		ID = std::exchange(other.ID, 0);
-		type = std::move(other.type);
-		cache = std::move(other.cache);
-	}
-	return *this;
-}
-
-
-Shader::~Shader()
-{
-	glDeleteProgram(ID);
-}
-
-// Activates the Shader Program
-void Shader::Activate()
-{
-	glUseProgram(ID);
-}
-
-// Deletes the Shader Program
-void Shader::Delete()
-{
-	glDeleteProgram(ID);
-}
-
-
-// Reads a text file and outputs a string with everything in the text file
-std::string get_file_contents(const char* filepath)
-{
-	std::ifstream file(filepath);
-	if (!file.is_open()) {
-		std::cerr << "Error opening file: " << filepath << std::endl;
-		return "";
-	}
-
-	//typedef std::istreambuf_iterator<char> charStreamIterator;
-	using charStreamIterator = std::istreambuf_iterator<char>;
-	std::string content((charStreamIterator(file)), (charStreamIterator()));
-
-	file.close();
-	return content;
-}
-
-// Checks if the different Shaders have compiled properly
-void Shader::compileErrors(unsigned int shader, const char* type)
-{
-	// Stores status of compilation
-	GLint hasCompiled;
-	// Character array to store error message in
-	char infoLog[1024];
-	if (type != "PROGRAM")
-	{
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &hasCompiled);
-		if (hasCompiled == GL_FALSE)
-		{
-			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "SHADER_COMPILATION_ERROR for:" << type << "\n" << infoLog << std::endl;
-		}
-	}
-	else
-	{
-		glGetProgramiv(shader, GL_LINK_STATUS, &hasCompiled);
-		if (hasCompiled == GL_FALSE)
-		{
-			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
-			std::cout << "SHADER_LINKING_ERROR for:" << type << "\n" << infoLog << std::endl;
-		}
-	}
-}
-
-
-GLuint Shader::getUniformLocation(const std::string& name) const
-{
-	if (cache.find(name) != cache.end())
-		return cache[name];
-	GLuint location = glGetUniformLocation(ID, name.c_str());
-	cache[name] = location;
-	return location;
-
+	return id;
 }
 
 void Shader::setBool(const std::string& name, bool value)
