@@ -2,7 +2,7 @@
 
 #include "../../SceneRenderer.h"
 
-class SSAO_Demo
+class SSR_demo
 {
 public:
 	static int show_demo();

@@ -96,6 +96,7 @@ std::string OpenGLController::addComponent(const char* path)
 		}
 	}
 	catch (const std::runtime_error& e) {
+		std::cerr << "error loading model " << e.what();
 		return "";
 	}
 }

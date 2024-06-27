@@ -11,13 +11,14 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 uniform bool invertedNormals = false;
+uniform bool invertedTexCoords = false;
 
 void main()
 {
     vec4 worldPos = model * vec4(aPos, 1.0);
     fragPos = worldPos.xyz; 
     uv = aTexCoords;
-    uv.y *= -1; // TODO: only use this to flip texture horizontally
+    invertedTexCoords ? uv.y *= -1 : uv.y; // TODO: only use this to flip texture horizontally
     
     mat3 normalMatrix = transpose(inverse(mat3(model)));
     normal = normalMatrix * (invertedNormals ? -aNormal : aNormal);

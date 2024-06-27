@@ -32,7 +32,8 @@ void main()
     
     // then calculate lighting as usual
     vec3 ambient = vec3(0.3f * Diffuse * SSAO);    
-    vec3 lighting  = ambient;//Diffuse * 0.1; // hard-coded ambient component
+    vec3 lighting = ambient;
+    lighting = Diffuse * 0.1; // hard-coded ambient component
     vec3 viewDir  = normalize(viewPos - FragPos);
     for(int i = 0; i < NR_LIGHTS; ++i)
     {

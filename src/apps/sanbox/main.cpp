@@ -5,6 +5,7 @@
 #include "../area-light/area_light_demo.h"
 #include "../SSAO-demo/SSAO_demo.h"
 #include "../volumetric-light/volumetricLightDemo.h"
+#include "../SSR-demo/SSR_demo.h"
 
 int main()
 {
@@ -17,7 +18,8 @@ int main()
 		//AreaLightDemo::run();
 		//DeferredRender::run();
 		//VolumetricLightDemo::run();
-		SSAO_Demo::run();
+		//SSAO_Demo::run();
+		SSR_demo::run();
 		SceneRenderer::end();
 	}
 	catch (const std::runtime_error& e) {

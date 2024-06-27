@@ -183,9 +183,7 @@ void main() {
     float NdotR = max(0.0, dot(normal, halfwayDir));
     vec3 specular = pow(NdotR, 32) * texture(specularMap, uv).rgb;
 
-	// vec3 L = normalize(-lightDir);
 	vec3 L = lightDir;
-	// vec3 V = updatedPos - camPos;
 	vec3 V = updatedPos - camPos;
 	const float NUM_STEPS = float(NUM_STEPS_INT);
 	float stepSize = length(V) / NUM_STEPS;

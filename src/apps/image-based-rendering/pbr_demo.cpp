@@ -73,7 +73,7 @@ int DemoPBR::show_demo() {
     std::vector<Texture> aoMaps = { ao0, albedo1, ao2, ao3, ao4, ao5, ao6 };
 
     unsigned int hdrTexture;
-    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/dikhololo_night_1k.hdr", hdrTexture);
+    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
     std::cout << texRes << std::endl;
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
@@ -85,7 +85,7 @@ int DemoPBR::show_demo() {
 
     Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
     Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    Model backpackModel("Models/sponza/sponza.obj");
+    Model backpackModel("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);
@@ -381,6 +381,8 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("hasAnimation", false);
         pbrShader.setBool("hasEmission", false);
         model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 3.0f, 3.0f));
+        model = glm::scale(model, glm::vec3(20.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0, 0.0, 0.0));
         pbrShader.setMat4("matrix", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         backpackModel.Draw(pbrShader);

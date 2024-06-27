@@ -10,19 +10,16 @@ uniform sampler2D texNoise;
 uniform vec3 samples[64];
 uniform vec2 noiseScale;
 
-// parameters (you'd probably want to use them as uniforms to more easily tweak the effect)
 int kernelSize = 64;
 float radius = 0.5;
 float bias = 0.15;
 
-// tile noise texture over screen based on screen dimensions divided by noise size
 uniform mat4 projection;
 uniform mat4 view;
 
 void main()
 {
     // get input for SSAO algorithm
-    // vec3 fragPos = (view * vec4(texture(gPosition, uv).xyz, 1.0)).xyz;
     vec3 fragPos = (view * vec4((texture(gPosition, uv)).xyz, 1.0)).xyz; // convert to view space;
     vec3 normal = normalize(texture(gNormal, uv).rgb);
     vec3 randomVec = normalize(texture(texNoise, uv * noiseScale).xyz);
@@ -39,13 +36,12 @@ void main()
         samplePos = fragPos + samplePos * radius; 
         
         // project sample position (to sample texture) (to get position on screen/texture)
-        vec4 offset = vec4(samplePos, 1.0);
-        offset = projection * offset; // from view to clip-space
+        vec4 offset = projection * vec4(samplePos, 1.0); // from view to clip-space
         offset.xyz /= offset.w; // perspective divide
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
-        // convert to view space position
-        vec4 gPosView = view * vec4((texture(gPosition, offset.xy)).xyz, 1.0f); 
+        // gPosition is calculated in world space so convert it to view space
+        vec4 gPosView = view * vec4(texture(gPosition, offset.xy).xyz, 1.0f); 
         float sampleDepth = gPosView.z;
         
         // range check & accumulate

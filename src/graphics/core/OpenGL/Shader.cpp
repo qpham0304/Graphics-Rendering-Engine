@@ -99,6 +99,7 @@ std::string Shader::get_file_contents(const char* filepath)
 // Checks if the different Shaders have compiled properly
 void Shader::compileErrors(unsigned int shader, const char* type)
 {
+//#ifdef DEBUG
 	// Stores status of compilation
 	GLint hasCompiled;
 	// Character array to store error message in
@@ -125,6 +126,9 @@ void Shader::compileErrors(unsigned int shader, const char* type)
 			//std::cout << "SHADER_LINKING_ERROR for:" << type << "\n" << infoLog << std::endl;
 		}
 	}
+//#else
+//	std::cout << "Ignore shader compile error message\n";
+//#endif
 }
 
 void Shader::reloadShader()

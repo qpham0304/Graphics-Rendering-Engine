@@ -55,8 +55,11 @@ void DeferredRenderer::renderGeometry(Camera& camera, std::vector<Component*>& c
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
     glm::mat4 view = camera.getViewMatrix();
-    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2));
     geometryShader->Activate();
+    //geometryShader->setInt("albedoMap", 0);
+    //geometryShader->setInt("metallicMap", 1);
+    geometryShader->setFloat("reflectiveMap", 0.0f);
     geometryShader->setMat4("projection", projection);
     geometryShader->setMat4("view", view);
     for (unsigned int i = 0; i < components.size(); i++) {
@@ -66,7 +69,7 @@ void DeferredRenderer::renderGeometry(Camera& camera, std::vector<Component*>& c
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void DeferredRenderer::renderGeometry(Camera& camera, Component& components)
+void DeferredRenderer::renderGeometry(Camera& camera, Component& component)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -87,18 +90,16 @@ void DeferredRenderer::renderGeometry(Camera& camera, Component& components)
     objectPositions.push_back(glm::vec3(0.0, -0.5, 3.0));
     objectPositions.push_back(glm::vec3(3.0, -0.5, 3.0));
     for (unsigned int i = 0; i < objectPositions.size(); i++) {
-        components.translate(objectPositions[i]);
-        components.scale(glm::vec3(0.5f));
-        geometryShader->setMat4("model", components.getModelMatrix());
-        components.model_ptr->Draw(*geometryShader);
+        component.translate(objectPositions[i]);
+        component.scale(glm::vec3(0.5f));
+        geometryShader->setMat4("model", component.getModelMatrix());
+        component.model_ptr->Draw(*geometryShader);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void DeferredRenderer::renderColor(Camera& camera, std::vector<Light>& lights)
 {
-    float intensity = 1.0f;
     colorShader->Activate();
     colorShader->setInt("gPosition", 0);
     colorShader->setInt("gNormal", 1);
@@ -127,7 +128,6 @@ void DeferredRenderer::renderColor(Camera& camera, std::vector<Light>& lights)
         colorShader->setFloat("lights[" + std::to_string(i) + "].Radius", radius);
     }
     colorShader->setVec3("viewPos", camera.getPosition());
-    colorShader->setFloat("intensity", intensity);
     Utils::Draw::drawQuad();
 }
 
