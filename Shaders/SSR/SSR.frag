@@ -1,4 +1,8 @@
 #version 460 core
+struct RayTraceOutput {
+    bool Hit;
+    vec2 UV;
+};
 
 uniform sampler2D gPosition;
 uniform sampler2D gNormal;      //scene normal
@@ -97,12 +101,28 @@ void main() {
         vec2 ndc = clipSpace.xy/clipSpace.w;
         ndc *= 0.5 + 0.5;
         
-        vec3 worldSpacePositon = texture(gPosition, uv).xyz;
-        vec3 viewSpacePosition = vec3(view * vec4(worldSpacePositon, 1.0));
-        vec3 viewSpaceNormal = normalize(mat3(view) * worldSpaceNormal.xyz);
-        vec3 viewDir = -normalize(worldSpacePositon - camPos);   // try reverse 
-        vec3 reflection = normalize(reflect(normalize(worldSpacePositon), normalize(worldSpaceNormal.xyz)));
+        vec4 worldSpacePosition = texture(gPosition, uv);
+        vec3 viewSpacePosition = vec3(view * vec4(worldSpacePosition.xyz, 1.0));
+        // vec3 viewSpaceNormal = normalize(mat3(view) * worldSpaceNormal.xyz);
+        vec3 viewDir = normalize(worldSpacePosition.xyz - camPos);   // try reverse 
+        // vec3 reflection = normalize(reflect(normalize(worldSpacePosition), normalize(worldSpaceNormal.xyz)));
+        vec3 reflNormal = vec3(2.0f * worldSpaceNormal - 1.0f);
         vec3 reflectedDir = normalize(reflect(viewDir, normalize(viewSpaceNormal.xyz)));
+        vec3 curPos = vec3(0.0f);
+        vec3 curUV = vec3(0.0f);
+        float curLength = 1.0;
+
+        const int num_steps = 30;
+        const float stepSize = 0.1f;
+        const float maxDistance = 20.0f;
+        for(int i = 0; i < num_steps; i++) {
+            if(true) {
+                curPos = worldSpacePosition.xyz + reflectedDir * curLength;
+                curUV = worldSpacePosition.xyz / worldSpacePosition.w;  //position is a vec3 so have to use texture
+                curUV = curUV * 0.5 + 0.5;
+            }
+        }
+
 
         FragColor = vec4(reflectedDir, 1.0);
     }

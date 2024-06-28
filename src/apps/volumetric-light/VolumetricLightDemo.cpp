@@ -150,7 +150,7 @@ int VolumetricLightDemo::show_demo() {
         //Utils::Draw::drawQuad();
         sponza.Draw(pbrShader);
 
-        //skybox.render(camera);
+        skybox.render(camera);
         applicationFBO.Unbind();
 
         if (guiOn) {
