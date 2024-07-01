@@ -27,6 +27,7 @@ int SSR_demo::show_demo()
     DeferredRenderer deferredRenderer(width, height);
 
     Texture cubeTex("Textures/squish.png", "albedoMap");
+    Texture defaultAO("Textures/default/roughness-2.png", "aoMap");
     FrameBuffer applicationFBO(width, height);
     FrameBuffer colorSceneFBO(width, height);
 
@@ -91,6 +92,10 @@ int SSR_demo::show_demo()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+        deferredRenderer.geometryShader.reset(new Shader("Shaders/deferredShading/gBuffer.vert", "Shaders/deferredShading/gBuffer.frag"));
+        deferredRenderer.colorShader.reset(new Shader("Shaders/deferredShading/deferredShading.vert", "Shaders/deferredShading/deferredShading.frag"));
+
+
         deferredRenderer.geometryShader->Activate();
         deferredRenderer.geometryShader->setBool("invertedTexCoords", true);
         deferredRenderer.renderGeometry(camera, components);
@@ -101,8 +106,7 @@ int SSR_demo::show_demo()
         glm::mat4 planeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
         planeModel *= glm::scale(glm::mat4(1.0f), glm::vec3(30.0f));
         //glm::mat4 planeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -12.0f, 0.0f));
-        //planeModel *= glm::scale(glm::mat4(1.0f), glm::vec3(10.0f));
-        planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0, 0.0, 0.0));
+        //planeModel = glm::rotate(planeModel, glm::radians(90.0f), glm::vec3(1.0, 0.0, 0.0));
         glBindFramebuffer(GL_FRAMEBUFFER, deferredRenderer.getGBuffer());
         deferredRenderer.geometryShader->Activate();
         deferredRenderer.geometryShader->setMat4("projection", projection);
@@ -116,7 +120,7 @@ int SSR_demo::show_demo()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, cubeTex.ID);
         //Utils::Draw::drawCube(cubeVAO, cubeVBO);
-        Utils::Draw::drawQuad();
+        Utils::Draw::drawQuadNormals();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         applicationFBO.Bind();
@@ -125,6 +129,9 @@ int SSR_demo::show_demo()
 
         deferredRenderer.colorShader->Activate();
         deferredRenderer.colorShader->setFloat("intensity", 5.0f);
+        deferredRenderer.colorShader->setInt("ssaoTex", 3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, defaultAO.ID);
         deferredRenderer.renderColor(camera, lights);
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, deferredRenderer.getGBuffer());
@@ -169,6 +176,7 @@ int SSR_demo::show_demo()
         SSRShader.setInt("height", height);
         SSRShader.setMat4("mvp", projection * view);
         SSRShader.setMat4("matrix", planeModel);
+        SSRShader.setVec2("gTexSizeInv", glm::vec2(1.0/width, 1.0/height));
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, deferredRenderer.getGPosition());
         glActiveTexture(GL_TEXTURE1);
@@ -201,7 +209,7 @@ int SSR_demo::show_demo()
                 int wWidth = static_cast<int>(ImGui::GetWindowWidth());
                 int wHeight = static_cast<int>(ImGui::GetWindowHeight());
                 camera.updateViewResize(wWidth, wHeight);
-                ImGui::Image((ImTextureID)colorSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
                     camera.processInput(SceneRenderer::window);
                 ImGui::EndChild();

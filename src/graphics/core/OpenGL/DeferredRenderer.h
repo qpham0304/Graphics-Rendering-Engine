@@ -13,6 +13,7 @@ private:
 	unsigned int gNormal;
 	unsigned int gColorSpec;
 	unsigned int gAlbedoSpec;
+	unsigned int rboDepth;
 	int width;
 	int height;
 

@@ -31,6 +31,7 @@ namespace Utils::filereader {
 
 namespace Utils::Draw {
     void drawQuad();
+    void drawQuadNormals();
     void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
     void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
 }

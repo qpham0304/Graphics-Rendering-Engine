@@ -199,7 +199,6 @@ int SSAO_Demo::show_demo()
         deferredRenderer.colorShader->Activate();
         deferredRenderer.colorShader->setInt("ssaoTex", 3);
         glActiveTexture(GL_TEXTURE3);
-        //glBindTexture(GL_TEXTURE_2D, ssaoBlurTexture);
         glBindTexture(GL_TEXTURE_2D, ssaoBlurTexture);
         deferredRenderer.renderColor(camera, lights);
 

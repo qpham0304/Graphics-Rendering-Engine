@@ -11,8 +11,7 @@ uniform sampler2D albedoMap;
 uniform sampler2D metallicMap;
 uniform float reflectiveMap = 0.0f; // 0.0 for non reflective and 1.0 for reflective
 
-void main()
-{    
+void main() {
     // store the fragment position vector in the first gbuffer texture
     gPosition = fragPos;
     // also store the per-fragment normals into the gbuffer
