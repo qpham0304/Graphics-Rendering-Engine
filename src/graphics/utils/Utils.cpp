@@ -141,7 +141,7 @@ namespace Utils::Draw {
 		if (quadVAO == 0)
 		{
 			float quadVertices[] = {
-				// positions        // texture Coords
+				 //positions		// normals	// texture Coords
 				-1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 				-1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
 				 1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,

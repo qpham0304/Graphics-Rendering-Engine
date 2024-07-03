@@ -100,7 +100,7 @@ int SSR_demo::show_demo()
         deferredRenderer.geometryShader->setBool("invertedTexCoords", true);
         deferredRenderer.renderGeometry(camera, components);
 
-
+        deferredRenderer.geometryShader->setBool("invertedTexCoords", false);
         glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 planeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
@@ -130,6 +130,7 @@ int SSR_demo::show_demo()
         deferredRenderer.colorShader->Activate();
         deferredRenderer.colorShader->setFloat("intensity", 5.0f);
         deferredRenderer.colorShader->setInt("ssaoTex", 3);
+        deferredRenderer.colorShader->setMat4("view", view);
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, defaultAO.ID);
         deferredRenderer.renderColor(camera, lights);
@@ -209,7 +210,7 @@ int SSR_demo::show_demo()
                 int wWidth = static_cast<int>(ImGui::GetWindowWidth());
                 int wHeight = static_cast<int>(ImGui::GetWindowHeight());
                 camera.updateViewResize(wWidth, wHeight);
-                ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)colorSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
                     camera.processInput(SceneRenderer::window);
                 ImGui::EndChild();

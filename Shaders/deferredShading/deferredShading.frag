@@ -20,6 +20,7 @@ const int NR_LIGHTS = 200;
 uniform Light lights[NR_LIGHTS];
 uniform vec3 viewPos;
 uniform float intensity;
+uniform mat4 view;
 
 void main()
 {             
@@ -29,12 +30,20 @@ void main()
     vec3 Diffuse = texture(gAlbedoSpec, TexCoords).rgb;
     float Specular = texture(gAlbedoSpec, TexCoords).a;
     float SSAO = texture(ssaoTex, TexCoords).r;
-    
+
+    vec4 worldSpaceNormal = texture(gNormal, TexCoords);
+    vec3 viewSpaceNormal = normalize(mat3(view) * worldSpaceNormal.xyz);
+    float Metallic = normalize(worldSpaceNormal.a); //reflection mask in alpha channel
+    vec4 worldSpacePosition = texture(gPosition, TexCoords);
+    vec3 viewSpacePosition = vec3(view * vec4(texture(gPosition, TexCoords).xyz, 1.0));
+    FragPos = viewSpacePosition;
+    Normal = viewSpaceNormal;
+
     // then calculate lighting as usual
     vec3 ambient = vec3(0.3f * Diffuse * SSAO);    
     vec3 lighting = ambient;
     // vec3 lighting = Diffuse * 0.1; // TODO: overwrite for SSR demo for now, remove when done
-    vec3 viewDir  = normalize(viewPos - FragPos);
+    vec3 viewDir  = normalize(FragPos);
     for(int i = 0; i < NR_LIGHTS; ++i)
     {
         // calculate distance between light source and current fragment

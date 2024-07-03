@@ -7,11 +7,8 @@ uniform mat4 mvp;
 uniform mat4 matrix;
 
 out vec2 uv;
-out vec4 clipSpace;
 
 void main() {
     uv = aTexCoords;
-    vec4 worldPos = matrix * vec4(aPos, 1.0);
-    clipSpace = mvp * worldPos;
     gl_Position = vec4(aPos, 1.0);
 }
