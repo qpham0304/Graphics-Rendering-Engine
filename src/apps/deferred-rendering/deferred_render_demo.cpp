@@ -105,7 +105,7 @@ int DeferredRender::show_demo() {
             model = glm::scale(model, glm::vec3(0.125f));
             lightShader.setMat4("matrix", model);
             lightShader.setVec3("lightColor", lights[i].color);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
         
         skybox.render(camera);
@@ -262,7 +262,7 @@ int bloomTest() {
             model = glm::scale(model, glm::vec3(0.125f));
             lightShader.setMat4("matrix", model);
             lightShader.setVec3("lightColor", lightColors[i]);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
 
         //skybox.render(camera);
@@ -282,7 +282,7 @@ int bloomTest() {
         float exposure = 1.0f;
         bloomShader.setInt("bloomOn", true);
         bloomShader.setFloat("exposure", exposure);
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         if(guiOn)
             applicationFBO.Unbind();
 

@@ -65,7 +65,7 @@ void BloomRenderer::RenderDownsamples(unsigned int srcTexture)
 			GL_TEXTURE_2D, mip.texture, 0);
 
 		// Render screen-filled quad of resolution of current mip
-		Utils::Draw::drawQuad();
+		Utils::OpenGL::Draw::drawQuad();
 
 		// Set current mip resolution as srcResolution for next iteration
 		mDownsampleShader->setVec2("srcResolution", mip.size);
@@ -105,7 +105,7 @@ void BloomRenderer::RenderUpsamples(float filterRadius)
 			GL_TEXTURE_2D, nextMip.texture, 0);
 
 		// Render screen-filled quad of resolution of current mip
-		Utils::Draw::drawQuad();
+		Utils::OpenGL::Draw::drawQuad();
 	}
 	glDisable(GL_BLEND);
 

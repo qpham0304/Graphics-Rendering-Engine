@@ -163,7 +163,7 @@ int SSAO_Demo::show_demo()
         deferredRenderer.geometryShader->setMat4("model", cubeModel);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, cubeTex.ID);
-        Utils::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         
         //ssao pass
@@ -181,7 +181,7 @@ int SSAO_Demo::show_demo()
         glBindTexture(GL_TEXTURE_2D, deferredRenderer.getGNormal());
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
@@ -189,7 +189,7 @@ int SSAO_Demo::show_demo()
         blurShader.Activate();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, ssaoTexture);
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         applicationFBO.Bind();
@@ -215,7 +215,7 @@ int SSAO_Demo::show_demo()
             model = glm::scale(model, glm::vec3(0.125f));
             lightShader.setMat4("matrix", model);
             lightShader.setVec3("lightColor", lights[i].color);
-            Utils::Draw::drawSphere(sphereVAO, sphereVBO);
+            Utils::OpenGL::Draw::drawSphere(sphereVAO, sphereVBO);
         }
 
         applicationFBO.Unbind();

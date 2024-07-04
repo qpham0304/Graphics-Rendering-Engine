@@ -119,8 +119,8 @@ int SSR_demo::show_demo()
         glBindTexture(GL_TEXTURE_2D, cubeTex.ID);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, cubeTex.ID);
-        //Utils::Draw::drawCube(cubeVAO, cubeVBO);
-        Utils::Draw::drawQuadNormals();
+        //Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawQuadNormals();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         applicationFBO.Bind();
@@ -148,7 +148,7 @@ int SSR_demo::show_demo()
             model = glm::scale(model, glm::vec3(0.125f));
             lightShader.setMat4("matrix", model);
             lightShader.setVec3("lightColor", lights[i].color);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
         //skybox.render(camera);
         applicationFBO.Unbind();
@@ -188,7 +188,7 @@ int SSR_demo::show_demo()
         glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
         glActiveTexture(GL_TEXTURE4);
         glBindTexture(GL_TEXTURE_2D, colorSceneFBO.texture);
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         colorSceneFBO.Unbind();
 
         if (guiOn) {

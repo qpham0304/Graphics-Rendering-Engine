@@ -73,7 +73,7 @@ int DemoPBR::show_demo() {
     std::vector<Texture> aoMaps = { ao0, albedo1, ao2, ao3, ao4, ao5, ao6 };
 
     unsigned int hdrTexture;
-    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
+    std::string texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
     std::cout << texRes << std::endl;
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
@@ -153,7 +153,7 @@ int DemoPBR::show_demo() {
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemapTexture, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Utils::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //------------------------------------------------------------//
@@ -194,7 +194,7 @@ int DemoPBR::show_demo() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Utils::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //------------------------------------------------------------//
@@ -241,7 +241,7 @@ int DemoPBR::show_demo() {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -270,7 +270,7 @@ int DemoPBR::show_demo() {
     glViewport(0, 0, 512, 512);
     brdfShader.Activate();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Utils::Draw::drawQuad();
+    Utils::OpenGL::Draw::drawQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //-----------------------------------------------------------//
@@ -366,7 +366,7 @@ int DemoPBR::show_demo() {
                 pbrShader.setBool("hasAnimation", false);
                 pbrShader.setBool("hasEmission", false);
                 pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-                Utils::Draw::drawSphere(sphereVAO, indexCount);
+                Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
             }
         }
         
@@ -399,7 +399,7 @@ int DemoPBR::show_demo() {
             model = glm::scale(model, glm::vec3(0.5f));
             pbrShader.setMat4("matrix", model);
             pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-            Utils::Draw::drawSphere(sphereVAO, indexCount);
+            Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
         }
 
 
@@ -409,7 +409,7 @@ int DemoPBR::show_demo() {
         backgroundShader.setMat4("view", camera.getViewMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-        Utils::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
 
         glfwPollEvents();
         glfwSwapBuffers(SceneRenderer::window);

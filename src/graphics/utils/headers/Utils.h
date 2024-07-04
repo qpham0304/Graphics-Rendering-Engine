@@ -23,17 +23,21 @@ namespace Utils::uuid {
 
 }
 
-namespace Utils::filereader {
+namespace Utils::OpenGL {
+    namespace Draw {
+        void drawQuad();
+        void drawQuadNormals();
+        void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
+        void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
+    };
+
     std::string loadHDRTexture(const char* path, unsigned int& texture);
     unsigned int loadTexture(char const* path);
     unsigned int loadMTexture(const float* ltc);
-}
 
-namespace Utils::Draw {
-    void drawQuad();
-    void drawQuadNormals();
-    void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
-    void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
+    namespace GLFW {
+
+    };
 }
 
 namespace Utils::Window {

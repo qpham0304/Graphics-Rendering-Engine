@@ -394,7 +394,7 @@ int SceneRenderer::renderScene()
 				glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, framebuffer.texture);
-				Utils::Draw::drawQuad();
+				Utils::OpenGL::Draw::drawQuad();
 				postRenderFrame.Unbind();
 				ImGui::Image((ImTextureID)postRenderFrame.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 			}

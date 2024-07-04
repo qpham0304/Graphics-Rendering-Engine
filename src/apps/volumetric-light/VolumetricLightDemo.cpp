@@ -115,7 +115,7 @@ int VolumetricLightDemo::show_demo() {
         model = glm::scale(model, glm::vec3(0.125f));
         lightShader.setMat4("matrix", model);
         lightShader.setVec3("lightColor", glm::vec3(light.color));
-        Utils::Draw::drawSphere(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawSphere(cubeVAO, cubeVBO);
         
         Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
         //pbrShader.reloadShader();
@@ -147,7 +147,7 @@ int VolumetricLightDemo::show_demo() {
 
         model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
         pbrShader.setMat4("matrix", model);
-        //Utils::Draw::drawQuad();
+        //Utils::OpenGL::Draw::drawQuad();
         sponza.Draw(pbrShader);
 
         skybox.render(camera);
@@ -188,7 +188,7 @@ int VolumetricLightDemo::show_demo() {
             postProcessShader.Activate();
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
-            Utils::Draw::drawQuad();
+            Utils::OpenGL::Draw::drawQuad();
         }
 
         glfwPollEvents();

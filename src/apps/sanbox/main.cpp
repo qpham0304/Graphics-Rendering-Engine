@@ -7,6 +7,7 @@
 #include "../volumetric-light/volumetricLightDemo.h"
 #include "../SSR-demo/SSR_demo.h"
 #include "../SSR-view-demo/SSR_view_demo.h"
+#include "../deferred-IBL-demo/deferredIBL_demo.h"
 
 int main()
 {
@@ -16,12 +17,13 @@ int main()
 		//glfwSwapInterval(0);
 		//SceneRenderer::renderScene();
         //DemoPBR::run();
-		//AreaLightDemo::run();
+		AreaLightDemo::run();
 		//DeferredRender::run();
 		//VolumetricLightDemo::run();
 		//SSAO_Demo::run();
-		SSR_demo::run();
+		//SSR_demo::run();
 		//SSR_view_demo::run();
+		//deferredIBL_demo::run();
 		SceneRenderer::end();
 	}
 	catch (const std::runtime_error& e) {

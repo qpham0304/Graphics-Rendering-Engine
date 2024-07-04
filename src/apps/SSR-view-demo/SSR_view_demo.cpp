@@ -126,7 +126,7 @@ int SSR_view_demo::show_demo()
         geometryShader.setMat4("model", model);
         geometryShader.setMat4("modelViewNormal", glm::transpose(glm::inverse(camera.getViewMatrix() * model)));
         geometryShader.setMat4("mvp", camera.getMVP() * model);
-        Utils::Draw::drawQuadNormals();
+        Utils::OpenGL::Draw::drawQuadNormals();
 
 
         for (unsigned int i = 0; i < components.size(); i++) {
@@ -182,7 +182,7 @@ int SSR_view_demo::show_demo()
             float radius = (-linear + std::sqrt(linear * linear - 4 * quadratic * (constant - (256.0f / 5.0f) * maxBrightness))) / (2.0f * quadratic);
             colorShader.setFloat("lights[" + std::to_string(i) + "].Radius", radius);
         }
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
 
         glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, colorPassFBO.FBO); // write to application framebuffer
@@ -197,7 +197,7 @@ int SSR_view_demo::show_demo()
             model = glm::scale(model, glm::vec3(0.125f));
             lightShader.setMat4("matrix", model);
             lightShader.setVec3("lightColor", lights[i].color);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
         //skybox.render(camera);
         colorPassFBO.Unbind();
@@ -233,7 +233,7 @@ int SSR_view_demo::show_demo()
         SSRShader.setInt("height", height);
         //SSRShader.setVec2("gTexSizeInv", glm::vec2(1.0 / width, 1.0 / height));
 
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
 
         ssrSceneFBO.Unbind();
 
@@ -277,12 +277,5 @@ int SSR_view_demo::show_demo()
 
 int SSR_view_demo::run()
 {
-    try {
-        show_demo();
-        return 0;
-    }
-    catch (const std::runtime_error& e) {
-        std::cerr << "Exception: " << e.what() << std::endl;
-        return -1;
-    }
+    return show_demo();
 }

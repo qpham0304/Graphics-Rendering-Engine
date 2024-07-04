@@ -69,8 +69,8 @@ int AreaLightDemo::show_demo()
         0.0f, 0.0f, 0.0f, 1.0f
     );
     
-    GLuint mat1 = Utils::filereader::loadMTexture(LTC1);
-    GLuint mat2 = Utils::filereader::loadMTexture(LTC2);
+    GLuint mat1 = Utils::OpenGL::loadMTexture(LTC1);
+    GLuint mat2 = Utils::OpenGL::loadMTexture(LTC2);
 
     Shader lightShader("Shaders/areaLight.vert", "Shaders/areaLight.frag");
     Shader planeShader("Shaders/light.vert", "Shaders/light.frag");
@@ -294,7 +294,7 @@ int AreaLightDemo::show_demo()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
 
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         postProcessFBO.Unbind();
 
         ImGui::Begin("Application window");

@@ -19,18 +19,20 @@ out vec4 FragColor;
 
 const float step = 0.1;
 const float minRayStep = 0.1;   // stepsize
-const float maxSteps = 30;      // num steps
+const float maxSteps = 100;      // num steps
 const int numBinarySearchSteps = 10;
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0);
-vec3 hash(vec3 a);
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
 
-// vec3 getViewSpacePosition(float z) {
-//     vec2 posCanonical  = uv * 2 - 1.0; //position in Canonical View Volume
-// 	vec4 posView = invProjection * vec4(posCanonical, z , 1.0);
-// 	posView /= posView.w;
-// 	return posView.xyz;
-// }
+vec3 hash(vec3 a) {
+    vec3 Scale =  vec3(.8, .8, .8);
+    float K = 19.19;
+    a = fract(a * Scale);
+    a += dot(a, a.yxz + K);
+    return fract((a.xxy + a.yxx)*a.zyx);
+}
 
 vec3 generatePositionFromDepth(vec2 texturePos, float depth) {
 	vec4 ndc = vec4((texturePos - 0.5) * 2, depth, 1.f);
@@ -90,36 +92,6 @@ vec3 BinarySearch(inout vec3 dir, inout vec3 hitCoord, inout float dDepth) {
  
     return vec3(projectedCoord.xy, depth);
 }
-
-/*
-vec2 search(inout vec3 dir, inout vec3 hitCoord, inout float dDepth) {
-    float depth;
-
-    vec4 projectedCoord;
-    for(int i = 0; i < numBinarySearchSteps; i++) {
-        projectedCoord = projection * vec4(hitCoord, 1.0);
-        projectedCoord.xy /= projectedCoord.w;
-        projectedCoord.xy = projectedCoord.xy * 0.5 + 0.5;
-
-        float depth = texture(depthMap, projectedCoord.xy).r * 2 - 1;
-        vec3 viewSpacePosition = getCurrentViewPos(depth, projectedCoord.xy);
-        depth = viewSpacePosition.z;
-        dDepth = hitCoord.z - depth;
-
-        dir *= 0.5;
-        if(dDepth > 0.0)
-            hitCoord += dir;
-        else
-            hitCoord -= dir;    
-    }
-
-    projectedCoord = projection * vec4(hitCoord, 1.0);
-    projectedCoord.xy /= projectedCoord.w;
-    projectedCoord.xy = projectedCoord.xy * 0.5 + 0.5;
-
-    return vec2(projectedCoord.xy);
-}
-*/
 
 vec2 rayCast(vec3 dir, inout vec3 hitCoord, out float dDepth) {
     dir *= step;
@@ -216,7 +188,6 @@ vec3 SSR(vec3 position, vec3 reflection) {
     }
     if(isBinarySearchEnabled){
 		for(int i = 0; i < maxSteps; i++){
-			
 			step *= 0.5;
 			marchingPosition = marchingPosition - step * sign(delta);
 			
@@ -227,7 +198,7 @@ vec3 SSR(vec3 position, vec3 reflection) {
 			if (abs(delta) < distanceBias) {
                 vec3 color = vec3(1);
                 if(debugDraw)
-                    color = vec3( 0.5+ sign(delta)/2,0.3,0.5- sign(delta)/2);
+                    color = vec3(0.5 + sign(delta)/2,0.3,0.5 - sign(delta)/2);
 				return texture(colorBuffer, screenPosition).xyz * color;
 			}
 		}
@@ -240,6 +211,7 @@ float random (vec2 uv) {
 	return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123); //simple random function
 }
 
+/*
 void main() {
     vec4 viewSpaceNormal = texture(gNormal, uv);
     // vec4 worldSpaceNormal = invView * viewSpaceNormal;
@@ -327,14 +299,78 @@ void main() {
     // FragColor = vec4(SSR, 1.0);
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+*/
+
+bool rayIsOutofScreen(vec2 ray){
+	return (ray.x > 1 || ray.y > 1 || ray.x < 0 || ray.y < 0) ? true : false;
 }
 
-vec3 hash(vec3 a) {
-    vec3 Scale =  vec3(.8, .8, .8);
-    float K = 19.19;
-    a = fract(a * Scale);
-    a += dot(a, a.yxz + K);
-    return fract((a.xxy + a.yxx)*a.zyx);
+vec3 TraceRay(vec3 rayPos, vec3 dir, int iterationCount){
+	float sampleDepth;
+	vec3 hitColor = vec3(0);
+	bool hit = false;
+
+	for(int i = 0; i < iterationCount; i++){
+		rayPos += dir;
+		if(rayIsOutofScreen(rayPos.xy)){
+			break;
+		}
+
+		sampleDepth = texture(depthMap, rayPos.xy).r;
+		float depthDif = rayPos.z - sampleDepth;
+        //TODO: figure out how to perform binary search when we miss or to avoid holes
+		if(depthDif >= 0 && depthDif < 0.00001){ //we have a hit
+			hit = true;
+			hitColor = texture(colorBuffer, rayPos.xy).rgb;
+			break;
+		}
+	}
+	return hitColor;
+}
+
+void main() {
+	float maxRayDistance = 100.0f;
+
+    vec4 viewSpaceNormal = texture(gNormal, uv);
+    float depth = texture(depthMap, uv).r * 2 - 1;
+	vec3 viewSpacePosition = getCurrentViewPos(depth, uv);
+
+    float Metallic = normalize(viewSpaceNormal.a); //reflection mask in alpha channel
+    if(Metallic == 0.0) {
+        FragColor = texture(colorBuffer, uv);
+        return;
+    }
+
+    vec4 gSpec = texture(gSpecular, uv);
+    if(gSpec.a > 0.0) {
+        discard;
+    }
+
+	vec3 viewspaceNormal = texture(gNormal, uv).rgb;	
+	float pixelDepth = texture(depthMap, uv).r;	// 0< <1
+    	
+	vec4 positionView = vec4(viewSpacePosition, 1.0);;
+	positionView /= positionView.w;
+	vec3 reflectedDir = normalize(reflect(positionView.xyz, viewspaceNormal));
+	if(reflectedDir.z > 0){
+		FragColor = vec4(0,0,0,1);
+		return;
+	}
+	vec3 rayEndPositionView = positionView.xyz + reflectedDir * maxRayDistance;
+
+	//Texture Space ray calculation
+	vec4 rayEndPositionTexture = projection * vec4(rayEndPositionView,1);
+	rayEndPositionTexture /= rayEndPositionTexture.w;
+	rayEndPositionTexture.xyz = (rayEndPositionTexture.xyz + vec3(1)) / 2.0f;
+	
+    vec3 pixelPositionTexture = vec3(uv, pixelDepth);
+	vec2 screenSpaceStartPosition = vec2(pixelPositionTexture.x * width, pixelPositionTexture.y * height); 
+	vec2 screenSpaceEndPosition = vec2(rayEndPositionTexture.x * width, rayEndPositionTexture.y * height); 
+	vec2 screenSpaceDistance = screenSpaceEndPosition - screenSpaceStartPosition;
+	int screenSpaceMaxDistance = int(max(abs(screenSpaceDistance.x), abs(screenSpaceDistance.y)) / 2);
+    vec3 rayDirectionTexture = rayEndPositionTexture.xyz - pixelPositionTexture;
+    rayDirectionTexture /= max(screenSpaceMaxDistance, 0.001f);
+
+	vec3 outColor = TraceRay(pixelPositionTexture, rayDirectionTexture, screenSpaceMaxDistance);
+	FragColor = vec4(outColor, 1.0f);
 }

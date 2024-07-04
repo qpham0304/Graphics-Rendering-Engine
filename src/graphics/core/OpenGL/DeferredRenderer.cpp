@@ -128,7 +128,7 @@ void DeferredRenderer::renderColor(Camera& camera, std::vector<Light>& lights)
         colorShader->setFloat("lights[" + std::to_string(i) + "].Radius", radius);
     }
     colorShader->setVec3("viewPos", camera.getPosition());
-    Utils::Draw::drawQuad();
+    Utils::OpenGL::Draw::drawQuad();
 }
 
 unsigned int DeferredRenderer::getGBuffer()

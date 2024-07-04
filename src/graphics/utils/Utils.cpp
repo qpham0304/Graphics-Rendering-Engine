@@ -106,7 +106,7 @@ namespace Utils::uuid {
 	}
 }
 
-namespace Utils::Draw {
+namespace Utils::OpenGL::Draw {
 	void drawQuad() {
 		unsigned int quadVAO = 0;
 		unsigned int quadVBO;
@@ -382,7 +382,7 @@ namespace Utils::Window {
 	}
 }
 
-std::string Utils::filereader::loadHDRTexture(const char* path, unsigned int& hdrTexture)
+std::string Utils::OpenGL::loadHDRTexture(const char* path, unsigned int& hdrTexture)
 {
 	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrComponents;
@@ -407,7 +407,7 @@ std::string Utils::filereader::loadHDRTexture(const char* path, unsigned int& hd
 	}
 }
 
-unsigned int Utils::filereader::loadTexture(const char* path)
+unsigned int Utils::OpenGL::loadTexture(const char* path)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -444,7 +444,7 @@ unsigned int Utils::filereader::loadTexture(const char* path)
 	return textureID;
 }
 
-unsigned int Utils::filereader::loadMTexture(const float* ltc)
+unsigned int Utils::OpenGL::loadMTexture(const float* ltc)
 {
 	GLuint texture = 0;
 	glGenTextures(1, &texture);
