@@ -333,6 +333,10 @@ namespace Utils::OpenGL::Draw {
 		glBindVertexArray(sphereVAO);
 		glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 	}
+
+	void drawSkyDome() {
+
+	}
 }
 
 namespace Utils::Window {

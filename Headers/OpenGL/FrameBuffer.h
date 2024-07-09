@@ -13,6 +13,7 @@ public:
 	unsigned int texture;
 
 	FrameBuffer(int width, int height);
+	~FrameBuffer();
 
 	void Bind();
 	void Unbind();

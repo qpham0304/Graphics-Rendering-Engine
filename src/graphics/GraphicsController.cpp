@@ -73,15 +73,12 @@ Component* OpenGLController::getSelectedComponent()
 std::string OpenGLController::addComponent(Component& component)
 {
 	std::string id = component.getID();
-	//std::unique_ptr<Component> c = std::make_unique<Component>(std::move(component));
-	//if (components.find(id) == components.end()) {
-	//	components[id] = std::move(c);
-	//}
-	//std::cout << "component already exist: " << components[id].getID() << "\n";
-	//components[id] = std::move(c);
-	//components[id].reset(new Component(component));
-
-	return id;
+	if (components.find(id) == components.end()) {
+		components[id] = std::make_unique<Component>(std::move(component));
+		return id;
+	}
+	std::cout << "component already exist: " << components[id]->getID() << "\n";
+	return "";
 }
 
 std::string OpenGLController::addComponent(const char* path)

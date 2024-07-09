@@ -113,6 +113,8 @@ protected:
 public:
 	Component();
 	Component(const char* path);
+	Component(Component&& other) noexcept;
+	Component& operator=(Component&& other) noexcept;
 	~Component() = default;
 
 	std::unique_ptr<Model> model_ptr;

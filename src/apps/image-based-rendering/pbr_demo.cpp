@@ -1,4 +1,3 @@
-
 #include "pbr_demo.h"
 
 int DemoPBR::show_demo() {

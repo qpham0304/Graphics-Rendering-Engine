@@ -66,8 +66,10 @@ SkyboxComponent::SkyboxComponent()
 	setup();
 }
 
+// receive path to the skybox folder and process all six files at once
 SkyboxComponent::SkyboxComponent(const char* path)
 {
+
 	auto replacePath = [path](std::string& str) {
 		size_t pos = str.find_last_of('/');
 		if (pos != std::string::npos) {
@@ -89,7 +91,12 @@ void SkyboxComponent::setUniform()
 	shaderProgram_ptr->setMat4("matrix", glm::mat4(1.0f));
 }
 
-// should draw skybox last
+void SkyboxComponent::updateTexture(const unsigned int& id)
+{
+	skybox->updateTexture(id);
+
+}
+
 void SkyboxComponent::render(Camera& camera)
 {
 	glm::mat4 projection = camera.getProjectionMatrix();
@@ -104,13 +111,13 @@ void SkyboxComponent::render(Camera& camera)
 	// skybox cube
 	glBindVertexArray(VAO);
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->ID);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, skybox->textureID());
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
-	glDepthFunc(GL_LESS); // set depth function back to default
+	glDepthFunc(GL_LESS);
 }
 
-void SkyboxComponent::render(Camera& camera, unsigned int ID)
+void SkyboxComponent::render(Camera& camera, const unsigned int& ID)
 {
 	glm::mat4 projection = camera.getProjectionMatrix();
 	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.getViewMatrix()));	 // remove translation from the view matrix

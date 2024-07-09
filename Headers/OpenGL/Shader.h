@@ -46,13 +46,15 @@ public:
 	
 	Shader(const char* vertexFile, const char* fragmentFile);
 	Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
-	//Shader();
+	Shader();
 	//Shader(const Shader& other);
 	//Shader& operator=(const Shader& other);
 	//Shader(Shader&& other) noexcept;
 	//Shader& operator=(Shader&& other) noexcept;
 	~Shader();
 
+	void Init(const char* vertexFile, const char* fragmentFile);
+	void Init(const char* vertexFile, const char* fragmentFile, const char* geometryFile);
 	void Activate();
 	void Delete();
 	void compileErrors(unsigned int shader, const char* type);

@@ -27,9 +27,35 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 	}
 }
 
+Shader::Shader()
+{
+	ID = 0;
+	type = "";
+}
+
 Shader::~Shader()
 {
-	glDeleteProgram(ID);
+	Delete();
+}
+
+void Shader::Init(const char* vertexFile, const char* fragmentFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+void Shader::Init(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile, geometryFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
 }
 
 // Activates the Shader Program
@@ -199,6 +225,8 @@ GLuint Shader::createShader(const char* vertexFile, const char* fragmentFile)
 	glLinkProgram(id);
 	compileErrors(fragmentShader, "PROGRAM");
 
+	glDetachShader(ID, vertexShader);
+	glDetachShader(ID, fragmentShader);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	return id;

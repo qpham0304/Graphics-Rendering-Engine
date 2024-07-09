@@ -170,6 +170,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\graphics\renderer\Renderer.cpp" />
+    <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\apps\deferred-IBL-demo\deferredIBL_demo.cpp" />
     <ClCompile Include="src\apps\SSR-view-demo\SSR_view_demo.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp" />
@@ -231,6 +233,8 @@
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\graphics\renderer\Renderer.h" />
+    <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
     <ClInclude Include="src\apps\deferred-IBL-demo\deferredIBL_demo.h" />
     <ClInclude Include="src\apps\SSR-view-demo\SSR_view_demo.h" />
     <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h" />

@@ -29,15 +29,14 @@ namespace Utils::OpenGL {
         void drawQuadNormals();
         void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
         void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
+        void drawSkyDome();
     };
 
     std::string loadHDRTexture(const char* path, unsigned int& texture);
     unsigned int loadTexture(char const* path);
     unsigned int loadMTexture(const float* ltc);
 
-    namespace GLFW {
 
-    };
 }
 
 namespace Utils::Window {

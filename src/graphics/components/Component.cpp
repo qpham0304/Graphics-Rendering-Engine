@@ -35,6 +35,57 @@ Component::Component(const char* path)
 	name = fileName + 1;
 }
 
+Component::Component(Component&& other) noexcept
+	: selected(other.selected),
+	showAxis(other.showAxis),
+	hasAnimation(other.hasAnimation),
+	countVertices(other.countVertices),
+	deltaTime(other.deltaTime),
+	id(std::move(other.id)),
+	attributes(std::move(other.attributes)),
+	name(std::move(other.name)),
+	animation_ptr(std::move(other.animation_ptr)),
+	animator_ptr(std::move(other.animator_ptr)),
+	shaderProgram_ptr(std::move(other.shaderProgram_ptr)),
+	modelMatrix(std::move(other.modelMatrix)),
+	normalMatrix(std::move(other.normalMatrix)),
+	model_ptr(std::move(other.model_ptr)),
+	scaleVector(std::move(other.scaleVector)),
+	translateVector(std::move(other.translateVector)),
+	rotationVector(std::move(other.rotationVector)),
+	material(std::move(other.material)),
+	materialPBR(std::move(other.materialPBR))
+{
+	std::cout << "component " << id << " moved\n";
+}
+
+Component& Component::operator=(Component&& other) noexcept
+{
+	if (this != &other) {
+		selected = other.selected;
+		showAxis = other.showAxis;
+		hasAnimation = other.hasAnimation;
+		countVertices = other.countVertices;
+		deltaTime = other.deltaTime;
+		id = std::move(other.id);
+		attributes = std::move(other.attributes);
+		name = std::move(other.name);
+		animation_ptr = std::move(other.animation_ptr);
+		animator_ptr = std::move(other.animator_ptr);
+		shaderProgram_ptr = std::move(other.shaderProgram_ptr);
+		modelMatrix = std::move(other.modelMatrix);
+		normalMatrix = std::move(other.normalMatrix);
+		model_ptr = std::move(other.model_ptr);
+		scaleVector = std::move(other.scaleVector);
+		translateVector = std::move(other.translateVector);
+		rotationVector = std::move(other.rotationVector);
+		material = std::move(other.material);
+		materialPBR = std::move(other.materialPBR);
+	}
+	std::cout << "component " << other.id << " operator moved\n";
+	return *this;
+}
+
 void Component::renderPBR(Camera& camera, const Light& light, const UniformProperties& uniforms, const std::vector<Light*> lights)
 {
 	shaderProgram_ptr->Activate();

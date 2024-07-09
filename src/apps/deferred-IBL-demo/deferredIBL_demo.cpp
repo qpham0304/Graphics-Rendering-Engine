@@ -9,11 +9,14 @@ int deferredIBL_demo::show_demo()
     bool guiOn = true;
     if (guiOn)
         guiController.init(SceneRenderer::window, width, height);
+
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
     float deltaTime = 0.0f;
     unsigned int cubeVAO = 0;
     unsigned int cubeVBO = 0;
+    unsigned int sphereVAO = 0;
+    unsigned int indexCount;
 
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
 
@@ -22,28 +25,245 @@ int deferredIBL_demo::show_demo()
     FrameBuffer colorPassFBO(width, height);
     FrameBuffer ssrSceneFBO(width, height);
     FrameBuffer finalSceneFBO(width, height);
+    FrameBuffer transmittanceLUT(width, height);
+    FrameBuffer multipleScattedLUT(width, height);
+    FrameBuffer skyViewLUT(width, height);
+    FrameBuffer atmosphereScene(width, height);
 
-    OpenGLController::addComponent("Models/backpack/backpack.obj");
+    Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+    //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
+    Component terrain("Models/death-valley-terrain/scene.gltf");
+
+    Texture tex("Textures/squish.png", "colorScene");
+
+    OpenGLController::addComponent(helmetModel);
+    OpenGLController::addComponent(terrain);
     std::vector<Component*> components;
     for (const auto& pair : OpenGLController::components) {
         components.push_back(pair.second.get());
     }
 
     std::vector<Light> lights;
-    lights.push_back(Light(glm::vec3(2.0, 0.5, 2.0), glm::vec4(1.0)));
-    lights.push_back(Light(glm::vec3(-2.0, 0.5, 2.0), glm::vec4(1.0)));
+    lights.push_back(Light(glm::vec3(2.0, 0.5, -30.0), glm::vec4(1000.0f, 1000.0f, 3000.0f, 1.0f)));
+    lights.push_back(Light(glm::vec3(-2.0, 0.5, 2.0), glm::vec4(200.0f, 100.0f, 100.0f, 1.0f)));
+
+    Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
+    Shader equirectangularToCubemapShader("Shaders/cubemap-hdr.vert", "Shaders/equireRectToCubemap.frag");
+    Shader irradianceShader("Shaders/cubemap-hdr.vert", "Shaders/irradianceConvolution.frag");
+    Shader backgroundShader("Shaders/background.vert", "Shaders/background.frag");
+    Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
+    Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
+    Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
+
+    pbrShader.Activate();
+    pbrShader.setInt("albedoMap", 0);
+    pbrShader.setInt("normalMap", 1);
+    pbrShader.setInt("metallicMap", 2);
+    pbrShader.setInt("roughnessMap", 3);
+    pbrShader.setInt("aoMap", 4);
+    pbrShader.setInt("emissiveMap", 5);
+    pbrShader.setInt("irradianceMap", 6);
+    pbrShader.setInt("prefilterMap", 7);
+    pbrShader.setInt("brdfLUT", 8);
+
+    backgroundShader.Activate();
+    backgroundShader.setInt("environmentMap", 0);
+
+    unsigned int captureFBO, captureRBO;
+    glGenFramebuffers(1, &captureFBO);
+    glGenRenderbuffers(1, &captureRBO);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+
+    //---------------envcubemap set up---------------//
+    unsigned int envCubemapTexture;
+    glGenTextures(1, &envCubemapTexture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        // note that we store each face with 16 bit floating point values
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
+    glm::mat4 captureViews[] =
+    {
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
+       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+    };
+
+    unsigned int hdrTexture;
+    std::string texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
+    std::cout << texRes << std::endl;
+
+    // convert HDR equirectangular environment map to cubemap equivalent
+    equirectangularToCubemapShader.Activate();
+    equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+    equirectangularToCubemapShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, hdrTexture);
+
+    glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        equirectangularToCubemapShader.setMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemapTexture, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //------------------------------------------------------------//
+
+    // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    //---------------irradiance map set up---------------//
+    unsigned int irradianceMap;
+    glGenTextures(1, &irradianceMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0,
+            GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+    irradianceShader.Activate();
+    irradianceShader.setInt("environmentMap", 0);
+    irradianceShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
+
+    glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        irradianceShader.setMat4("view", captureViews[i]);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //------------------------------------------------------------//
+
+
+    //-----------------prefilter map---------------------//
+    unsigned int prefilterMap;
+    glGenTextures(1, &prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+
+    prefilterShader.Activate();
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", captureProjection);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    unsigned int maxMipLevels = 5;
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // reisze framebuffer according to mip-level size.
+        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        prefilterShader.setFloat("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            prefilterShader.setMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //-----------------------------------------------------------//
+
+
+    //-----------------------TLU map-----------------------------//
+    unsigned int brdfLUTTexture;
+    glGenTextures(1, &brdfLUTTexture);
+
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
+    // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    glViewport(0, 0, 512, 512);
+    brdfShader.Activate();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    Utils::OpenGL::Draw::drawQuad();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    //-----------------------------------------------------------//
+
+    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
+    backgroundShader.Activate();
+    backgroundShader.setMat4("projection", projection);
+
+    // then before rendering, configure the viewport to the original framebuffer's screen dimensions
+    int scrWidth, scrHeight;
+    glfwGetFramebufferSize(SceneRenderer::window, &scrWidth, &scrHeight);
+    glViewport(0, 0, scrWidth, scrHeight);
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
         camera.cameraViewUpdate();
-        camera.processInput(SceneRenderer::window);
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
-
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         frameCounter++;
         if (deltaTime >= 1 / 2) {
@@ -53,6 +273,171 @@ int deferredIBL_demo::show_demo()
             glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
+        }
+        currentFrame *= 2;
+
+        colorPassFBO.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        pbrShader.Activate();
+        pbrShader.setMat4("matrix", glm::mat4(1.0f));
+        pbrShader.setMat4("mvp", camera.getMVP());
+        pbrShader.setVec3("camPos", camera.getPosition());
+        pbrShader.setBool("gamma", true);
+
+        // bind pre-computed IBL data
+        glActiveTexture(GL_TEXTURE0 + 6);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        glActiveTexture(GL_TEXTURE0 + 7);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        glActiveTexture(GL_TEXTURE0 + 8);
+        glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+
+        pbrShader.setMat4("matrix", components[0]->getModelMatrix());
+        pbrShader.setBool("hasAnimation", false);
+        pbrShader.setBool("hasEmission", true);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(components[0]->getModelMatrix()))));
+        components[0]->model_ptr->Draw(pbrShader);
+
+        pbrShader.setBool("hasAnimation", false);
+        pbrShader.setBool("hasEmission", false);
+        components[1]->translate(glm::vec3(0.0f, -10.0f, -15.0f));
+        components[1]->scale(glm::vec3(10.0f));
+        glm::mat4 terrainModelMatrix = glm::rotate(components[1]->getModelMatrix(), glm::radians(180.0f), glm::vec3(1.0, 0.0, 0.0));
+        pbrShader.setMat4("matrix", terrainModelMatrix);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(terrainModelMatrix))));
+        components[1]->model_ptr->Draw(pbrShader);
+
+        for (unsigned int i = 0; i < lights.size(); ++i)
+        {
+            pbrShader.setVec3("lightPositions[" + std::to_string(i) + "]", lights[i].position);
+            pbrShader.setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, lights[i].position);
+            model = glm::scale(model, glm::vec3(0.5f));
+            pbrShader.setMat4("matrix", model);
+            pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+            Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
+        }
+        skybox.updateTexture(envCubemapTexture);
+        skybox.render(camera);
+
+        colorPassFBO.Unbind();
+
+        finalSceneFBO.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+        Shader atmosphericShader("Shaders/atmospheric.vert", "Shaders/atmospheric.frag");
+        atmosphericShader.Activate();
+        atmosphericShader.setInt("colorScene", 0);
+        atmosphericShader.setVec2("iResolution", glm::vec2(width, height));
+        atmosphericShader.setFloat("iTime", currentFrame);
+        atmosphericShader.setVec2("iMouse", glm::vec2(0.0, 0.0));
+        atmosphericShader.setVec3("camPos", camera.getPosition());
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, colorPassFBO.texture);
+        Utils::OpenGL::Draw::drawQuad();
+        finalSceneFBO.Unbind();
+
+        //////////////////////////////////
+        transmittanceLUT.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        Shader transmittanceShader("Shaders/atmospheric.vert", "Shaders/skyAtmosphere/transmittanceLUT.frag");
+        transmittanceShader.Activate();
+        //transmittanceShader.setInt("colorScene", 0);
+        transmittanceShader.setVec2("iResolution", glm::vec2(width, height));
+        transmittanceShader.setFloat("iTime", currentFrame);
+        transmittanceShader.setVec2("iMouse", glm::vec2(0.0, 0.0));
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, colorPassFBO.texture);
+        Utils::OpenGL::Draw::drawQuad();
+        transmittanceLUT.Unbind();
+
+        multipleScattedLUT.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        Shader multipleScattedShader("Shaders/atmospheric.vert", "Shaders/skyAtmosphere/multipleScatteredLUT.frag");
+        multipleScattedShader.Activate();
+        multipleScattedShader.setInt("iChannel0", 0);
+        multipleScattedShader.setVec2("iChannelResolution", glm::vec2(width, height));
+        multipleScattedShader.setFloat("iTime", currentFrame);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, transmittanceLUT.texture);
+        Utils::OpenGL::Draw::drawQuad();
+        multipleScattedLUT.Unbind();
+
+        skyViewLUT.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        Shader skyViewShader("Shaders/atmospheric.vert", "Shaders/skyAtmosphere/skyViewLUT.frag");
+        skyViewShader.Activate();
+        skyViewShader.setInt("iChannel0", 0);
+        skyViewShader.setInt("iChannel1", 1);
+        skyViewShader.setVec2("iChannelResolution0", glm::vec2(width, height));
+        skyViewShader.setVec2("iChannelResolution1", glm::vec2(width, height));
+        skyViewShader.setFloat("iTime", currentFrame);
+        skyViewShader.setVec2("iMouse", glm::vec2(0.0, 0.0));
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, transmittanceLUT.texture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, multipleScattedLUT.texture);
+        Utils::OpenGL::Draw::drawQuad();
+        skyViewLUT.Unbind();
+
+        atmosphereScene.Bind();
+        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        Shader atmosphereShader("Shaders/atmospheric.vert", "Shaders/skyAtmosphere/atmosphere.frag");
+        atmosphereShader.Activate();
+        atmosphereShader.setInt("skyLUT", 0);
+        atmosphereShader.setVec2("iChannelResolution", glm::vec2(width, height));
+        atmosphereShader.setFloat("iTime", currentFrame);
+        atmosphereShader.setVec2("iMouse", glm::vec2(0.0, 0.0));
+        atmosphereShader.setVec3("camPos", camera.getPosition());
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, skyViewLUT.texture);
+        Utils::OpenGL::Draw::drawQuad();
+        atmosphereScene.Unbind();
+
+        if (guiOn) {
+            guiController.start();
+
+            if (ImGui::Begin("control")) {
+                ImGui::Button("updated skybox");
+                ImGui::BeginChild("gBuffers textures");
+                ImVec2 wsize = ImGui::GetWindowSize();
+                ImGui::Image((ImTextureID)transmittanceLUT.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)multipleScattedLUT.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)skyViewLUT.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::EndChild();
+                ImGui::End();
+            }
+
+            if (ImGui::Begin("Application window")) {
+                ImGui::BeginChild("Child");
+                ImVec2 wsize = ImGui::GetWindowSize();
+                int wWidth = static_cast<int>(ImGui::GetWindowWidth());
+                int wHeight = static_cast<int>(ImGui::GetWindowHeight());
+                camera.updateViewResize(wWidth, wHeight);
+                //ImGui::Image((ImTextureID)colorPassFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                //ImGui::Image((ImTextureID)finalSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)atmosphereScene.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                if (ImGui::IsItemHovered())
+                    camera.processInput(SceneRenderer::window);
+                ImGui::EndChild();
+                ImGui::End();
+            }
+
+            guiController.end();
         }
 
         glfwPollEvents();

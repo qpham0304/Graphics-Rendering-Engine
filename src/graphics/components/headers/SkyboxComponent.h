@@ -21,16 +21,17 @@ private:
 		"Textures/skybox/back.jpg"
 	};
 
+	std::unique_ptr<Skybox> skybox;
 
 public:
 	GLuint VAO;
-	std::unique_ptr<Skybox> skybox;
 
 	SkyboxComponent();
 	SkyboxComponent(const char* path);
 
 	void setUniform();
+	void updateTexture(const unsigned int& ID);
 	void render(Camera& camera);
-	void render(Camera& camera, unsigned int ID);
+	void render(Camera& camera, const unsigned int&);
 };
 
