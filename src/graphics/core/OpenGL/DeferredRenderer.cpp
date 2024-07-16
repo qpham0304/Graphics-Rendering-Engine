@@ -53,7 +53,7 @@ void DeferredRenderer::renderGeometry(Camera& camera, std::vector<Component*>& c
 {
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)width / (float)height, 0.1f, 100.0f);
     glm::mat4 view = camera.getViewMatrix();
     glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2));
     geometryShader->Activate();
@@ -73,7 +73,7 @@ void DeferredRenderer::renderGeometry(Camera& camera, Component& component)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)width / (float)height, 0.1f, 100.0f);
     glm::mat4 model = glm::mat4(1.0f);
     geometryShader->Activate();
     geometryShader->setMat4("projection", projection);

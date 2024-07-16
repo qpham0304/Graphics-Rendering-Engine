@@ -184,11 +184,11 @@ void main() {
     vec3 specular = pow(NdotR, 32) * texture(specularMap, uv).rgb;
 
 	vec3 L = lightDir;
-	vec3 V = updatedPos - camPos;
+	vec3 V = updatedPos - camPos;	//t1 - t0
 	const float NUM_STEPS = float(NUM_STEPS_INT);
 	float stepSize = length(V) / NUM_STEPS;
 	V = normalize(V);
-	vec3 step = V * stepSize;
+	vec3 step = V * stepSize;	//direction x step size dx
 	vec3 position = camPos;
 	position += step * DITHER_PATTERN[int(uv.x * SCREEN_WIDTH) % 4][int(uv.y * SCREEN_HEIGHT) % 4];
 	vec3 volume = vec3(0.0f);

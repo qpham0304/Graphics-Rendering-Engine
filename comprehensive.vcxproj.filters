@@ -207,6 +207,12 @@
     <ClCompile Include="src\graphics\renderer\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\renderer\AtmosphereRenderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Headers\OpenGL\VAO.h">
@@ -383,6 +389,12 @@
     <ClInclude Include="src\graphics\renderer\Renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\graphics\renderer\AtmosphereRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\apps\ray-tracing\BasicRayTracing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc">
@@ -430,6 +442,7 @@
     <None Include="Shaders\godRays\godRays.frag" />
     <None Include="Shaders\godRays\blackScreen.vert" />
     <None Include="Shaders\godRays\blackScreen.frag" />
+    <None Include="src\apps\ray-tracing\rayTracer.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png">

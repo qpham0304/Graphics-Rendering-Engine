@@ -77,7 +77,7 @@ int DeferredRender::show_demo() {
         glClearColor(0.0, 0.0, 0.0, 1.0); // keep it black so it doesn't leak into g-buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)width / (float)height, 0.1f, 100.0f);
         glm::mat4 view = camera.getViewMatrix();
         //deferredRenderer.renderGeometry(camera, components);
         deferredRenderer.renderGeometry(camera, *components[0]);

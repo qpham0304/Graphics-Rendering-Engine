@@ -274,7 +274,7 @@ int DemoPBR::show_demo() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //-----------------------------------------------------------//
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
     backgroundShader.Activate();
     backgroundShader.setMat4("projection", projection);
 
@@ -316,7 +316,7 @@ int DemoPBR::show_demo() {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.cameraViewUpdate();
+        
         camera.processInput(SceneRenderer::window);
         glm::mat4 model = glm::mat4(1.0f);
 

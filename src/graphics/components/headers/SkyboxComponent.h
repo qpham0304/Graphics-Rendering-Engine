@@ -31,6 +31,7 @@ public:
 
 	void setUniform();
 	void updateTexture(const unsigned int& ID);
+	unsigned int getTextureID();
 	void render(Camera& camera);
 	void render(Camera& camera, const unsigned int&);
 };

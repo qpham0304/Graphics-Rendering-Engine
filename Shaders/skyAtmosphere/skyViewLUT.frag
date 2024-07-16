@@ -1,11 +1,14 @@
 #version 460 core
 
 in vec2 TexCoords;
-uniform sampler2D iChannel0;
-uniform sampler2D iChannel1;
+uniform sampler2D transmittanceLUT;
+uniform sampler2D multipleScatteredLUT;
 uniform vec2 iChannelResolution0;
 uniform vec2 iChannelResolution1;
 uniform float iTime;
+uniform vec3 camPos;
+uniform mat4 viewMatrix;
+uniform mat4 projectionMatrix;
 
 const float PI = 3.14159265358;
 
@@ -14,15 +17,13 @@ const float groundRadiusMM = 6.360;
 const float atmosphereRadiusMM = 6.460;
 
 // 200M above the ground.
-const vec3 viewPos = vec3(0.0, groundRadiusMM + 0.0002, 0.0);
+vec3 viewPos = vec3(0.0, groundRadiusMM + 0.0002, 0.0);
 
 const vec2 tLUTRes = vec2(256.0, 64.0);
 const vec2 msLUTRes = vec2(32.0, 32.0);
 // Doubled the vertical skyLUT res from the paper, looks way
 // better for sunrise.
-const vec2 skyLUTRes = vec2(200.0, 200.0);
-
-const vec3 groundAlbedo = vec3(0.3);
+const vec2 skyLUTRes = vec2(200.0, 200.0) * 4;
 
 // These are per megameter.
 const vec3 rayleighScatteringBase = vec3(5.802, 13.558, 33.1);
@@ -36,17 +37,15 @@ const vec3 ozoneAbsorptionBase = vec3(0.650, 1.881, .085);
 /*
  * Animates the sun movement.
  */
-float getSunAltitude(float time)
-{
-    const float periodSec = 120.0;
+float getSunAltitude(float time) {
+    const float periodSec = 10.0;
     const float halfPeriod = periodSec / 2.0;
     const float sunriseShift = 0.1;
     float cyclePoint = (1.0 - abs((mod(time,periodSec)-halfPeriod)/halfPeriod));
     cyclePoint = (cyclePoint*(1.0+sunriseShift))-sunriseShift;
     return (0.5*PI)*cyclePoint;
 }
-vec3 getSunDir(float time)
-{
+vec3 getSunDir(float time) {
     float altitude = getSunAltitude(time);
     return normalize(vec3(0.0, sin(altitude), -cos(altitude)));
 }
@@ -66,10 +65,7 @@ float getRayleighPhase(float cosTheta) {
     return k*(1.0+cosTheta*cosTheta);
 }
 
-void getScatteringValues(vec3 pos, 
-                         out vec3 rayleighScattering, 
-                         out float mieScattering,
-                         out vec3 extinction) {
+void getScatteringValues(vec3 pos, out vec3 rayleighScattering, out float mieScattering, out vec3 extinction) {
     float altitudeKM = (length(pos)-groundRadiusMM)*1000.0;
     // Note: Paper gets these switched up.
     float rayleighDensity = exp(-altitudeKM/8.0);
@@ -127,11 +123,7 @@ vec3 getValFromMultiScattLUT(sampler2D tex, vec2 bufferRes, vec3 pos, vec3 sunDi
 // Buffer C calculates the actual sky-view! It's a lat-long map (or maybe altitude-azimuth is the better term),
 // but the latitude/altitude is non-linear to get more resolution near the horizon.
 const int numScatteringSteps = 32;
-vec3 raymarchScattering(vec3 pos, 
-                              vec3 rayDir, 
-                              vec3 sunDir,
-                              float tMax,
-                              float numSteps) {
+vec3 raymarchScattering(vec3 pos, vec3 rayDir, vec3 sunDir, float tMax, float numSteps) {
     float cosTheta = dot(rayDir, sunDir);
     
 	float miePhaseValue = getMiePhase(cosTheta);
@@ -153,8 +145,8 @@ vec3 raymarchScattering(vec3 pos,
         
         vec3 sampleTransmittance = exp(-dt*extinction);
 
-        vec3 sunTransmittance = getValFromTLUT(iChannel0, iChannelResolution0.xy, newPos, sunDir);
-        vec3 psiMS = getValFromMultiScattLUT(iChannel1, iChannelResolution1.xy, newPos, sunDir);
+        vec3 sunTransmittance = getValFromTLUT(transmittanceLUT, iChannelResolution0.xy, newPos, sunDir);
+        vec3 psiMS = getValFromMultiScattLUT(multipleScatteredLUT, iChannelResolution1.xy, newPos, sunDir);
         
         vec3 rayleighInScattering = rayleighScattering*(rayleighPhaseValue*sunTransmittance + psiMS);
         vec3 mieInScattering = mieScattering*(miePhaseValue*sunTransmittance + psiMS);
@@ -198,7 +190,8 @@ void main( )
     
     float cosAltitude = cos(altitudeAngle);
     vec3 rayDir = vec3(cosAltitude*sin(azimuthAngle), sin(altitudeAngle), -cosAltitude*cos(azimuthAngle));
-    
+
+
     float sunAltitude = (0.5*PI) - acos(dot(getSunDir(iTime), up));
     vec3 sunDir = vec3(0.0, sin(sunAltitude), -cos(sunAltitude));
     

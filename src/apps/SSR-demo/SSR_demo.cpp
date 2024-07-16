@@ -101,7 +101,7 @@ int SSR_demo::show_demo()
         deferredRenderer.renderGeometry(camera, components);
 
         deferredRenderer.geometryShader->setBool("invertedTexCoords", false);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)width / (float)height, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)width / (float)height, 0.1f, 100.0f);
         glm::mat4 view = camera.getViewMatrix();
         glm::mat4 planeModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
         planeModel *= glm::scale(glm::mat4(1.0f), glm::vec3(30.0f));

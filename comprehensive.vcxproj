@@ -170,6 +170,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp" />
+    <ClCompile Include="src\graphics\renderer\AtmosphereRenderer.cpp" />
     <ClCompile Include="src\graphics\renderer\Renderer.cpp" />
     <ClCompile Include="src\graphics\components\ModelComponent.cpp" />
     <ClCompile Include="src\apps\deferred-IBL-demo\deferredIBL_demo.cpp" />
@@ -233,6 +235,8 @@
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\apps\ray-tracing\BasicRayTracing.h" />
+    <ClInclude Include="src\graphics\renderer\AtmosphereRenderer.h" />
     <ClInclude Include="src\graphics\renderer\Renderer.h" />
     <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
     <ClInclude Include="src\apps\deferred-IBL-demo\deferredIBL_demo.h" />
@@ -336,6 +340,7 @@
     <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\skybox.vert" />
+    <None Include="src\apps\ray-tracing\rayTracer.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png" />

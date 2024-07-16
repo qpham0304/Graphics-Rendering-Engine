@@ -97,6 +97,11 @@ void SkyboxComponent::updateTexture(const unsigned int& id)
 
 }
 
+unsigned int SkyboxComponent::getTextureID()
+{
+	return skybox->textureID();
+}
+
 void SkyboxComponent::render(Camera& camera)
 {
 	glm::mat4 projection = camera.getProjectionMatrix();
