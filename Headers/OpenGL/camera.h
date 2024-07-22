@@ -32,6 +32,7 @@ private:
 	bool firstClick = true;
 	bool shiftPressed = false;
 	bool firstInit = false;
+	bool cameraMove = false;
 
 	int width;
 	int height;
@@ -74,12 +75,14 @@ public:
 	float getFOV();
 	int getViewWidth();
 	int getViewHeight();
+	bool isMoving();
+	float getDeltaTime();
 	
 	void cameraViewUpdate();
 	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);
-	void processKeyboard(GLFWwindow* window);
-	void processMouse(GLFWwindow* window);
+	bool processKeyboard(GLFWwindow* window);
+	bool processMouse(GLFWwindow* window);
 	void resetCamera();
 	void setCameraSpeed(int speedMultiplier);
 

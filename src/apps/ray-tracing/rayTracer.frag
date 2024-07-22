@@ -4,14 +4,17 @@
 #define PI  3.14159265359
 #define PI2 6.28318530717
 #define MAX_WEIGHT 200
+#define LAMB 0
+#define METAL 1
+#define DIEL 2
+#define EMISSIVE 3
 
 struct Material {
     vec3 albedo;
     float metallic;
     float roughness;
-    // vec3 normal;
-    // vec3 ao;
-    // vec3 emissive;
+    float materialIndex;
+    float emissive;
 };
 
 struct Sphere {
@@ -50,6 +53,7 @@ uniform Sphere spheres[NUM_SPHERES];
 uniform float iTime;
 uniform int numBounces = 2;
 uniform int frameIndex;
+uniform bool skyboxEnabled = false;
 
 
 vec3 lightPos = vec3(3.0, 3.0, 3.0);
@@ -123,6 +127,16 @@ Hit traceRay(Ray ray) {
     return closestHit(ray, hitDistance, closestSphereIndex);
 }
 
+vec3 schlick() {
+    return vec3(0.0);
+}
+
+vec3 GGX() {
+    return vec3(0.0);
+}
+
+
+
 void main() {
     vec2 localUV = uv * 2.0 - 1.0;
     vec3 rayOrigin = camPos;
@@ -133,48 +147,48 @@ void main() {
     ray.origin = rayOrigin;
     ray.direction = rayDir;
     vec4 finalColor = vec4(0.0);
+    vec3 contribution = vec3(1.0);
 
     // an extra run from outside to blend the sphere background
     // otherwise skybox texture will overwrite the reflection miss on the spheres
     Hit payload = traceRay(ray);
     if(payload.hitDistance < 0.0) {
         // finalColor = texture(envMap, ray.direction);
-        finalColor = texture(colorScene, uv);
+        // finalColor = texture(colorScene, uv);
+        // finalColor += texture(envMap, ray.direction) * vec4(contribution, 1.0);
     } else {
         vec3 albedo = spheres[payload.index].material.albedo;
-        vec3 ambient = albedo * 0.3;
+        // vec3 ambient = albedo * 0.3;
         float diffuse = max(dot(payload.worldNormal, -lightDir), 0.0);
-        vec3 lighting = albedo * diffuse + ambient;
-        finalColor += vec4(lighting, 1.0);
+
+        // vec3 lighting = albedo * diffuse;// + ambient;
+        // finalColor += vec4(lighting, 1.0);
+        contribution *= albedo;
     }
 
     for(int i = 1; i <= numBounces; i++) {
         Hit payload = traceRay(ray);
 
         if(payload.hitDistance < 0.0) {
-            finalColor = texture(envMap, ray.direction);
+            // finalColor = texture(envMap, ray.direction);
+            if(skyboxEnabled)
+                finalColor += texture(envMap, ray.direction) * vec4(contribution, 1.0);
+            // finalColor += vec4(1.0);
             break;
-        }
+        } 
 
         vec3 albedo = spheres[payload.index].material.albedo;
         float diffuse = max(dot(payload.worldNormal, -lightDir), 0.0);
-        vec3 lighting = albedo * diffuse;
-        // finalColor += vec4(lighting, 1.0) * 0.5;
+        // finalColor += vec4(albedo * diffuse, 1.0);
+        contribution *= albedo;
+        finalColor += vec4(spheres[payload.index].material.albedo, 1.0) * (spheres[payload.index].material.emissive);
+
 
         vec3 offset = spheres[payload.index].material.roughness * randomUnitVector();
         ray.origin = payload.worldPos + payload.worldNormal * 0.001f;
         ray.direction = reflect(ray.direction, payload.worldNormal + offset);
     }
-
-    if(frameIndex == 1) {
-        FragColor = finalColor;
-    } else {
-        vec4 oldScene = texture(prevScene, uv);
-        oldScene /= frameIndex;
-        oldScene = clamp(oldScene, 0.0, 1.0);
-        // finalColor = clamp(finalColor, 0.0, 1.0);
-        FragColor = oldScene + finalColor;
-    }
-
-    // FragColor = finalColor;
+    
+    
+    FragColor = clamp(finalColor, 0.0, 1.0);
 }

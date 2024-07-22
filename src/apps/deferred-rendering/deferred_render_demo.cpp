@@ -322,8 +322,8 @@ int bloomTest() {
 int DeferredRender::run()
 {
     try {
-        show_demo();
-        //bloomTest();
+        //show_demo();
+        bloomTest();
         return 0;
     }
     catch (const std::runtime_error& e) {

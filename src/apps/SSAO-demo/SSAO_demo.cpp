@@ -10,8 +10,8 @@ int SSAO_Demo::show_demo()
 {
     float width = SceneRenderer::width;
     float height = SceneRenderer::height;
-
     Camera camera(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
+
     ImGuiController guiController;
     bool guiOn = true;
     if (guiOn)

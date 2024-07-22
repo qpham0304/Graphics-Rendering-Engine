@@ -1,4 +1,4 @@
-#include "../../SceneRenderer.h"
+#include "../../graphics/renderer/SceneRenderer.h"
 #include "../../graphics/utils/headers/ltc_matrix.h"
 
 #pragma once

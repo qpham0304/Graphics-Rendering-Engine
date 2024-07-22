@@ -1,14 +1,19 @@
 #include "FrameBuffer.h"
 
-
-FrameBuffer::FrameBuffer(int width, int height)
+void FrameBuffer::init(
+	int width, 
+	int height, 
+	int internalFormat = GL_RGBA16F, 
+	int format = GL_RGBA, 
+	int type = GL_FLOAT, 
+	const void* data = nullptr)
 {
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-	
+
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, data);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
@@ -19,13 +24,23 @@ FrameBuffer::FrameBuffer(int width, int height)
 	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH32F_STENCIL8, width, height);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-	
+
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+FrameBuffer::FrameBuffer(int width, int height)
+{
+	init(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+}
+
+FrameBuffer::FrameBuffer(int width, int height, int size)
+{
+	init(width, height, size, GL_RGBA, GL_FLOAT, nullptr);
 }
 
 FrameBuffer::~FrameBuffer()

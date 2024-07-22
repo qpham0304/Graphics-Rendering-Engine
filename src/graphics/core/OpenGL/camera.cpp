@@ -50,7 +50,6 @@ void Camera::cameraViewUpdate()
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 	speed = 2.5f * deltaTime * speedMultiplier;
-
 }
 
 void Camera::updateViewResize(int width, int height)
@@ -74,9 +73,19 @@ glm::mat4 Camera::getViewMatrix()
 	return view;
 }
 
+glm::mat4 Camera::getInViewMatrix()
+{
+	return inView;
+}
+
 glm::mat4 Camera::getProjectionMatrix()
 {
 	return projection;
+}
+
+glm::mat4 Camera::getInProjectionMatrix()
+{
+	return inProjection;
 }
 
 glm::mat4 Camera::getMVP()
@@ -99,26 +108,52 @@ int Camera::getViewHeight()
 	return height;
 }
 
-void Camera::processKeyboard(GLFWwindow* window) {
+bool Camera::isMoving()
+{
+	return cameraMove;
+}
+
+float Camera::getDeltaTime()
+{
+	return deltaTime;
+}
+
+bool Camera::processKeyboard(GLFWwindow* window) {
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	bool isPressing = false;
 
 	shiftPressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS
 		|| glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS;
 
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		position += orientation * speed;
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		position -= orientation * speed;
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		position -= glm::normalize(glm::cross(orientation, up)) * speed;
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		position += glm::normalize(glm::cross(orientation, up)) * speed;
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !shiftPressed)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !shiftPressed) {
 		position += glm::normalize(up) * speed;
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && shiftPressed)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && shiftPressed) {
 		position -= glm::normalize(up) * speed;
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && shiftPressed)
+		isPressing = true;
+	}
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS && shiftPressed) {
 		resetCamera();
+		isPressing = true;
+	}
+	return isPressing;
 }
 
 Camera* instance = nullptr;
@@ -135,13 +170,15 @@ void keycb(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	instance->key_callback(window, key, scancode, action, mods);
 }
 
-void Camera::processMouse(GLFWwindow* window) {
+bool Camera::processMouse(GLFWwindow* window) {
 	instance = this;
 
+	bool isMouseMoved = false;
 	//glfwSetScrollCallback(window, scrollcb);
 	//glfwSetCursorPosCallback(window, mousecb);
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		isMouseMoved = true;
 		mouseControl(window);
 	}
 	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_RELEASE) {
@@ -149,8 +186,9 @@ void Camera::processMouse(GLFWwindow* window) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		// Makes sure the next time the camera looks around it doesn't jump
 		firstClick = true;
+		isMouseMoved = false;
 	}
-
+	return isMouseMoved;
 }
 
 void Camera::resetCamera()
@@ -174,8 +212,9 @@ void Camera::setCameraSpeed(int speedMultiplier)
 
 void Camera::processInput(GLFWwindow* window)
 {
-	processKeyboard(window);
-	processMouse(window);
+	bool isMouseMoved = processMouse(window);
+	bool isKeyboardMoved = processKeyboard(window);
+	cameraMove = isMouseMoved || isKeyboardMoved;
 }
 
 void Camera::mouseControl(GLFWwindow* window)

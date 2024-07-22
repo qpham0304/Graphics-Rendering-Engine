@@ -1,4 +1,5 @@
 #include "deferredIBL_demo.h"
+#include "Particles.h"
 
 int deferredIBL_demo::show_demo()
 {
@@ -29,6 +30,21 @@ int deferredIBL_demo::show_demo()
     FrameBuffer multipleScatteredLUT(width, height);
     FrameBuffer skyViewLUT(width, height);
     FrameBuffer atmosphereScene(width, height);
+
+    float speed = 0.001;
+    bool pause = true;
+    bool reset = false;
+    glm::vec3 spawnArea(100.0, 30.0, 100.0);
+    glm::vec3 direction(0.0, 0.0, 0.0);
+    unsigned int numInstances = 100000;
+    int numRender = numInstances;
+    int heightLimit = 100.0;
+    glm::vec2 randomRange(glm::vec2(1.0, 5.0));
+    glm::vec3 particleSize(0.1, 0.1, 0.1);
+    Particles particleRenderer;
+    ParticleControl particleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
+    particleRenderer.init(particleControl);
+
 
     Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
     //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
@@ -344,6 +360,8 @@ int deferredIBL_demo::show_demo()
             pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
             Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
         }
+        particleRenderer.render(lightShader, camera, numRender, speed, pause);
+
         skybox.updateTexture(envCubemapTexture);
         skybox.render(camera);
 
@@ -415,6 +433,17 @@ int deferredIBL_demo::show_demo()
             if (ImGui::Begin("control")) {
                 ImGui::Button("updated skybox");
                 ImGui::BeginChild("gBuffers textures");
+                ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
+                ImGui::DragInt("Num Instances", &numRender, numInstances / 100.0, 0, numInstances, 0, true);
+                if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
+                    particleRenderer.clear();
+                    particleRenderer.init(particleControl);
+                }
+                ImGui::Checkbox("Pause", &pause);
+                ImGui::SameLine();
+                if (ImGui::Button("Reset")) {
+                    particleRenderer.reset();
+                }
                 ImVec2 wsize = ImGui::GetWindowSize();
                 ImGui::Image((ImTextureID)transmittanceLUT.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::Image((ImTextureID)multipleScatteredLUT.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));

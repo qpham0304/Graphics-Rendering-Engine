@@ -11,12 +11,12 @@
 #include <future>
 #include <mutex>
 #include <thread>
-#include "./gui/GuiController.h"
-#include "./graphics/GraphicsController.h"
-#include "./graphics/utils/headers/utils.h"
-#include "./graphics/components/headers/SkyboxComponent.h"
-#include "./graphics/components/headers/GridComponent.h"
-#include "./graphics/components/headers/LightComponent.h"
+#include "../../gui/GuiController.h"
+#include "../../graphics/GraphicsController.h"
+#include "../../graphics/utils/headers/utils.h"
+#include "../../graphics/components/headers/SkyboxComponent.h"
+#include "../../graphics/components/headers/GridComponent.h"
+#include "../../graphics/components/headers/LightComponent.h"
 
 enum Platform {
 	PLATFORM_UNDEFINED, PLATFORM_OPENGL, PLATFORM_VULKAN, PLATFORM_DIRECTX,

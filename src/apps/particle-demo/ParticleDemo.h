@@ -1,11 +1,12 @@
+#pragma once
+
 #include "../../graphics/renderer/SceneRenderer.h"
 
-#pragma once
-class DemoPBR
+class ParticleDemo
 {
-public:
+public: 
 	static int show_demo();
-
+	
 	static int run();
 };
 

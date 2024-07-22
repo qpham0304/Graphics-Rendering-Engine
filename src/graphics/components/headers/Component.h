@@ -100,7 +100,7 @@ protected:
 	bool hasAnimation;
 	int countVertices = 0;
 	float deltaTime = 0;
-	std::string id;			// better use true uuid but whatever
+	std::string id;			// better use true uuid but good enough for now
 	std::unordered_map<std::string, std::vector<std::string>> attributes;
 	std::string name;
 	std::unique_ptr<Animation> animation_ptr;

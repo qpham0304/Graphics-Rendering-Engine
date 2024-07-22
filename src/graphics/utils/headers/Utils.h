@@ -10,7 +10,6 @@
 
 namespace Utils::Math {
 	bool DecomposeTransform(const glm::mat4& transform, glm::vec3& translation, glm::vec3& rotation, glm::vec3& scale);
-
 }
 
 namespace Utils::uuid {
@@ -20,14 +19,27 @@ namespace Utils::uuid {
     static std::uniform_int_distribution<> dis2(8, 11);
 
     std::string get_uuid();
+}
 
+namespace Console {
+    void print(const std::string& msg);
+    void error(const std::string& msg);
+    void println(const std::string& msg);
+}
+
+namespace Utils::Random {
+    float randomFloat(float min, float max);
+    glm::mat4 createRandomTransform(glm::vec3 ranges, glm::vec3 scale);
 }
 
 namespace Utils::OpenGL {
     namespace Draw {
         void drawQuad();
+        void drawQuad(unsigned int& quadVAO, unsigned int& VBO);
+        void drawInstancedCube(unsigned int& cubeVAO, unsigned int& cubeVBO, unsigned int& numInstances);
         void drawQuadNormals();
         void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
+        void drawCube();
         void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
         void drawSkyDome();
     };
@@ -35,8 +47,6 @@ namespace Utils::OpenGL {
     std::string loadHDRTexture(const char* path, unsigned int& texture);
     unsigned int loadTexture(char const* path);
     unsigned int loadMTexture(const float* ltc);
-
-
 }
 
 namespace Utils::Window {

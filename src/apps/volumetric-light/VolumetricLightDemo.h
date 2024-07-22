@@ -1,4 +1,4 @@
-#include "../../SceneRenderer.h"
+#include "../../graphics/renderer/SceneRenderer.h"
 
 #pragma once
 class VolumetricLightDemo

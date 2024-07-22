@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../SceneRenderer.h"
+#include "../../graphics/renderer/SceneRenderer.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 
 class DeferredRender

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../SceneRenderer.h"
+#include "../../graphics/renderer/SceneRenderer.h"
 
 class BasicRayTracing
 {
