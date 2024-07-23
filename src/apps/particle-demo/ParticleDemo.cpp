@@ -1,6 +1,6 @@
 #include "ParticleDemo.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
-#include "Particles.h"
+#include "ParticleGeometry.h"
 
 
 int ParticleDemo::show_demo()
@@ -28,7 +28,7 @@ int ParticleDemo::show_demo()
 
     SkyboxComponent skybox;
     FrameBuffer applicationFBO(width, height, GL_RGBA16F);
-    Particles particleRenderer;
+    ParticleGeometry particleRenderer;
     ParticleControl particleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
     particleRenderer.init(particleControl);
 
@@ -88,8 +88,8 @@ int ParticleDemo::show_demo()
         glViewport(0.0, 0.0, width, height);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        particleRenderer.render(lightShader, camera, numRender, speed, pause);
-        //particleRenderer.render(particleShader, camera, numRender, speed, pause);
+        //particleRenderer.render(lightShader, camera, numRender, speed, pause);
+        particleRenderer.render(particleShader, camera, numRender, speed, pause);
         skybox.render(camera);
 
         applicationFBO.Unbind();

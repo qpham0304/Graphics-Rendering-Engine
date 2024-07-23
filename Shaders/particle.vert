@@ -9,5 +9,5 @@ uniform mat4 matrix;
 uniform mat4 mvp;
 
 void main() {
-	gl_Position = mvp * matrix * aInstanceMatrix * vec4(aPos, 1.0f);
+	gl_Position = mvp * aInstanceMatrix * vec4(aPos, 1.0f);
 }

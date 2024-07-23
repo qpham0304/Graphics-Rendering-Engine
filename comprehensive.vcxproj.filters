@@ -216,7 +216,7 @@
     <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\core\OpenGL\Particles.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -404,7 +404,7 @@
     <ClInclude Include="src\apps\particle-demo\ParticleDemo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\OpenGL\Particles.h">
+    <ClInclude Include="Headers\OpenGL\ParticleGeometry.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Headers\PreCompile.h">

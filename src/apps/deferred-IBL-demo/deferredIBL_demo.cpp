@@ -1,5 +1,5 @@
 #include "deferredIBL_demo.h"
-#include "Particles.h"
+#include "ParticleGeometry.h"
 
 int deferredIBL_demo::show_demo()
 {
@@ -41,7 +41,7 @@ int deferredIBL_demo::show_demo()
     int heightLimit = 100.0;
     glm::vec2 randomRange(glm::vec2(1.0, 5.0));
     glm::vec3 particleSize(0.1, 0.1, 0.1);
-    Particles particleRenderer;
+    ParticleGeometry particleRenderer;
     ParticleControl particleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
     particleRenderer.init(particleControl);
 

@@ -1,4 +1,4 @@
-#include "Particles.h"
+#include "ParticleGeometry.h"
 
 
 const float g = 9.8f; // Gravity
@@ -48,24 +48,29 @@ float update_velocity(float current_velocity, float mass, float cross_sectional_
     return current_velocity;
 }
 
-Particles::Particles() {
+ParticleGeometry::ParticleGeometry() {
     direction = glm::vec3(0.0, 0.0, 0.0);
     scale = glm::vec3(1.0);
     model = glm::mat4(1.0);
     upperBound = 0.0;
     lowerBound = 0.0;
-    VAO = 0;
-    VBO = 0;
+    cubeVAO = 0;
+    cubeVBO = 0;
+    instanceVBO = 0;
+
+    glGenVertexArrays(1, &cubeVAO);
+    glGenBuffers(1, &cubeVBO);
+    glGenBuffers(1, &instanceVBO);
 }
 
-void Particles::init(const ParticleControl& control) {
+void ParticleGeometry::init(const ParticleControl& control) {
     scale = control.size;
     upperBound = control.upperBound;
     lowerBound = control.lowerBound;
-    numInstances = control.numInstances;
 
-    if (!matrixModels.empty())
+    if (!matrixModels.empty()) {
         Console::println("Please clear particle before reinitialize");
+    }
     else {
         upperBound = control.upperBound;
         lowerBound = control.lowerBound;
@@ -78,54 +83,89 @@ void Particles::init(const ParticleControl& control) {
             //glm::vec3 rand = generateRandomCircularDirection();
             randomDirs.push_back(rand);
         }
+        if (firstInit) {
+            glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+            glBindVertexArray(cubeVAO);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(1);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+            glEnableVertexAttribArray(2);
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+
+            glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+            glBufferData(GL_ARRAY_BUFFER, matrixModels.size() * sizeof(glm::mat4), &matrixModels[0], GL_STATIC_DRAW);
+
+            for (int i = 0; i < 4; i++) {
+                glEnableVertexAttribArray(3 + i);
+                glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4) * i));
+                glVertexAttribDivisor(3 + i, 1); // Set attribute divisor to 1 for instanced rendering
+            }
+            firstInit = false;
+        }
+        tempMatricies = matrixModels;
+        glBindVertexArray(0);
     }
 }
 
-void Particles::clear() {
+void ParticleGeometry::clear() {
     matrixModels.clear();
 }
 
-void Particles::reset() {
+void ParticleGeometry::reset() {
     std::fill(flyDirections.begin(), flyDirections.end(), glm::vec3(0.0));
 }
 
-void Particles::render(Shader& shader, Camera& camera, int& numRender, float& speed, bool& pause) {
+void ParticleGeometry::render(Shader& shader, Camera& camera, int& numRender, float& speed, bool& pause) {
     shader.Activate();
     shader.setMat4("mvp", camera.getMVP());
     shader.setVec3("lightColor", glm::vec3(0.7, 0.8, 1.0));
+
     if (!matrixModels.empty()) {
+        glm::mat4 viewMatrix = camera.getViewMatrix();
+        glm::vec3 camRight = glm::vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+        glm::vec3 camUp = glm::vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+
+        glm::mat4 billboardMatrix;
+        billboardMatrix[0] = glm::vec4(camRight, 0.0f);
+        billboardMatrix[1] = glm::vec4(camUp, 0.0f);
+        billboardMatrix[2] = glm::vec4(-glm::normalize(glm::cross(camRight, camUp)), 0.0f); // Forward vector
+        billboardMatrix[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // No translation
+
         //if (numRender >= numInstances) {
         //    Console::println("Cannot render more than the number of instances")
         //}
-        for (unsigned int i = 0; i < numInstances; i++) {
-            model = matrixModels[i];
 
+        for (unsigned int i = 0; i < numRender; i++) {
             if (!pause) {
                 float velocity = speed * camera.getDeltaTime();
                 //flyDirections[i].x -= weights[i] * velocity;
-                flyDirections[i].y -= weights[i] * velocity;
+                //flyDirections[i].y -= weights[i] * velocity;
                 //flyDirections[i].z -= weights[i] * velocity;
 
                 if(!randomDirs.empty()) // randomdirs to generate pattern
-                    flyDirections[i] += randomDirs[i];
+                    flyDirections[i] += randomDirs[i] * velocity;
             }
             if (flyDirections[i].y <= lowerBound || flyDirections[i].y >= upperBound) {
                 flyDirections[i].x = 0.0;
                 flyDirections[i].y = 0.0;
                 flyDirections[i].z = 0.0;
             }
-            direction.x = flyDirections[i].x;
-            direction.y = flyDirections[i].y;
-            direction.z = flyDirections[i].z;
+            direction = flyDirections[i];
 
             translateMatrix = glm::translate(glm::mat4(1.0), direction);
-            scaleMatrix = glm::scale(glm::mat4(1.0), glm::vec3(1.0));
-            transformMatrix = translateMatrix * scaleMatrix * model;
-            model = transformMatrix;
-            shader.setMat4("matrix", model);
-            //Utils::OpenGL::Draw::drawInstancedCube(VAO, VBO, numInstances);
-            Utils::OpenGL::Draw::drawQuad(VAO, VBO);
+            tempMatricies[i] = translateMatrix * matrixModels[i];
+            //shader.setMat4("matrix", model * billboardMatrix);
         }
+        glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, numRender * sizeof(glm::mat4), &tempMatricies[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        
+        glBindVertexArray(cubeVAO);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 36, numRender);
+        glBindVertexArray(0);
     }
     else {
         Console::println("No particle to render");

@@ -31,7 +31,7 @@ struct ParticleControl {
 	}
 };
 
-class Particles
+class ParticleGeometry
 {
 private:
 	//TODO: verify if array of structure is actually faster?
@@ -49,17 +49,19 @@ private:
 
 	float upperBound;	// max heights particle can reach before it reset
 	float lowerBound;
-	unsigned int numInstances;
 
-	unsigned int VAO;
-	unsigned int VBO;
+	unsigned int cubeVAO;
+	unsigned int cubeVBO;
+	unsigned int instanceVBO;
+	bool firstInit = true;
 
 	float randomFloat(float min, float max);
 	glm::mat4 createRandomTransform(glm::vec3 ranges = glm::vec3(100.0, 0.0, 100.0));
 
 public:
-	std::vector<glm::mat4> matrixModels;
-	Particles();
+	std::vector<glm::mat4> matrixModels;	// temporary leave public
+	std::vector<glm::mat4> tempMatricies;
+	ParticleGeometry();
 
 	void init(const ParticleControl& control);
 	void clear();

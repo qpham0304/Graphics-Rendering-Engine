@@ -170,7 +170,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\graphics\core\OpenGL\Particles.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp" />
     <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp" />
     <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp" />
     <ClCompile Include="src\graphics\renderer\AtmosphereRenderer.cpp" />
@@ -237,7 +237,7 @@
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Headers\OpenGL\Particles.h" />
+    <ClInclude Include="Headers\OpenGL\ParticleGeometry.h" />
     <ClInclude Include="Headers\PreCompile.h" />
     <ClInclude Include="src\apps\particle-demo\ParticleDemo.h" />
     <ClInclude Include="src\apps\ray-tracing\BasicRayTracing.h" />
