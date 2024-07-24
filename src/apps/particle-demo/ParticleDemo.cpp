@@ -1,7 +1,7 @@
 #include "ParticleDemo.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "ParticleGeometry.h"
-
+#include "../../core/features/Timer.h"
 
 int ParticleDemo::show_demo()
 {
@@ -103,6 +103,7 @@ int ParticleDemo::show_demo()
                 ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
                 ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances/100.0, 0, particleControl.numInstances, 0, true);
                 if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
+                    Timer timer;
                     particleRenderer.clear();
                     particleRenderer.init(particleControl);
                     //if (isPopulating) {
