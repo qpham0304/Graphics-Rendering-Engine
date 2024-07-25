@@ -1,6 +1,6 @@
 #include "ParticleDemo.h"
-#include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "ParticleGeometry.h"
+#include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
 
 int ParticleDemo::show_demo()
@@ -10,7 +10,7 @@ int ParticleDemo::show_demo()
     Camera camera(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     ImGuiController guiController;
-    bool guiOn = true;
+    bool guiOn = false;
     if (guiOn)
         guiController.init(SceneRenderer::window, width, height);
 
@@ -70,7 +70,7 @@ int ParticleDemo::show_demo()
 
     float velocity = 0.0;
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
 

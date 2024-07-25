@@ -187,7 +187,7 @@ int AreaLightDemo::show_demo()
 
         Light light = Light(lightPosition, glm::vec4(1.0, 1.0, 1.0, 1.0), lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
 
-        camera.cameraViewUpdate();
+        camera.onUpdate();
 
         lightShader.Activate();
         glm::mat4 model(1.0f);

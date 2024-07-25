@@ -60,7 +60,7 @@ private:
 	glm::mat4 inProjection;
 
 public:
-	glm::mat4 mvp;
+	glm::mat4 mvp;	// TODO: arealight demo is coupling this, fix when have time
 
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	Camera(unsigned int width, unsigned int height, glm::vec3 position);
@@ -78,7 +78,7 @@ public:
 	bool isMoving();
 	float getDeltaTime();
 	
-	void cameraViewUpdate();
+	void onUpdate();
 	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);
 	bool processKeyboard(GLFWwindow* window);

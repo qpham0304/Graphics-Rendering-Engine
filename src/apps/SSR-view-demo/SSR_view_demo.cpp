@@ -84,7 +84,7 @@ int SSR_view_demo::show_demo()
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         camera.processInput(SceneRenderer::window);
         
         float currentFrame = static_cast<float>(glfwGetTime());

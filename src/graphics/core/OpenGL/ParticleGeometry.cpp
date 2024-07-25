@@ -74,7 +74,6 @@ void ParticleGeometry::init(const ParticleControl& control) {
     else {
         upperBound = control.upperBound;
         lowerBound = control.lowerBound;
-        Console::println(std::to_string(control.numInstances));
         for (int i = 0; i < control.numInstances; i++) {
             matrixModels.push_back(Utils::Random::createRandomTransform(control.spawnArea, scale));
             weights.push_back(Utils::Random::randomFloat(control.randomRange.x, control.randomRange.y));

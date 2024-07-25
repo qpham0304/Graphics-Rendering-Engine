@@ -86,7 +86,7 @@ int DeferredRender::show_demo() {
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         camera.processInput(SceneRenderer::window);
 
 
@@ -233,7 +233,7 @@ int bloomTest() {
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         camera.processInput(SceneRenderer::window);
 
         float currentFrame = static_cast<float>(glfwGetTime());

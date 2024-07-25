@@ -76,7 +76,7 @@ int BasicRayTracing::show_demo()
 
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
 
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
 

@@ -150,6 +150,9 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <NoEntryPoint>false</NoEntryPoint>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(projectDir)dll\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -168,8 +171,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(projectDir)dll\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\events\EventListener.cpp" />
+    <ClCompile Include="src\events\EventManager.cpp" />
+    <ClCompile Include="src\core\Application.cpp" />
+    <ClCompile Include="src\events\Event.cpp" />
+    <ClCompile Include="src\core\features\Timer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp" />
     <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp" />
     <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp" />
@@ -237,10 +248,15 @@
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\events\EventListener.h" />
+    <ClInclude Include="src\events\EventManager.h" />
+    <ClInclude Include="src\core\Application.h" />
+    <ClInclude Include="src\events\Event.h" />
     <ClInclude Include="Headers\OpenGL\ParticleGeometry.h" />
     <ClInclude Include="Headers\PreCompile.h" />
     <ClInclude Include="src\apps\particle-demo\ParticleDemo.h" />
     <ClInclude Include="src\apps\ray-tracing\BasicRayTracing.h" />
+    <ClInclude Include="src\core\features\Timer.h" />
     <ClInclude Include="src\graphics\renderer\AtmosphereRenderer.h" />
     <ClInclude Include="src\graphics\renderer\Renderer.h" />
     <ClInclude Include="src\graphics\components\headers\ModelComponent.h" />
@@ -259,7 +275,7 @@
     <ClInclude Include="Libraries\include\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImSequencer.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h" />
-    <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h" />
+    <ClInclude Include="src\gui\headers\IconsFontAwesome5.h" />
     <ClInclude Include="src\apps\deferred-rendering\deferred_render_demo.h" />
     <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h" />
     <ClInclude Include="src\graphics\components\headers\LightComponent.h" />

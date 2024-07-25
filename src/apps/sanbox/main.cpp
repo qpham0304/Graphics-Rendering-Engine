@@ -10,40 +10,46 @@
 #include "../deferred-IBL-demo/deferredIBL_demo.h"
 #include "../ray-tracing/BasicRayTracing.h"
 #include "../particle-demo/ParticleDemo.h"
+#include "../../core/Application.h"
 
 int main()
 {
+	Application app;
 	//App app
 	//while(app.running)
 	//app.close
 	//while (true) {
 		try {
-			SceneRenderer::init(PLATFORM_OPENGL);
-			SceneRenderer::start("OpenGL Game Engine");
-			//glfwSwapInterval(0);
-			//SceneRenderer::renderScene();
-			//DemoPBR::run();
-			//AreaLightDemo::run();
-			//DeferredRender::run();
-			//VolumetricLightDemo::run();
-			//SSAO_Demo::run();
-			//SSR_demo::run();
-			//SSR_view_demo::run();
-			//deferredIBL_demo::run();
-			//BasicRayTracing::run();
-			ParticleDemo::run();
-
+			SceneRenderer::RunFunc demo0 = DemoPBR::run;
+			SceneRenderer::RunFunc demo1 = AreaLightDemo::run;
+			SceneRenderer::RunFunc demo2 = DeferredRender::run;
+			SceneRenderer::RunFunc demo3 = VolumetricLightDemo::run;
+			SceneRenderer::RunFunc demo4 = SSAO_Demo::run;
+			SceneRenderer::RunFunc demo5 = SSR_demo::run;
+			SceneRenderer::RunFunc demo6 = SSR_view_demo::run;
+			SceneRenderer::RunFunc demo7 = deferredIBL_demo::run;
+			SceneRenderer::RunFunc demo8 = BasicRayTracing::run;
+			SceneRenderer::RunFunc demo9 = ParticleDemo::run;
 
 			// Trying to be dumb, ignore this
-			std::vector<int (*)()> list;
-			auto lambda = []() -> int(*)() {
-				return &BasicRayTracing::run;
-			};
-			list.push_back(&deferredIBL_demo::run);
-			//list.push_back(lambda());
-			//int res = (int)list[0];
-			//*lambda();
-			SceneRenderer::end();
+			std::vector<int(*)()> list;
+			list.push_back(demo0);
+			list.push_back(demo1);
+			list.push_back(demo2);
+			list.push_back(demo3);
+			list.push_back(demo4);
+			list.push_back(demo5);
+			list.push_back(demo6);
+			list.push_back(demo7);
+			list.push_back(demo8);
+			list.push_back(demo9);
+
+			//SceneRenderer::init(PLATFORM_OPENGL);
+			//SceneRenderer::start("OpenGL Game Engine");
+			//SceneRenderer::renderScene(list[9]);
+			//SceneRenderer::end();
+			app.run();
+
 
 		}
 		catch (const std::runtime_error& e) {

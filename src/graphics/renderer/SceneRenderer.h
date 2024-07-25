@@ -29,6 +29,9 @@ private:
 	static const unsigned int DEFAULT_HEIGHT = 1280;
 	SceneRenderer();
 public:
+	typedef int (*RunFunc)();
+
+	static bool VsyncEnabled;
 	static unsigned int width;
 	static unsigned int height;
 	static Platform platform;
@@ -44,6 +47,7 @@ public:
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
 	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
 	static int renderScene();				// the main rendering part that run the ui and the graphics
+	static int renderScene(RunFunc runFunction);
 	static void renderGuizmo(Component& component, const bool drawCube, const bool drawGrid);
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);

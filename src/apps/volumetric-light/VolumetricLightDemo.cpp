@@ -70,7 +70,7 @@ int VolumetricLightDemo::show_demo() {
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+        camera.onUpdate();
         camera.setCameraSpeed(5);
 
         float currentFrame = static_cast<float>(glfwGetTime());

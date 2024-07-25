@@ -40,7 +40,7 @@ void Camera::ReCalculateProjection()
 	inProjection = glm::inverse(projection);
 }
 
-void Camera::cameraViewUpdate()		
+void Camera::onUpdate()		
 {
 	ReCalculateView();
 	ReCalculateProjection();

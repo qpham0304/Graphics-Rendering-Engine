@@ -2,6 +2,7 @@
 
 unsigned int SceneRenderer::width = DEFAULT_WIDTH;
 unsigned int SceneRenderer::height = DEFAULT_HEIGHT;
+bool SceneRenderer::VsyncEnabled = false;
 
 ImGuizmo::OPERATION SceneRenderer::GuizmoType = ImGuizmo::TRANSLATE;
 Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
@@ -341,7 +342,7 @@ int SceneRenderer::renderScene()
 		}
 
 
-		OpenGLController::cameraController->cameraViewUpdate();
+		OpenGLController::cameraController->onUpdate();
 		glm::mat4 pointLightProjection = glm::perspective(glm::radians(90.0f), float(depthCubeMap.SHADOW_WIDTH) / float(depthCubeMap.SHADOW_HEIGHT), near_plane, far_plane * 2);
 		std::vector<glm::mat4> pointShadowMVP;
 		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
@@ -423,6 +424,14 @@ int SceneRenderer::renderScene()
 		glfwPollEvents();
 	}
 
+	return 0;
+
+}
+
+int SceneRenderer::renderScene(RunFunc runFunction)
+{
+	VsyncEnabled ? glfwSwapInterval(1) : glfwSwapInterval(0);
+	runFunction();
 	return 0;
 }
 

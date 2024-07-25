@@ -7,7 +7,7 @@
 #include<glm/gtc/type_ptr.hpp>
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
-#include<IconsFontAwesome5.h>
+#include "../../src/gui/headers/IconsFontAwesome5.h"
 
 class Widget {
 private:

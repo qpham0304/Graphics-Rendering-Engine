@@ -83,15 +83,13 @@ void ImGuiController::init(GLFWwindow* window, int width, int height)
 	widgets.push_back(std::move(menu));
 }
 
-ImGuiController::~ImGuiController()
-{
-	
-}
+ImGuiController::~ImGuiController() = default;
 
 void ImGuiController::start()
 {
-	if(width == -1 && height == -1)
+	if (width == -1 && height == -1) {
 		throw std::logic_error("Object not fully initialized. Did you call init() function before start?");
+	}
 	
 	// Start the ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();

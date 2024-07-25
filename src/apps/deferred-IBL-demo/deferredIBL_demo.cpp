@@ -300,7 +300,7 @@ int deferredIBL_demo::show_demo()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+        camera.onUpdate();
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
