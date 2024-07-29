@@ -20,19 +20,18 @@ int main()
 	//app.close
 	//while (true) {
 		try {
-			SceneRenderer::RunFunc demo0 = DemoPBR::run;
-			SceneRenderer::RunFunc demo1 = AreaLightDemo::run;
-			SceneRenderer::RunFunc demo2 = DeferredRender::run;
-			SceneRenderer::RunFunc demo3 = VolumetricLightDemo::run;
-			SceneRenderer::RunFunc demo4 = SSAO_Demo::run;
-			SceneRenderer::RunFunc demo5 = SSR_demo::run;
-			SceneRenderer::RunFunc demo6 = SSR_view_demo::run;
-			SceneRenderer::RunFunc demo7 = deferredIBL_demo::run;
-			SceneRenderer::RunFunc demo8 = BasicRayTracing::run;
-			SceneRenderer::RunFunc demo9 = ParticleDemo::run;
+			auto demo0 = DemoPBR::run;
+			auto demo1 = AreaLightDemo::run;
+			auto demo2 = DeferredRender::run;
+			auto demo3 = VolumetricLightDemo::run;
+			auto demo4 = SSAO_Demo::run;
+			auto demo5 = SSR_demo::run;
+			auto demo6 = SSR_view_demo::run;
+			auto demo7 = deferredIBL_demo::run;
+			auto demo8 = BasicRayTracing::run;
+			auto demo9 = ParticleDemo::run;
 
-			// Trying to be dumb, ignore this
-			std::vector<int(*)()> list;
+			std::vector<std::function<int()>>list;
 			list.push_back(demo0);
 			list.push_back(demo1);
 			list.push_back(demo2);

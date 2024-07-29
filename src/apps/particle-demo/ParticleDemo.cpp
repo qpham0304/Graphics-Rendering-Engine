@@ -3,16 +3,18 @@
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
 
+
 int ParticleDemo::show_demo()
 {
     int width = SceneRenderer::width;
     int height = SceneRenderer::height;
+    GLFWwindow* window = SceneRenderer::window;
     Camera camera(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     ImGuiController guiController;
-    bool guiOn = false;
+    bool guiOn = true;
     if (guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(window, width, height);
 
     float speed = 0.001;
     bool pause = true;
@@ -67,9 +69,8 @@ int ParticleDemo::show_demo()
         isPopulating = false;
     };
 
-
     float velocity = 0.0;
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(window)) {
         camera.onUpdate();
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -79,7 +80,7 @@ int ParticleDemo::show_demo()
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -128,11 +129,11 @@ int ParticleDemo::show_demo()
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (firstFrame <= 1) {
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(window);
                     firstFrame++;
                 }
                 else if (ImGui::IsItemHovered()) {
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(window);
                 }
                 ImGui::EndChild();
                 ImGui::End();
@@ -146,11 +147,10 @@ int ParticleDemo::show_demo()
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
             Utils::OpenGL::Draw::drawQuad();
-            camera.processInput(SceneRenderer::window);
+            camera.processInput(window);
         }
-
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(window);
     }
 
     return 0;

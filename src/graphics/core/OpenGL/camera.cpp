@@ -1,46 +1,23 @@
 #include "camera.h"
 
-
 Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
 {
-	this->width = width;
-	this->height = height;
-	this->position = position;
-	this->defaultPosition = position;
-	if (orientation.x == 0.0)
-		orientation.x = 0.01;
-	this->defaultOrientation = orientation;
-	this->orientation = orientation;
-	this->lastX = width / 2;
-	this->lastY = height / 2;
-	this->right = glm::cross(defaultUp, defaultOrientation);
+	Setup(width, height, position);
+	SetupOrientation(orientation);
 }
 
 Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position)
 {
-	this->width = width;
-	this->height = height;
-	this->position = position;
-	this->defaultPosition = position;
-	this->lastX = width / 2;
-	this->lastY = height / 2;
-	this->right = glm::cross(defaultUp, defaultOrientation);
+	Setup(width, height, position);
 }
 
-
-void Camera::ReCalculateView()
+void Camera::Init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
 {
-	view = glm::lookAt(position, position + orientation, up);
-	inView = glm::inverse(view);
+	Setup(width, height, position);
+	SetupOrientation(orientation);
 }
 
-void Camera::ReCalculateProjection()
-{
-	projection = glm::perspective(glm::radians(fov), (float)width / height, nearPlane, farPlane);
-	inProjection = glm::inverse(projection);
-}
-
-void Camera::onUpdate()		
+void Camera::onUpdate()
 {
 	ReCalculateView();
 	ReCalculateProjection();
@@ -291,4 +268,36 @@ void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void Camera::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	processKeyboard(window);
+}
+
+
+void Camera::ReCalculateView()
+{
+	view = glm::lookAt(position, position + orientation, up);
+	inView = glm::inverse(view);
+}
+
+void Camera::ReCalculateProjection()
+{
+	projection = glm::perspective(glm::radians(fov), (float)width / height, nearPlane, farPlane);
+	inProjection = glm::inverse(projection);
+}
+
+void Camera::Setup(unsigned int& width, unsigned int& height, glm::vec3& position)
+{
+	this->width = width;
+	this->height = height;
+	this->position = position;
+	this->defaultPosition = position;
+	this->lastX = width / 2;
+	this->lastY = height / 2;
+	this->right = glm::cross(defaultUp, defaultOrientation);
+}
+
+void Camera::SetupOrientation(glm::vec3& orientation)
+{
+	if (orientation.x == 0.0)		// hack to avoid camera lock at 0.0;
+		orientation.x = 0.01;
+	this->defaultOrientation = orientation;
+	this->orientation = orientation;
 }

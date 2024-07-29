@@ -176,10 +176,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\events\EventListener.cpp" />
+    <ClCompile Include="src\core\layers\LayerManager.cpp" />
+    <ClCompile Include="src\core\layers\EditorLayer.cpp" />
+    <ClCompile Include="src\core\layers\RenderLayer.cpp" />
     <ClCompile Include="src\events\EventManager.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
-    <ClCompile Include="src\events\Event.cpp" />
     <ClCompile Include="src\core\features\Timer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp" />
     <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp" />
@@ -246,8 +247,13 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
+    <ClCompile Include="src\events\WindowEvent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\layers\LayerManager.h" />
+    <ClInclude Include="src\core\layers\EditorLayer.h" />
+    <ClInclude Include="src\core\layers\RenderLayer.h" />
+    <ClInclude Include="src\core\layers\Layer.h" />
     <ClInclude Include="src\events\EventListener.h" />
     <ClInclude Include="src\events\EventManager.h" />
     <ClInclude Include="src\core\Application.h" />
@@ -316,6 +322,7 @@
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
     <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
     <ClInclude Include="src\apps\SSR-demo\SSR_demo.h" />
+    <ClInclude Include="src\events\WindowEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

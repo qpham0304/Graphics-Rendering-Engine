@@ -3,7 +3,14 @@
 
 Timer::Timer()
 {
+    this->label = "default";
     Start();
+}
+
+Timer::Timer(const char* label)
+{
+    Start();
+    this->label = label;
 }
 
 Timer::~Timer() {
@@ -20,6 +27,6 @@ void Timer::Stop()
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     float ms = duration.count() * 1000.0f;
-    const std::string timeTaken = "Operation took: " + std::to_string(ms) + " ms";
+    const std::string timeTaken = "Operation took: " + std::to_string(ms) + " ms " + "label: " + label;
     Console::println(timeTaken);
 }

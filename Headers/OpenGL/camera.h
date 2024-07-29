@@ -39,7 +39,7 @@ private:
 	float lastX;
 	float lastY;
 
-	float speedMultiplier = 1;
+	float speedMultiplier = 1.0;
 	float speed = DEFAULT_SPEED;
 	float sensitivity = DEFAULT_SENSITIVITY;
 	float yaw = DEFAULT_YAW;
@@ -52,6 +52,8 @@ private:
 
 	void ReCalculateView();
 	void ReCalculateProjection();
+	void Setup(unsigned int& width, unsigned int& height, glm::vec3& position);
+	void SetupOrientation(glm::vec3& orientation);
 
 	float fov = DEFAULT_FOV;
 	glm::mat4 view;
@@ -62,6 +64,7 @@ private:
 public:
 	glm::mat4 mvp;	// TODO: arealight demo is coupling this, fix when have time
 
+	Camera() = default;
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	Camera(unsigned int width, unsigned int height, glm::vec3 position);
 	glm::vec3 getPosition();
@@ -78,6 +81,7 @@ public:
 	bool isMoving();
 	float getDeltaTime();
 	
+	void Init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	void onUpdate();
 	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);

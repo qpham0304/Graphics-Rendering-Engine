@@ -428,7 +428,7 @@ int SceneRenderer::renderScene()
 
 }
 
-int SceneRenderer::renderScene(RunFunc runFunction)
+int SceneRenderer::renderScene(std::function<int()> runFunction)
 {
 	VsyncEnabled ? glfwSwapInterval(1) : glfwSwapInterval(0);
 	runFunction();
