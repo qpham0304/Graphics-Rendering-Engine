@@ -15,6 +15,8 @@ static const float DEFAULT_PITCH = 0.0f;
 static const float DEFAULT_FOV = 45.0f;
 static const float DEFAULT_NEARPLANE = 0.1f;
 static const float DEFAULT_FARPLANE = 1000.0f;
+static const unsigned int DEFAULT_WIDTH = 720;
+static const unsigned int DEFAULT_HEIGHT = 1280;
 
 class Camera
 {
@@ -34,8 +36,8 @@ private:
 	bool firstInit = false;
 	bool cameraMove = false;
 
-	int width;
-	int height;
+	unsigned int width;
+	unsigned int height;
 	float lastX;
 	float lastY;
 
@@ -64,7 +66,7 @@ private:
 public:
 	glm::mat4 mvp;	// TODO: arealight demo is coupling this, fix when have time
 
-	Camera() = default;
+	Camera();
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	Camera(unsigned int width, unsigned int height, glm::vec3 position);
 	glm::vec3 getPosition();

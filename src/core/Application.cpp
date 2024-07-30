@@ -14,6 +14,7 @@
 #include "../../src/events/EventManager.h"
 #include "../../src/events/WindowEvent.h"
 #include "features/Timer.h"
+#include "./layers/AppLayer.h"
 
 //Application* application;
 bool guiOn = true;
@@ -32,9 +33,9 @@ struct Point {
 void cursorPos() {
 	std::cout << "Cursor Event" << std::endl;
 }
-void HandleMyEvent(Event& event) {
-	auto& myEvent = static_cast<MouseMoveEvent&>(event);
-	std::cout << "AnotherEvent message: " << myEvent.GetName() << std::endl;
+void HandleMouseEvent(Event& event) {
+	auto& mouseEvent = static_cast<MouseMoveEvent&>(event);
+	std::cout << "AnotherEvent message: " << mouseEvent.GetName() << std::endl;
 };
 
 void Application::run() {
@@ -74,32 +75,43 @@ void Application::run() {
 	eventManager.Subscribe("mouseMoveEvent", mouseMoveListener);
 	eventManager.Subscribe("xyListener", xyListener);
 
-	eventManager.Subscribe(EventType::MouseMoved, HandleMyEvent);
+	eventManager.Subscribe(EventType::MouseMoved, HandleMouseEvent);
 
 	camera.Init(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
 	SkyboxComponent skybox;
 	FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
 	glfwSetWindowUserPointer(SceneRenderer::window, this);
-
+	glfwSwapInterval(1);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
+	
+	layerManager.AddLayer(new AppLayer("Application"));
+	
 	while (isRunning) {
 		//guiController.render();
 
 		//camera.onUpdate();
-		applicationFBO.Bind();
-		glViewport(0.0, 0.0, width, height);
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
-		lightShader.Activate();
-		lightShader.setMat4("mvp", camera.getMVP());
-		lightShader.setMat4("matrix", glm::mat4(1.0));
-		lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
-		Utils::OpenGL::Draw::drawCube();
-		skybox.render(camera);
-		applicationFBO.Unbind();
+		//applicationFBO.Bind();
+		//glViewport(0.0, 0.0, width, height);
+		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
+		//lightShader.Activate();
+		//lightShader.setMat4("mvp", camera.getMVP());
+		//lightShader.setMat4("matrix", glm::mat4(1.0));
+		//lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
+		//Utils::OpenGL::Draw::drawCube();
+		//skybox.render(camera);
+		//applicationFBO.Unbind();
+		for (auto& layer : layerManager) {
+			layer->OnUpdate();
+		}
+
+		for (auto& layer : layerManager) {
+			MouseMoveEvent myEvent(10, 10);
+			layer->OnEvent(myEvent);
+		}
 
 		if (guiOn) {
 			guiController.start();
@@ -127,9 +139,15 @@ void Application::run() {
 				ImVec2 wsize = ImGui::GetWindowSize();
 				int wWidth = static_cast<int>(ImGui::GetWindowWidth());
 				int wHeight = static_cast<int>(ImGui::GetWindowHeight());
-				ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-				if (ImGui::IsItemHovered()) {
-					//camera.processInput(SceneRenderer::window);
+				for (auto& layer : layerManager) {
+					if (layer->GetName() == "Application") {
+						AppLayer* appLayer = static_cast<AppLayer*>(layer);
+						Console::println("getting texture ID:");
+						ImGui::Image((ImTextureID)appLayer->GetTextureID(), wsize, ImVec2(0, 1), ImVec2(1, 0));
+						if (ImGui::IsItemHovered()) {
+							//camera.processInput(SceneRenderer::window);
+						}
+					}
 				}
 				ImGui::EndChild();
 				ImGui::End();
@@ -143,7 +161,7 @@ void Application::run() {
 
 		glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
 		{
-			Timer time("total event cost");
+			Timer time("total cursor event");
 			MouseMoveEvent myEvent(x, y);
 			EventManager::getInstance().Publish(myEvent);
 			Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));

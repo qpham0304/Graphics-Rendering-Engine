@@ -1,6 +1,6 @@
 #include "FrameBuffer.h"
 
-void FrameBuffer::init(
+void FrameBuffer::Init(
 	int width, 
 	int height, 
 	int internalFormat = GL_RGBA16F, 
@@ -35,12 +35,12 @@ void FrameBuffer::init(
 
 FrameBuffer::FrameBuffer(int width, int height)
 {
-	init(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+	Init(width, height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
 }
 
 FrameBuffer::FrameBuffer(int width, int height, int size)
 {
-	init(width, height, size, GL_RGBA, GL_FLOAT, nullptr);
+	Init(width, height, size, GL_RGBA, GL_FLOAT, nullptr);
 }
 
 FrameBuffer::~FrameBuffer()

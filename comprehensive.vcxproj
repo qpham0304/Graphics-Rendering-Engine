@@ -176,6 +176,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\layers\AppLayer.cpp" />
     <ClCompile Include="src\core\layers\LayerManager.cpp" />
     <ClCompile Include="src\core\layers\EditorLayer.cpp" />
     <ClCompile Include="src\core\layers\RenderLayer.cpp" />
@@ -250,6 +251,7 @@
     <ClCompile Include="src\events\WindowEvent.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\core\layers\AppLayer.h" />
     <ClInclude Include="src\core\layers\LayerManager.h" />
     <ClInclude Include="src\core\layers\EditorLayer.h" />
     <ClInclude Include="src\core\layers\RenderLayer.h" />

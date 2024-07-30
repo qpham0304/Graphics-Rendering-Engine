@@ -48,6 +48,7 @@ public:
 			// TLDR: turns C++ into javascript, type safety? what's that
 			if (isCallbackValid<Args...>()) {	// this can kinda avoid the crash
 				auto& cb = std::any_cast<std::function<void(Args...)>&>(callback);
+				Timer time("conversion event");
 				cb(std::forward<Args>(args)...);
 			}
 			else {

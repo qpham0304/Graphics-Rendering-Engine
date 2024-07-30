@@ -1,5 +1,14 @@
 #include "camera.h"
 
+Camera::Camera()
+{
+	width = DEFAULT_WIDTH;
+	height = DEFAULT_HEIGHT;
+	position = glm::vec3(0.0);
+	Setup(width, height, position);
+	SetupOrientation(orientation);
+}
+
 Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
 {
 	Setup(width, height, position);

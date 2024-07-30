@@ -27,6 +27,10 @@ void Timer::Stop()
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     float ms = duration.count() * 1000.0f;
-    const std::string timeTaken = "Operation took: " + std::to_string(ms) + " ms " + "label: " + label;
+    //const std::string timeTaken = "Operation took: " + std::to_string(ms) + " ms " + "label: " + label;
+    
+    std::ostringstream oss;
+    oss << "Operation took: " << ms << " ms " << "label: " << label;
+    std::string timeTaken = oss.str();
     Console::println(timeTaken);
 }

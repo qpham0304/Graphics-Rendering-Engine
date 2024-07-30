@@ -1,21 +1,28 @@
 #pragma once
 
 #include <string>
+#include "../../events/Event.h"
 
 class Layer
 {
-private:
-	std::string m_layerName;
+protected:
+	std::string m_LayerName;
 
 public:
-	Layer(const std::string& name = "default") : m_layerName(name) {};
-	virtual ~Layer() = default;
+	bool m_Enabled;
+	
+	Layer(const std::string& name = "default")
+		: m_LayerName(name), m_Enabled(true) 
+	{
+	}
 
 	virtual void OnAttach() = 0;
 	virtual void OnDetach() = 0;
 	virtual void OnUpdate() = 0;
-	virtual void OnEvent() = 0;
+	virtual void OnEvent(Event& event) = 0;
 
-	const std::string& getName() const { return m_layerName; }
+	const std::string& GetName() const { 
+		return m_LayerName; 
+	}
 };
 

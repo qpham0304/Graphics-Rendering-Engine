@@ -51,9 +51,11 @@ public:
 		}
 	}
 	void Publish(Event& event) {
-		if (callbacks.find(event.GetEventType()) != callbacks.end()) {
-			for (const auto& callback : callbacks[event.GetEventType()]) {
-				callback(event);
+		if (!event.Handled) {
+			if (callbacks.find(event.GetEventType()) != callbacks.end()) {
+				for (const auto& callback : callbacks[event.GetEventType()]) {
+					callback(event);
+				}
 			}
 		}
 		//auto it = callbacks.find(event.GetEventType());

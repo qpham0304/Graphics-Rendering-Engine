@@ -2,12 +2,14 @@
 
 #include <functional>
 #include <camera.h>
+#include "layers/LayerManager.h"
 
 class Application
 {
 private:
 	bool isRunning;
 	Camera camera;
+	LayerManager layerManager;
 
 public:
 	Application();
