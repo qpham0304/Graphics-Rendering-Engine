@@ -20,7 +20,16 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate()
 {
+	Shader frameShaderProgram("src/apps/frame-buffer/framebuffer.vert", "src/apps/frame-buffer/framebuffer.frag");
+	frameShaderProgram.Activate();
+	frameShaderProgram.setFloat("screenTexture", 0);
 
+	auto fbo = LayerManager::getFrameBuffer("first pass");
+	fbo->Bind();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, fbo->texture);
+	Utils::OpenGL::Draw::drawQuad();
+	fbo->Unbind();
 }
 
 void EditorLayer::OnGuiUpdate()

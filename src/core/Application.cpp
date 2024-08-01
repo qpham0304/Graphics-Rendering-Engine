@@ -90,9 +90,16 @@ void Application::run() {
 	//layerManager.AddLayer(new AppLayer("Application"));
 	layerManager.AddLayer(new ParticleDemo("Particle Demo"));
 	layerManager.AddLayer(new EditorLayer("Editor"));
-	
+	layerManager.DisableLayer(0);
+	layerManager.EnableLayer(0);
+	//layerManager[1].m_Enabled = false;
+	//layerManager[1].m_Enabled = true;
+
 	while (isRunning) {
-		for (auto& layer : layerManager) {
+		for (const auto& layer : layerManager) {
+			if (!layer->m_Enabled) {
+				continue;
+			}
 			layer->OnUpdate();
 		}
 		OpenGLController::cameraController->onUpdate();
