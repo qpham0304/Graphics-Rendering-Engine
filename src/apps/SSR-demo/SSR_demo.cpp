@@ -3,14 +3,14 @@
 
 int SSR_demo::show_demo()
 {
-    int width = SceneRenderer::width;
-    int height = SceneRenderer::height;
+    int width = AppWindow::width;
+    int height = AppWindow::height;
 
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     ImGuiController guiController;
     bool guiOn = true;
     if (guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(AppWindow::window, width, height);
 
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
@@ -72,9 +72,9 @@ int SSR_demo::show_demo()
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
         camera.onUpdate();
-        camera.processInput(SceneRenderer::window);
+        camera.processInput(AppWindow::window);
         
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -84,7 +84,7 @@ int SSR_demo::show_demo()
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -155,7 +155,7 @@ int SSR_demo::show_demo()
 
         //SSR addition as a postprocess effect
         colorSceneFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
@@ -212,7 +212,7 @@ int SSR_demo::show_demo()
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)colorSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                 ImGui::EndChild();
                 ImGui::End();
             }
@@ -221,7 +221,7 @@ int SSR_demo::show_demo()
         }
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
 
     return 0;

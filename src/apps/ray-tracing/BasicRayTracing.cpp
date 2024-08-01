@@ -21,13 +21,13 @@ struct Sphere {
 
 int BasicRayTracing::show_demo()
 {
-    int width = SceneRenderer::width;
-    int height = SceneRenderer::height;
+    int width = AppWindow::width;
+    int height = AppWindow::height;
     Camera camera(width, height, glm::vec3(3.0f, 3.5f, 8.0f), glm::vec3(0.0, -0.3, -1.0f));
     ImGuiController guiController;
     bool guiOn = true;
     if (guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(AppWindow::window, width, height);
 
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
@@ -74,7 +74,7 @@ int BasicRayTracing::show_demo()
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
 
         camera.onUpdate();
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -85,7 +85,7 @@ int BasicRayTracing::show_demo()
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -98,7 +98,7 @@ int BasicRayTracing::show_demo()
         rayTracingFBO.Bind();
         !accumulateEnabled || camera.isMoving() ? frameIndex = 1 : frameIndex++;
         if(frameIndex == 1) {
-            glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+            glViewport(0, 0, AppWindow::width, AppWindow::height);
             glClear(GL_COLOR_BUFFER_BIT);
         }
         glClear(GL_DEPTH_BUFFER_BIT);
@@ -138,7 +138,7 @@ int BasicRayTracing::show_demo()
         rayTracingFBO.Unbind();
 
         finalSceneFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Shader accumulateShader("Shaders/postProcess/renderQuad.vert", "src/apps/ray-tracing/accumulateScene.frag");
         accumulateShader.Activate();
@@ -190,11 +190,11 @@ int BasicRayTracing::show_demo()
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)finalSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (firstFrame <= 1) {
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                     firstFrame++;
                 }
                 else if (ImGui::IsItemHovered()) {
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                 }
                 ImGui::EndChild();
                 ImGui::End();
@@ -203,18 +203,18 @@ int BasicRayTracing::show_demo()
             guiController.end();
         }
         else {
-            glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+            glViewport(0, 0, AppWindow::width, AppWindow::height);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderScene.Activate();
             renderScene.setInt("scene", 0);
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, finalSceneFBO.texture);
             Utils::OpenGL::Draw::drawQuad();
-            camera.processInput(SceneRenderer::window);
+            camera.processInput(AppWindow::window);
         }
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
 
     return 0;

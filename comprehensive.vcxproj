@@ -80,7 +80,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -96,7 +96,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -143,6 +143,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,6 +164,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -176,6 +178,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Headers\Input.h" />
     <ClCompile Include="src\core\layers\AppLayer.cpp" />
     <ClCompile Include="src\core\layers\LayerManager.cpp" />
     <ClCompile Include="src\core\layers\EditorLayer.cpp" />
@@ -207,7 +210,7 @@
     <ClCompile Include="src\apps\image-based-rendering\pbr_demo.cpp" />
     <ClCompile Include="src\graphics\components\LightComponent.cpp" />
     <ClCompile Include="src\graphics\utils\Utils.cpp" />
-    <ClCompile Include="src\graphics\renderer\SceneRenderer.cpp" />
+    <ClCompile Include="src\core\features\AppWindow.cpp" />
     <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp" />
     <ClCompile Include="src\apps\sanbox\main.cpp" />
     <ClCompile Include="src\graphics\GraphicsController.cpp" />
@@ -248,7 +251,6 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
-    <ClCompile Include="src\events\WindowEvent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\core\layers\AppLayer.h" />
@@ -289,7 +291,7 @@
     <ClInclude Include="src\graphics\components\headers\LightComponent.h" />
     <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h" />
     <ClInclude Include="src\graphics\utils\headers\Utils.h" />
-    <ClInclude Include="src\graphics\renderer\SceneRenderer.h" />
+    <ClInclude Include="src\core\features\AppWindow.h" />
     <ClInclude Include="src\gui\headers\EntityControlWidget.h" />
     <ClInclude Include="Headers\OpenGL\Axis.h" />
     <ClInclude Include="Headers\OpenGL\FrameBuffer.h" />
@@ -324,7 +326,6 @@
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
     <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
     <ClInclude Include="src\apps\SSR-demo\SSR_demo.h" />
-    <ClInclude Include="src\events\WindowEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

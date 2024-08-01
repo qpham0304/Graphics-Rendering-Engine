@@ -6,7 +6,9 @@
 class FrameBuffer
 {
 public:
-
+	//NOTE: this framebuffer is not flexible with only one texture, only use it to render the general scene
+	//for specific for specific implementation or multiple render target, create a manual one
+	//or use the derrived classes for a specific feature
 	unsigned int FBO;
 	unsigned int RBO;
 	unsigned int texture;

@@ -22,14 +22,15 @@ enum Platform {
 	PLATFORM_UNDEFINED, PLATFORM_OPENGL, PLATFORM_VULKAN, PLATFORM_DIRECTX,
 };
 
-class SceneRenderer
+class AppWindow
 {
 private:
 	static const unsigned int DEFAULT_WIDTH = 720;
 	static const unsigned int DEFAULT_HEIGHT = 1280;
-	SceneRenderer();
-public:
+	AppWindow();
+	static void setEventCallback();
 
+public:
 	static bool VsyncEnabled;
 	static unsigned int width;
 	static unsigned int height;
@@ -43,6 +44,9 @@ public:
 	static int init(Platform platform);		// set up and init the graphics api depending on the platform
 	static int start(const char* title);	// start creating windows and context
 	static int end();						// close and terminate the program
+	static void pollEvents();
+	static void swapBuffer();
+	
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
 	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
 	static int renderScene();				// the main rendering part that run the ui and the graphics

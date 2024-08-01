@@ -5,7 +5,8 @@
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
-#include "Shader.h"
+#include<Shader.h>
+#include<Input.h>
 
 //Camera* currentCamera = nullptr;
 static const float DEFAULT_SPEED = 0.1f;
@@ -87,8 +88,8 @@ public:
 	void onUpdate();
 	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);
-	bool processKeyboard(GLFWwindow* window);
-	bool processMouse(GLFWwindow* window);
+	bool processKeyboard(GLFWwindow* window);	//TODO: refactor to not depend upon glfw window
+	bool processMouse(GLFWwindow* window);		//same here
 	void resetCamera();
 	void setCameraSpeed(int speedMultiplier);
 

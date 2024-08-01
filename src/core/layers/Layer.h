@@ -2,6 +2,7 @@
 
 #include <string>
 #include "../../events/Event.h"
+#include "../../graphics/GraphicsController.h"
 
 class Layer
 {
@@ -19,6 +20,7 @@ public:
 	virtual void OnAttach() = 0;
 	virtual void OnDetach() = 0;
 	virtual void OnUpdate() = 0;
+	virtual void OnGuiUpdate() = 0;
 	virtual void OnEvent(Event& event) = 0;
 
 	const std::string& GetName() const { 

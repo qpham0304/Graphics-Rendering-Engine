@@ -40,15 +40,13 @@ public:
 	}
 
 	//overhead might be high
-	//TODO: if client provides wrong arguments when publishing the event, the app would crash
-	//i.e: the function takes two double but pubslish only give one or three => crash
+	//need to check if client provides wrong arguments when publishing the event otherwise the app would crash
 	template<typename... Args>
 	void onEvent(Args... args) { 
 		if (callback.has_value()) {
 			// TLDR: turns C++ into javascript, type safety? what's that
 			if (isCallbackValid<Args...>()) {	// this can kinda avoid the crash
 				auto& cb = std::any_cast<std::function<void(Args...)>&>(callback);
-				Timer time("conversion event");
 				cb(std::forward<Args>(args)...);
 			}
 			else {

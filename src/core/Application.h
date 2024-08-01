@@ -8,14 +8,12 @@ class Application
 {
 private:
 	bool isRunning;
-	Camera camera;
 	LayerManager layerManager;
 
 public:
 	Application();
 	~Application() = default;
 
-	typedef int (*RunFunc)();
 	void run();
 	bool running();
 	void close();

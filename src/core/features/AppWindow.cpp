@@ -1,19 +1,22 @@
-#include "SceneRenderer.h"
+#include "AppWindow.h"
+#include "Timer.h"
+#include "../../events/Event.h"
+#include "../../events/EventManager.h"
 
-unsigned int SceneRenderer::width = DEFAULT_WIDTH;
-unsigned int SceneRenderer::height = DEFAULT_HEIGHT;
-bool SceneRenderer::VsyncEnabled = false;
+unsigned int AppWindow::width = DEFAULT_WIDTH;
+unsigned int AppWindow::height = DEFAULT_HEIGHT;
+bool AppWindow::VsyncEnabled = false;
 
-ImGuizmo::OPERATION SceneRenderer::GuizmoType = ImGuizmo::TRANSLATE;
-Platform SceneRenderer::platform = PLATFORM_UNDEFINED;
-const std::set<Platform> SceneRenderer::supportPlatform = { PLATFORM_OPENGL };	// add more platform when we support more
+ImGuizmo::OPERATION AppWindow::GuizmoType = ImGuizmo::TRANSLATE;
+Platform AppWindow::platform = PLATFORM_UNDEFINED;
+const std::set<Platform> AppWindow::supportPlatform = { PLATFORM_OPENGL };	// add more platform when we support more
 
 glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 glm::vec4 bgColor(38/255.0f, 43/255.0f, 42/255.0f, 1.0f);
 
-GLFWwindow* SceneRenderer::window = nullptr;
-ImGuiController SceneRenderer::guiController(true);
+GLFWwindow* AppWindow::window = nullptr;
+ImGuiController AppWindow::guiController(true);
 
 bool show_debug_window = true;
 bool face_culling_enabled = true;
@@ -41,7 +44,7 @@ void getUniformBlockSize() {
 	std::cout << "Max Uniform Block Size: " << maxUniformBlockSize << std::endl;
 }
 
-void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
+void AppWindow::renderGuizmo(Component& component, const bool drawCube, const bool drawGrid) {
 	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
 	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);
 
@@ -83,13 +86,13 @@ void SceneRenderer::renderGuizmo(Component& component, const bool drawCube, cons
 	}
 }
 
-int SceneRenderer::init(Platform platform) {
-	SceneRenderer::platform = platform;
+int AppWindow::init(Platform platform) {
+	AppWindow::platform = platform;
 	if (supportPlatform.find(platform)  == supportPlatform.end()) {
 		throw std::runtime_error("Platform unsupported");
 	}
 
-	if (SceneRenderer::platform == PLATFORM_OPENGL) {
+	if (AppWindow::platform == PLATFORM_OPENGL) {
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -121,7 +124,7 @@ int SceneRenderer::init(Platform platform) {
 	return 0;
 }
 
-int SceneRenderer::start(const char* title) {
+int AppWindow::start(const char* title) {
 	if(platform == PLATFORM_UNDEFINED)
 		throw std::runtime_error("Platform not specified have you called init() with supported platform yet?");
 	else if (platform == PLATFORM_OPENGL) {
@@ -136,10 +139,11 @@ int SceneRenderer::start(const char* title) {
 		glfwMakeContextCurrent(window);
 		gladLoadGL();
 	}
+	setEventCallback();
 	return 0;
 }
 
-int SceneRenderer::end() {
+int AppWindow::end() {
 	if (platform == PLATFORM_OPENGL) {
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
@@ -151,7 +155,40 @@ int SceneRenderer::end() {
 	return 0;
 }
 
-void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light) {
+void AppWindow::setEventCallback()
+{
+	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
+	{
+		Timer timer("cursor event");
+		MouseMoveEvent cursorMoveEvent(window, x, y);
+		EventManager::getInstance().Publish(cursorMoveEvent);
+	});
+
+	glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y)
+	{
+		Timer timer("scroll event");
+		MouseScrollEvent scrollEvent(window, x, y);
+		EventManager::getInstance().Publish(scrollEvent);
+		//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
+	});
+
+	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
+	{
+		
+	});
+}
+
+void AppWindow::pollEvents()
+{
+	glfwPollEvents();
+}
+
+void AppWindow::swapBuffer()
+{
+	glfwSwapBuffers(window);
+}
+
+void AppWindow::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light) {
 	shadowMap.Bind();
 	glViewport(0, 0, shadowMap.getWidth(), shadowMap.getHeight());
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -170,7 +207,7 @@ void SceneRenderer::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShad
 	shadowMap.Unbind();
 }
 
-void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint) {
+void AppWindow::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint) {
 	framebuffer.Bind();
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -226,7 +263,7 @@ void SceneRenderer::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depth
 	framebuffer.Unbind();
 }
 
-int SceneRenderer::renderScene() 
+int AppWindow::renderScene() 
 {
 	guiController.init(window, width, height);
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5f, -0.2f, -1.0f));
@@ -428,14 +465,14 @@ int SceneRenderer::renderScene()
 
 }
 
-int SceneRenderer::renderScene(std::function<int()> runFunction)
+int AppWindow::renderScene(std::function<int()> runFunction)
 {
 	VsyncEnabled ? glfwSwapInterval(1) : glfwSwapInterval(0);
 	runFunction();
 	return 0;
 }
 
-void SceneRenderer::processProgramInput(GLFWwindow* window)
+void AppWindow::processProgramInput(GLFWwindow* window)
 {
 	//glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS ? debug = true : debug = false;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -450,7 +487,7 @@ void SceneRenderer::processProgramInput(GLFWwindow* window)
 		OpenGLController::removeComponent(OpenGLController::getSelectedID());
 }
 
-void SceneRenderer::framebuffer_size_callback(GLFWwindow* window, int w, int h)
+void AppWindow::framebuffer_size_callback(GLFWwindow* window, int w, int h)
 {
 	width = w;
 	height = h;

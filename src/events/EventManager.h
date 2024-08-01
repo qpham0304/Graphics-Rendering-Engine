@@ -11,17 +11,14 @@
 #include "EventListener.h"
 #include "../core/features/Timer.h"
 
-template<typename... Args>
-using EventCallback = std::function<void(Args...)>;
-
-//using EventCallback = std::function<void()>;
-//typedef std::function<void()> EventCallback;
 class EventManager
 {
 private:
 	EventManager() = default;
 
 public:
+	using EventCallback = std::function<void(Event&)>;
+
 	~EventManager() = default;
 	
 	static EventManager& getInstance();
@@ -41,7 +38,6 @@ public:
 		}
 	}
 
-	using EventCallback = std::function<void(Event&)>;
 	void Subscribe(EventType eventType, EventCallback callback) {
 		if (callbacks.find(eventType) != callbacks.end()) {
 			callbacks[eventType].emplace_back(std::move(callback));
@@ -51,19 +47,15 @@ public:
 		}
 	}
 	void Publish(Event& event) {
-		if (!event.Handled) {
-			if (callbacks.find(event.GetEventType()) != callbacks.end()) {
-				for (const auto& callback : callbacks[event.GetEventType()]) {
-					callback(event);
+		if (callbacks.find(event.GetEventType()) != callbacks.end()) {
+			for (const auto& callback : callbacks[event.GetEventType()]) {
+				callback(event);
+				if (event.Handled) {
+					break;
 				}
 			}
 		}
-		//auto it = callbacks.find(event.GetEventType());
-		//if (it != callbacks.end()) {
-		//	for (const auto& callback : it->second) {
-		//		callback(event);
-		//	}
-		//}
+		Console::println(std::to_string(callbacks.size()));
 	}
 
 	void Publish(const std::string& event);

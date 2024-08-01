@@ -1,43 +1,100 @@
 #include "ParticleDemo.h"
-#include "ParticleGeometry.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
+#include "../../src/events/EventManager.h"
 
+bool swapCamera = false;
+
+void HandleMouseMoveEvent2(Event& event) {
+    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
+    OpenGLController::cameraController->processMouse(mouseEvent.window);
+    std::cout << "moving... 2" << mouseEvent.GetName() << std::endl;
+}
+
+ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
+{
+    particleRenderer.init(particleControl);
+    Console::println(std::to_string(particleControl.size.z));
+}
+
+void ParticleDemo::OnAttach()
+{
+    AppLayer::OnAttach();
+    appCamera = &camera;
+    OpenGLController::cameraController = &camera;
+    camera = *OpenGLController::cameraController;
+    EventManager& eventManager = EventManager::getInstance();
+    eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent2);
+}
+
+void ParticleDemo::OnDetach()
+{
+    AppLayer::OnDetach();
+}
+
+void ParticleDemo::OnUpdate()
+{
+    Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
+    Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
+    Shader renderScene("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
+
+    applicationFBO.Bind();
+    glViewport(0.0, 0.0, AppWindow::width, AppWindow::height);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    particleRenderer.render(particleShader, camera, numRender, speed, pause);
+    skybox->render(camera);
+    applicationFBO.Unbind();
+}
+
+void ParticleDemo::OnGuiUpdate()
+{
+    AppLayer::OnGuiUpdate();
+    if (ImGui::Begin("control")) {
+        ImGui::BeginChild("gBuffers textures");
+        if(ImGui::Checkbox("switch camera", &swapCamera)) {
+            if (swapCamera) {
+                //camera = *OpenGLController::cameraController;
+            }
+            else {
+                //camera = *appCamera;
+            }
+        }
+        ImVec2 wsize = ImGui::GetWindowSize();
+        ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
+        ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances / 100.0, 0, particleControl.numInstances, 0, true);
+        if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
+            Timer timer;
+            particleRenderer.clear();
+            particleRenderer.init(particleControl);
+            //if (isPopulating) {
+            //    Console::println("populate");
+            //    particleRenderer.matrixModels = matrixModels;
+            //}
+        }
+        ImGui::Checkbox("Pause", &pause);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            particleRenderer.reset();
+        }
+        ImGui::EndChild();
+        ImGui::End();
+    }
+}
+
+void ParticleDemo::OnEvent(Event& event)
+{
+
+}
 
 int ParticleDemo::show_demo()
 {
-    int width = SceneRenderer::width;
-    int height = SceneRenderer::height;
-    GLFWwindow* window = SceneRenderer::window;
+    ParticleDemo* demo = new ParticleDemo("Particle demo");
+
+    int width = AppWindow::width;
+    int height = AppWindow::height;
+    GLFWwindow* window = AppWindow::window;
     Camera camera(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
-    
-    ImGuiController guiController;
-    bool guiOn = true;
-    if (guiOn)
-        guiController.init(window, width, height);
-
-    float speed = 0.001;
-    bool pause = true;
-    bool reset = false;
-    bool isPopulating = false;
-    glm::vec3 spawnArea(100.0, 10.0, 100.0);
-    glm::vec3 direction(0.0, 0.0, 0.0);
-    unsigned int numInstances = 100000;
-    int numRender = numInstances;
-    int heightLimit = 100.0;
-    glm::vec3 particleSize(0.1, 0.1, 0.1);
-    glm::vec2 randomRange(glm::vec2(-5.0, 5.0));
-
-    SkyboxComponent skybox;
-    FrameBuffer applicationFBO(width, height, GL_RGBA16F);
-    ParticleGeometry particleRenderer;
-    ParticleControl particleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
-    particleRenderer.init(particleControl);
-
-    std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
-        components.push_back(pair.second.get());
-    }
 
     float frameCounter = 0.0f;
     float lastFrame = 0.0f;
@@ -46,28 +103,24 @@ int ParticleDemo::show_demo()
     int frameIndex = 1;
     unsigned int cubeVAO = 0;
     unsigned int cubeVBO;
+    
+    ImGuiController guiController;
+    bool guiOn = true;
+    if (guiOn)
+        guiController.init(window, width, height);
 
-    Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
-    Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
-    Shader renderScene("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
+    glm::vec3 particleSize(0.1, 0.1, 0.1);
+
+    SkyboxComponent skybox;
+    FrameBuffer applicationFBO(width, height, GL_RGBA16F);
+
+    std::vector<Component*> components;
+    for (const auto& pair : OpenGLController::components) {
+        components.push_back(pair.second.get());
+    }
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
-
-    //glEnable(GL_CULL_FACE);
-    //glFrontFace(GL_CCW);
-    //glCullFace(GL_FRONT);
-    std::vector<glm::mat4> matrixModels;
-    auto lambda = [particleControl, particleSize, particleRenderer](std::vector<glm::mat4> &list, bool& isPopulating) {
-        isPopulating = true;
-        list.clear();
-        for (int i = 0; i < particleControl.numInstances; i++) {
-            list.push_back(Utils::Random::createRandomTransform(particleControl.spawnArea, particleSize));
-        }
-        std::mutex mtx;
-        std::lock_guard<std::mutex> lock(mtx);
-        isPopulating = false;
-    };
 
     float velocity = 0.0;
     while (!glfwWindowShouldClose(window)) {
@@ -84,13 +137,18 @@ int ParticleDemo::show_demo()
             lastFrame = currentFrame;
             frameCounter = 0;
         }
+
+
+        Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
+        Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
+        Shader renderScene("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
         
         applicationFBO.Bind();
+
         glViewport(0.0, 0.0, width, height);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //particleRenderer.render(lightShader, camera, numRender, speed, pause);
-        particleRenderer.render(particleShader, camera, numRender, speed, pause);
+        demo->particleRenderer.render(particleShader, camera, demo->numRender, demo->speed, demo->pause);
         skybox.render(camera);
 
         applicationFBO.Unbind();
@@ -101,21 +159,21 @@ int ParticleDemo::show_demo()
             if (ImGui::Begin("control")) {
                 ImGui::BeginChild("gBuffers textures");
                 ImVec2 wsize = ImGui::GetWindowSize();
-                ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
-                ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances/100.0, 0, particleControl.numInstances, 0, true);
-                if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
+                ImGui::DragFloat("Falling speed", &demo->speed, 0.01, -10.0, 10.0);
+                ImGui::DragInt("Num Instances", &demo->numRender, demo->particleControl.numInstances/100.0, 0, demo->particleControl.numInstances, 0, true);
+                if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(demo->particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
                     Timer timer;
-                    particleRenderer.clear();
-                    particleRenderer.init(particleControl);
+                    demo->particleRenderer.clear();
+                    demo->particleRenderer.init(demo->particleControl);
                     //if (isPopulating) {
                     //    Console::println("populate");
                     //    particleRenderer.matrixModels = matrixModels;
                     //}
                 }
-                ImGui::Checkbox("Pause", &pause);
+                ImGui::Checkbox("Pause", &demo->pause);
                 ImGui::SameLine();
                 if (ImGui::Button("Reset")) {
-                    particleRenderer.reset();
+                    demo->particleRenderer.reset();
                 }
                 ImGui::EndChild();
                 ImGui::End();
@@ -153,6 +211,7 @@ int ParticleDemo::show_demo()
         glfwSwapBuffers(window);
     }
 
+    delete demo;
     return 0;
 }
 

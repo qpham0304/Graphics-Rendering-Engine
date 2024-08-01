@@ -4,14 +4,14 @@
 #include "../../graphics/GraphicsController.h"
 
 int DeferredRender::show_demo() {
-    float width = SceneRenderer::width;
-    float height = SceneRenderer::height;
+    float width = AppWindow::width;
+    float height = AppWindow::height;
     
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     ImGuiController guiController;
     bool guiOn = true;
     if(guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(AppWindow::window, width, height);
 
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader bloomShader("Shaders/bloom/bloom.vert", "Shaders/bloom/bloom.frag");
@@ -60,7 +60,7 @@ int DeferredRender::show_demo() {
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         
@@ -69,7 +69,7 @@ int DeferredRender::show_demo() {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -87,7 +87,7 @@ int DeferredRender::show_demo() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         camera.onUpdate();
-        camera.processInput(SceneRenderer::window);
+        camera.processInput(AppWindow::window);
 
 
         deferredRenderer.renderColor(camera, lights);
@@ -133,7 +133,7 @@ int DeferredRender::show_demo() {
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                 ImGui::EndChild();
                 ImGui::End();
             }
@@ -142,21 +142,21 @@ int DeferredRender::show_demo() {
         }
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
     return 0;
 }
 
 int bloomTest() {
-    float width = SceneRenderer::width;
-    float height = SceneRenderer::height;
+    float width = AppWindow::width;
+    float height = AppWindow::height;
 
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     bool guiOn = false;
     ImGuiController guiController;
     if(guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(AppWindow::window, width, height);
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -232,9 +232,9 @@ int bloomTest() {
 
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
         camera.onUpdate();
-        camera.processInput(SceneRenderer::window);
+        camera.processInput(AppWindow::window);
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -244,7 +244,7 @@ int bloomTest() {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -306,7 +306,7 @@ int bloomTest() {
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                 ImGui::EndChild();
                 ImGui::End();
             }
@@ -314,7 +314,7 @@ int bloomTest() {
         }
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
     return 0;
 }

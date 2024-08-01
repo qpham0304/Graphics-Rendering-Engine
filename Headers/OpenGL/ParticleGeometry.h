@@ -13,6 +13,7 @@ struct ParticleControl {
 	unsigned int numInstances;
 	glm::vec3 size;
 
+
 	ParticleControl(
 		glm::vec2 randomRange,
 		glm::vec3 spawnArea,

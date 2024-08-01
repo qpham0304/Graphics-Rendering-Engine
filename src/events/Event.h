@@ -2,6 +2,8 @@
 #define BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 #include <string>
+#include<glad/glad.h>
+#include<GLFW/glfw3.h>
 
 enum class EventType {
 	None = 0,
@@ -28,7 +30,9 @@ private:
 	double m_y = 0;
 
 public:
-	MouseMoveEvent(double x, double y) : m_x(x), m_y(y) {}
+	GLFWwindow* window;
+
+	MouseMoveEvent(GLFWwindow*& window, double x, double y) : m_x(x), m_y(y), window(window) {}
 
 	EventType GetEventType() const override {
 		return EventType::MouseMoved;
@@ -44,12 +48,12 @@ public:
 };
 
 class MouseScrollEvent : public Event {
-private:
+public:
 	double m_x = 0;
 	double m_y = 0;
+	GLFWwindow* window;
 
-public:
-	MouseScrollEvent(double x, double y) : m_x(x), m_y(y) {}
+	MouseScrollEvent(GLFWwindow*& window, double x, double y) : m_x(x), m_y(y), window(window) {}
 
 	EventType GetEventType() const override {
 		return EventType::MouseScrolled;
@@ -61,23 +65,5 @@ public:
 
 	std::string ToString() const override {
 		return "MouseScrollEvent";
-	}
-};
-
-class EventDispatcher
-{
-private:
-	Event& m_Event;
-
-public:
-	EventDispatcher(Event& event) : m_Event(event) {}
-
-	template<typename T, typename F>
-	bool Dispatch(const F& func) {
-		if (m_Event.GetEventType() == T::GetStaticType()) {
-			m_Event |= func(static_cast<T&>(m_Event));
-			return true;
-		}
-		return false;
 	}
 };

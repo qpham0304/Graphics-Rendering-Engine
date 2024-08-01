@@ -1,7 +1,7 @@
 #include "pbr_demo.h"
 
 int DemoPBR::show_demo() {
-    Camera camera(SceneRenderer::width, SceneRenderer::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+    Camera camera(AppWindow::width, AppWindow::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -274,13 +274,13 @@ int DemoPBR::show_demo() {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //-----------------------------------------------------------//
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)AppWindow::width / AppWindow::height, 0.1f, 100.0f);
     backgroundShader.Activate();
     backgroundShader.setMat4("projection", projection);
 
     // then before rendering, configure the viewport to the original framebuffer's screen dimensions
     int scrWidth, scrHeight;
-    glfwGetFramebufferSize(SceneRenderer::window, &scrWidth, &scrHeight);
+    glfwGetFramebufferSize(AppWindow::window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
 
     int nrRows = 7;
@@ -296,7 +296,7 @@ int DemoPBR::show_demo() {
 
     Texture emissiveMap("Textures/default/emissive.png", "emissiveMap");
     
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -306,18 +306,18 @@ int DemoPBR::show_demo() {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "PBR - IBL demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentTime;
             frameCounter = 0;
         }
 
         // Clear the color buffer
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         
-        camera.processInput(SceneRenderer::window);
+        camera.processInput(AppWindow::window);
         glm::mat4 model = glm::mat4(1.0f);
 
         pbrShader.Activate();
@@ -411,7 +411,7 @@ int DemoPBR::show_demo() {
         Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
     return 0;
 

@@ -1,5 +1,5 @@
 
-#include "../../graphics/renderer/SceneRenderer.h"
+#include "../../core/features/AppWindow.h"
 #include "../image-based-rendering/pbr_demo.h"
 #include "../deferred-rendering/deferred_render_demo.h"
 #include "../area-light/area_light_demo.h"
@@ -43,12 +43,20 @@ int main()
 			list.push_back(demo8);
 			list.push_back(demo9);
 
-			//SceneRenderer::init(PLATFORM_OPENGL);
-			//SceneRenderer::start("OpenGL Game Engine");
-			//SceneRenderer::renderScene(list[9]);
-			//SceneRenderer::end();
-			app.run();
+		/* 
+			an option for these apps to run independently, without the editor or layer system
+			reason: for simplicity and compatability for apps that are not up to date with the changes
+		*/
+		#define USE_EDITOR
 
+		#ifdef USE_EDITOR
+			app.run();
+		#else
+			AppWindow::init(PLATFORM_OPENGL);
+			AppWindow::start("Rendering  Engine");
+			AppWindow::renderScene(list[9]);
+			AppWindow::end();
+		#endif
 
 		}
 		catch (const std::runtime_error& e) {

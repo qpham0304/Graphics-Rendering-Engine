@@ -3,28 +3,25 @@
 #include "Layer.h"
 #include <FrameBuffer.h>
 #include <memory>
-#include "../../graphics/renderer/SceneRenderer.h"
+#include "../../core/features/AppWindow.h"
 #include <Shader.h>
 
 class AppLayer : public Layer
 {
-private:
-
-public:
+protected:
 	FrameBuffer applicationFBO;
-	//FrameBuffer applicationFBO;
-	//Camera camera;
 	Camera camera;
 	std::unique_ptr<SkyboxComponent> skybox;
 
-
+public:
 	AppLayer(const std::string& name);
 	~AppLayer() = default;
 
 	void OnAttach() override;
 	void OnDetach() override;
 	void OnUpdate() override;
+	void OnGuiUpdate() override;
 	void OnEvent(Event& event) override;
-	const int GetTextureID();
+	const int& GetTextureID();
 };
 
