@@ -174,7 +174,19 @@ void AppWindow::setEventCallback()
 
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 	{
-		
+		//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
+		switch (action) {
+			case GLFW_PRESS: {
+				Console::println("key");
+			}
+			case GLFW_RELEASE: {
+				Console::println("released");
+			}
+			case GLFW_REPEAT: {
+				Console::println("key repeat");
+				//application->camera.processKeyboard(window);
+			}
+		}
 	});
 }
 

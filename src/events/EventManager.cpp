@@ -7,17 +7,31 @@ EventManager& EventManager::getInstance()
 	return instance;
 }
 
-void EventManager::Publish(const std::string& event)
+void EventManager::Subscribe(EventType eventType, EventCallback callback)
 {
-	std::vector<EventListener>& events = listeners[event];
-	for (EventListener& e : events) {
-		e.onEvent();
+	if (callbacks.find(eventType) != callbacks.end()) {
+		callbacks[eventType].emplace_back(std::move(callback));
+	}
+	else {
+		callbacks[eventType] = { std::move(callback) };
 	}
 }
 
-void EventManager::Queue(const std::string& event)
+void EventManager::Publish(Event& event)
 {
-	eventQueue.push(event);
+	if (callbacks.find(event.GetEventType()) != callbacks.end()) {
+		for (const auto& callback : callbacks[event.GetEventType()]) {
+			callback(event);
+			if (event.Handled) {
+				break;
+			}
+		}
+	}
+}
+
+void EventManager::Queue(EventType eventType, EventCallback callback)
+{
+//	eventQueue.push(event);
 }
 
 void EventManager:: Subscribe(const std::string& event, EventListener& listener) {
@@ -26,16 +40,15 @@ void EventManager:: Subscribe(const std::string& event, EventListener& listener)
 	}
 	else {
 		listeners[event] = { std::move(listener) };
-		Console::println(event);
 	}
 }
 
 void EventManager::OnUpdate()
 {
-	while (!eventQueue.empty()) {
-		std::string event = eventQueue.front();
+	//while (!eventQueue.empty()) {
+		//EventType event = eventQueue.front();
 		//PublishAsync(event);
-		Publish(event);
-		eventQueue.pop();
-	}
+		//Publish(event);
+		//eventQueue.pop();
+	//}
 }

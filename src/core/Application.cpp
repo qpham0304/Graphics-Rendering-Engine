@@ -5,6 +5,7 @@
 #include "../../src/events/EventManager.h"
 #include "features/Timer.h"
 #include "./layers/AppLayer.h"
+#include "./layers/EditorLayer.h"
 
 //Application* application;
 bool guiOn = true;
@@ -58,16 +59,16 @@ void Application::run() {
 	EventListener buttonClickListener(clickEvent);
 	eventManager.Subscribe("buttonClickEvent", buttonClickListener);
 
-	auto f = std::function<void(double, double)>([](double, double) {
-		Timer time("f event");
-	});
+	//auto f = std::function<void(double, double)>([](double, double) {
+	//	Timer time("f event");
+	//});
 	//auto f1 = std::function<void(Point)>(mycb);
-	auto f1 = std::function<void(Point)>([](Point p) -> void {
-		Timer timer;
-		glm::mat4 model;
-		glm::translate(model, glm::vec3(1.0));
-		glm::scale(model, glm::vec3(1.0));
-	});
+	//auto f1 = std::function<void(Point)>([](Point p) -> void {
+	//	Timer timer;
+	//	glm::mat4 model;
+	//	glm::translate(model, glm::vec3(1.0));
+	//	glm::scale(model, glm::vec3(1.0));
+	//});
 	//EventListener scrollListener(f);
 	//EventListener mouseMoveListener(f);
 	//EventListener xyListener(f1);
@@ -78,7 +79,6 @@ void Application::run() {
 	eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent);
 	eventManager.Subscribe(EventType::MouseScrolled, HandleMouseScrollEvent);
 
-	//camera.Init(width, height, glm::vec3(-3.5f, 1.5f, 5.5f), glm::vec3(0.5, -0.2, -1.0f));
 	SkyboxComponent skybox;
 	FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
@@ -86,17 +86,16 @@ void Application::run() {
 	glfwSwapInterval(1);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
-	
 
 	//layerManager.AddLayer(new AppLayer("Application"));
 	layerManager.AddLayer(new ParticleDemo("Particle Demo"));
+	layerManager.AddLayer(new EditorLayer("Editor"));
 	
 	while (isRunning) {
 		for (auto& layer : layerManager) {
 			layer->OnUpdate();
 		}
 		OpenGLController::cameraController->onUpdate();
-		//OpenGLController::cameraController->processInput(window);
 		OpenGLController::cameraController->processKeyboard(window);
 
 		if (guiOn) {
@@ -108,49 +107,9 @@ void Application::run() {
 			guiController.end();
 		}
 
-
-		//glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
-		//{
-		//	//Timer time("total cursor event");
-		//	MouseMoveEvent myEvent(window, x, y);
-		//	EventManager::getInstance().Publish(myEvent);
-		//	//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
-		//	//application->camera.processMouse(window);
-		//	//EventManager::getInstance().Publish("mouseMoveEvent", x, y);
-		//	ImGui_ImplGlfw_CursorPosCallback(window, x, y);
-		//});
-
-		//glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y)
-		//{
-		//	//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
-		//	ImGui_ImplGlfw_ScrollCallback(window, x, y);
-		//});
-
-		//glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-		//{
-		//	Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
-		//	switch (action) {
-		//		case GLFW_PRESS: {
-		//			Console::println("key");
-
-		//		}
-
-		//		case GLFW_RELEASE: {
-
-		//			Console::println("released");
-		//		}
-
-		//		case GLFW_REPEAT: {
-		//			Console::println("key repeat");
-		//			//application->camera.processKeyboard(window);
-		//		}
-		//	}
-		//});
-
 		AppWindow::pollEvents();
 		AppWindow::swapBuffer();
 	}
-	//ParticleDemo::run();
 	AppWindow::end();
 }
 

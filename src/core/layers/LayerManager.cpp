@@ -1,10 +1,30 @@
 #include "LayerManager.h"
 
+std::unordered_map<std::string, std::shared_ptr<FrameBuffer>> LayerManager::frameBuffers = {};
+
+
 LayerManager::~LayerManager()
 {
 	for (Layer* layer : m_Layers) {
 		delete layer;
 	}
+}
+
+bool LayerManager::addFrameBuffer(const std::string& name, FrameBuffer& FBO)
+{
+	if (frameBuffers.find(name) == frameBuffers.end()) {
+		frameBuffers[name] = std::make_shared<FrameBuffer>(FBO);
+		return true;
+	}
+	return false;
+}
+
+std::shared_ptr<FrameBuffer> LayerManager::getFrameBuffer(const std::string name)
+{
+	if (frameBuffers.find(name) != frameBuffers.end()) {
+		return frameBuffers[name];
+	}
+	return nullptr;
 }
 
 void LayerManager::AddLayer(Layer* layer)
@@ -40,26 +60,6 @@ std::vector<Layer*>::reverse_iterator LayerManager::rbegin()
 }
 
 std::vector<Layer*>::reverse_iterator LayerManager::rend()
-{
-	return m_Layers.rend();
-}
-
-std::vector<Layer*>::const_iterator LayerManager::begin() const
-{
-	return m_Layers.begin();
-}
-
-std::vector<Layer*>::const_iterator LayerManager::end() const
-{
-	return m_Layers.end();
-}
-
-std::vector<Layer*>::const_reverse_iterator LayerManager::rbegin() const
-{
-	return m_Layers.rbegin();
-}
-
-std::vector<Layer*>::const_reverse_iterator LayerManager::rend() const
 {
 	return m_Layers.rend();
 }

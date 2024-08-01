@@ -24,7 +24,6 @@ private:
 
 	ParticleControl particleControl = ParticleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
 	ParticleGeometry particleRenderer;
-	Camera* appCamera;
 
 public: 
 	ParticleDemo(const std::string& name);

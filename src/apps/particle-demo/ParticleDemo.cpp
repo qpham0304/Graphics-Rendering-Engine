@@ -2,6 +2,7 @@
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
 #include "../../src/events/EventManager.h"
+#include "../../core/layers/LayerManager.h"
 
 bool swapCamera = false;
 
@@ -20,11 +21,11 @@ ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 void ParticleDemo::OnAttach()
 {
     AppLayer::OnAttach();
-    appCamera = &camera;
     OpenGLController::cameraController = &camera;
     camera = *OpenGLController::cameraController;
     EventManager& eventManager = EventManager::getInstance();
     eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent2);
+    LayerManager::addFrameBuffer("first pass", applicationFBO);
 }
 
 void ParticleDemo::OnDetach()
