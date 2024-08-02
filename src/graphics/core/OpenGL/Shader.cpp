@@ -7,7 +7,7 @@ static bool validateFormat(const char* str) {
 	return false;
 }
 
-Shader::Shader(const char* vertexFile, const char* fragmentFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile) : ID(0)
 {
 	try {
 		ID = createShader(vertexFile, fragmentFile);
@@ -17,7 +17,7 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	}
 }
 
-Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)  : ID(0)
 {
 	try {
 		ID = createShader(vertexFile, fragmentFile, geometryFile);
@@ -27,9 +27,8 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 	}
 }
 
-Shader::Shader()
+Shader::Shader() : ID(0)
 {
-	ID = 0;
 	type = "";
 }
 

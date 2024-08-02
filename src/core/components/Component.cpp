@@ -1,4 +1,4 @@
-#include "headers/Component.h"
+#include "./Component.h"
 
 Component::Component() {
 	modelMatrix = glm::mat4(1.0f);

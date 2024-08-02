@@ -1,7 +1,7 @@
 
 #include "deferred_render_demo.h"
 #include "../../graphics/core/OpenGL/deferredRenderer.h"
-#include "../../graphics/GraphicsController.h"
+#include "../../core/scene/SceneManager.h"
 
 int DeferredRender::show_demo() {
     float width = AppWindow::width;
@@ -18,9 +18,9 @@ int DeferredRender::show_demo() {
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
 
     SkyboxComponent skybox("Textures/night-skybox");
-    OpenGLController::addComponent("Models/backpack/backpack.obj");
+    SceneManager::addComponent("Models/backpack/backpack.obj");
     std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
+    for (const auto& pair : SceneManager::components) {
         components.push_back(pair.second.get());
     }
 

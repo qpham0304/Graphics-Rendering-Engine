@@ -74,7 +74,8 @@ void ParticleGeometry::init(const ParticleControl& control) {
     else {
         upperBound = control.upperBound;
         lowerBound = control.lowerBound;
-        for (int i = 0; i < control.numInstances; i++) {
+        // can preallocate an array given num Instances instead to avoid vector resize
+        for (int i = 0; i < control.numInstances; i++) {    
             matrixModels.push_back(Utils::Random::createRandomTransform(control.spawnArea, scale));
             weights.push_back(Utils::Random::randomFloat(control.randomRange.x, control.randomRange.y));
             flyDirections.push_back(glm::vec3(0.0, 0.0, 0.0));
@@ -84,7 +85,7 @@ void ParticleGeometry::init(const ParticleControl& control) {
         }
         if (firstInit) {
             glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_DYNAMIC_DRAW);
 
             glBindVertexArray(cubeVAO);
             glEnableVertexAttribArray(0);
@@ -95,7 +96,7 @@ void ParticleGeometry::init(const ParticleControl& control) {
             glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 
             glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-            glBufferData(GL_ARRAY_BUFFER, matrixModels.size() * sizeof(glm::mat4), &matrixModels[0], GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, matrixModels.size() * sizeof(glm::mat4), &matrixModels[0], GL_DYNAMIC_DRAW);
 
             for (int i = 0; i < 4; i++) {
                 glEnableVertexAttribArray(3 + i);

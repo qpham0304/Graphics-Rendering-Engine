@@ -83,6 +83,9 @@
         "future": "cpp",
         "ranges": "cpp",
         "span": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "any": "cpp",
+        "queue": "cpp",
+        "variant": "cpp"
     }
 }

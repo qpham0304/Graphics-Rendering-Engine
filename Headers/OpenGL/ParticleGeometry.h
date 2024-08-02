@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../src/graphics/components/headers/Component.h"
+#include "../../src/core/components/Component.h"
 
 #include <memory>
 #include <Shader.h>

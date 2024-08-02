@@ -3,7 +3,7 @@
 #include <DepthMap.h>
 #include <memory>
 #include <Shader.h>
-#include "../../components/headers/component.h"
+#include "../../src/core/components/component.h"
 
 class ShadowMapRenderer
 {

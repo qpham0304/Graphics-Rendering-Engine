@@ -48,7 +48,7 @@ int BasicRayTracing::show_demo()
     FrameBuffer finalSceneFBO(width, height);
 
     std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
+    for (const auto& pair : SceneManager::components) {
         components.push_back(pair.second.get());
     }
 

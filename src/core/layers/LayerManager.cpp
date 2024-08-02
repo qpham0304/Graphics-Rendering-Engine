@@ -5,6 +5,12 @@
     throw std::runtime_error(msg); \
 }
 
+#define FRAME_NOT_FOUND_ERROR(name) { \
+    std::string msg = "Framebuffer does not exist: \"" + name + "\""; \
+    throw std::runtime_error(msg); \
+}
+
+
 std::unordered_map<std::string, std::shared_ptr<FrameBuffer>> LayerManager::frameBuffers = {};
 
 bool LayerManager::boundCheck(const int& index) {
@@ -40,6 +46,7 @@ std::shared_ptr<FrameBuffer> LayerManager::getFrameBuffer(const std::string name
 	if (frameBuffers.find(name) != frameBuffers.end()) {
 		return frameBuffers[name];
 	}
+	//FRAME_NOT_FOUND_ERROR(name);
 	return nullptr;
 }
 

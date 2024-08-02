@@ -1,4 +1,4 @@
-#include "./headers/LightComponent.h"
+#include "./LightComponent.h"
 
 LightComponent::LightComponent(glm::vec3 position, glm::vec4 color)
 {

@@ -141,6 +141,9 @@ namespace Utils::OpenGL::Draw {
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
 	}
 
 	void drawQuad(unsigned int& quadVAO, unsigned int& quadVBO) {
@@ -160,6 +163,9 @@ namespace Utils::OpenGL::Draw {
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
 	}
 
 	void drawInstancedCube(unsigned int& numInstances, std::vector<glm::mat4>& matrixModels) {
@@ -205,12 +211,13 @@ namespace Utils::OpenGL::Draw {
 			glVertexAttribDivisor(3 + i, 1); // Set attribute divisor to 1 for instanced rendering
 		}
 
-
-
 		// render Cube
 		glBindVertexArray(cubeVAO);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, numInstances);
 		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &cubeVAO);
+		glDeleteBuffers(1, &cubeVBO);
 	}
 
 	void drawQuadNormals() {
@@ -245,6 +252,9 @@ namespace Utils::OpenGL::Draw {
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
 	}
 
 	void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO) {
@@ -271,35 +281,41 @@ namespace Utils::OpenGL::Draw {
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+
+		// glDeleteVertexArrays(1, &cubeVAO);
+		// glDeleteBuffers(1, &cubeVBO);
 	}
 
-	void drawCube() {
-		unsigned int cubeVAO = 0;
-		unsigned int cubeVBO;
+	// void drawCube() {
+	// 	unsigned int cubeVAO = 0;
+	// 	unsigned int cubeVBO;
 
-		if (cubeVAO == 0)
-		{
-			glGenVertexArrays(1, &cubeVAO);
-			glGenBuffers(1, &cubeVBO);
+	// 	if (cubeVAO == 0)
+	// 	{
+	// 		glGenVertexArrays(1, &cubeVAO);
+	// 		glGenBuffers(1, &cubeVBO);
 
-			glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	// 		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	// 		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
-			glBindVertexArray(cubeVAO);
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
-		}
-		// render Cube
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-	}
+	// 		glBindVertexArray(cubeVAO);
+	// 		glEnableVertexAttribArray(0);
+	// 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	// 		glEnableVertexAttribArray(1);
+	// 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	// 		glEnableVertexAttribArray(2);
+	// 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	// 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// 		glBindVertexArray(0);
+	// 	}
+	// 	// render Cube
+	// 	glBindVertexArray(cubeVAO);
+	// 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	// 	glBindVertexArray(0);
+
+	// 	glDeleteVertexArrays(1, &cubeVAO);
+	// 	glDeleteBuffers(1, &cubeVBO);
+	// }
 
 	void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount)
 	{

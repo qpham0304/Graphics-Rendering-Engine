@@ -1,15 +1,15 @@
-#include "GraphicsController.h"
+#include "SceneManager.h"
 
-std::unordered_map<std::string, std::unique_ptr<Component>> OpenGLController::components = {};
-std::unordered_map<std::string, Shader> OpenGLController::shaders = {};
-Camera* OpenGLController::cameraController = nullptr;
-std::string OpenGLController::selectedID = "";
-std::unordered_map<std::string, std::unique_ptr<LightComponent>> OpenGLController::lights = {};
+std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
+std::unordered_map<std::string, std::unique_ptr<Shader>> SceneManager::shaders = {};
+Camera* SceneManager::cameraController = nullptr;
+std::string SceneManager::selectedID = "";
+std::unordered_map<std::string, std::unique_ptr<LightComponent>> SceneManager::lights = {};
 
 
-bool OpenGLController::gammaCorrection = true;
+bool SceneManager::gammaCorrection = true;
 
-void OpenGLController::renderPBR(Light& light, UniformProperties& uniforms)
+void SceneManager::renderPBR(Light& light, UniformProperties& uniforms)
 {
 	//TODO: horrendous solution for now, find a better one
 	std::vector<Light*> ls;
@@ -28,7 +28,7 @@ void OpenGLController::renderPBR(Light& light, UniformProperties& uniforms)
 	}
 }
 
-void OpenGLController::render(std::vector<Light> lights, UniformProperties& uniforms)
+void SceneManager::render(std::vector<Light> lights, UniformProperties& uniforms)
 {
 	//for (auto& pair : lights) {
 	//	std::string id = pair.first;
@@ -45,7 +45,7 @@ void OpenGLController::render(std::vector<Light> lights, UniformProperties& unif
 	}
 }
 
-void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
+void SceneManager::renderShadow(Shader& shadowMapShader, Light& light)
 {
 	shadowMapShader.Activate();
 	//shadowMapShader.setMat4("mvp", light.mvp);
@@ -54,7 +54,7 @@ void OpenGLController::renderShadow(Shader& shadowMapShader, Light& light)
 	}
 }
 
-Component* OpenGLController::getComponent(std::string id)
+Component* SceneManager::getComponent(std::string id)
 {
 	if (components.find(id) != components.end()) {
 		return components[id].get();
@@ -62,7 +62,7 @@ Component* OpenGLController::getComponent(std::string id)
 	return nullptr;
 }
 
-Component* OpenGLController::getSelectedComponent()
+Component* SceneManager::getSelectedComponent()
 {
 	if (selectedID.empty()) {
 		return nullptr;
@@ -70,7 +70,7 @@ Component* OpenGLController::getSelectedComponent()
 	return getComponent(selectedID);
 }
 
-std::string OpenGLController::addComponent(Component& component)
+std::string SceneManager::addComponent(Component& component)
 {
 	std::string id = component.getID();
 	if (components.find(id) == components.end()) {
@@ -81,7 +81,7 @@ std::string OpenGLController::addComponent(Component& component)
 	return "";
 }
 
-std::string OpenGLController::addComponent(const char* path)
+std::string SceneManager::addComponent(const char* path)
 {
 	try {
 		std::unique_ptr<Component> component = std::make_unique<Component>(path);
@@ -98,11 +98,11 @@ std::string OpenGLController::addComponent(const char* path)
 	}
 }
 
-std::string OpenGLController::addPointLight(glm::vec3 position, glm::vec4 color)
+std::string SceneManager::addPointLight(glm::vec3 position, glm::vec4 color)
 {
 	try {
 		std::string id = Utils::uuid::get_uuid();
-		OpenGLController::lights[id].reset(new LightComponent(position, color));
+		SceneManager::lights[id].reset(new LightComponent(position, color));
 		return id;
 	}
 	catch (const std::runtime_error& e) {
@@ -110,12 +110,12 @@ std::string OpenGLController::addPointLight(glm::vec3 position, glm::vec4 color)
 	}
 }
 
-void OpenGLController::updatecomponent(std::string id)
+void SceneManager::updatecomponent(std::string id)
 {
 	components[id]->select();
 }
 
-void OpenGLController::removeComponent(std::string id)
+void SceneManager::removeComponent(std::string id)
 {
 	if (components.find(id) != components.end() && components[id]->isSelected()) {
 		components[id].reset();
@@ -126,17 +126,17 @@ void OpenGLController::removeComponent(std::string id)
 	}
 }
 
-void OpenGLController::addShader()
+void SceneManager::addShader()
 {
 
 }
 
-void OpenGLController::removeShader()
+void SceneManager::removeShader()
 {
 
 }
 
-int OpenGLController::getNumVertices()
+int SceneManager::getNumVertices()
 {
 	int countVertices = 0;
 	for (auto& pair : components) {
@@ -145,11 +145,11 @@ int OpenGLController::getNumVertices()
 	return countVertices;
 }
 
-void OpenGLController::setSelectedID(std::string id)
+void SceneManager::setSelectedID(std::string id)
 {
 	selectedID = id;
 }
 
-std::string OpenGLController::getSelectedID() {
+std::string SceneManager::getSelectedID() {
 	return selectedID;
 }

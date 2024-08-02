@@ -3,7 +3,7 @@
 #include "Mesh.h"
 #include "model.h"
 #include <FrameBuffer.h>
-#include "../../graphics/components/headers/PlaneComponent.h"
+#include "../../core/components/s/PlaneComponent.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);

@@ -44,7 +44,6 @@ public:
 	template<typename... Args>
 	void onEvent(Args... args) { 
 		if (callback.has_value()) {
-			// TLDR: turns C++ into javascript, type safety? what's that
 			if (isCallbackValid<Args...>()) {	// this can kinda avoid the crash
 				auto& cb = std::any_cast<std::function<void(Args...)>&>(callback);
 				cb(std::forward<Args>(args)...);

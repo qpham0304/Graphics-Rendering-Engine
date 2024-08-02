@@ -35,7 +35,7 @@ public:
 	void OnGuiUpdate() override;
 	void OnEvent(Event& event) override;
 
-	//run the demo without the editor
+	//can run the demo without the editor
 	static int show_demo();
 	static int run();
 };

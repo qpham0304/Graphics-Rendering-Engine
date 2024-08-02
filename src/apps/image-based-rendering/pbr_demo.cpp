@@ -316,7 +316,7 @@ int DemoPBR::show_demo() {
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        
+        camera.onUpdate();
         camera.processInput(AppWindow::window);
         glm::mat4 model = glm::mat4(1.0f);
 

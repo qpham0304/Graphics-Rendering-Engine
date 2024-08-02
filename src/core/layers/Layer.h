@@ -2,7 +2,7 @@
 
 #include <string>
 #include "../../events/Event.h"
-#include "../../graphics/GraphicsController.h"
+#include "../../core/scene/SceneManager.h"
 
 class Layer
 {

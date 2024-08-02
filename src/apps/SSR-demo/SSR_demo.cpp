@@ -31,9 +31,9 @@ int SSR_demo::show_demo()
     FrameBuffer applicationFBO(width, height);
     FrameBuffer colorSceneFBO(width, height);
 
-    OpenGLController::addComponent("Models/backpack/backpack.obj");
+    SceneManager::addComponent("Models/backpack/backpack.obj");
     std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
+    for (const auto& pair : SceneManager::components) {
         components.push_back(pair.second.get());
     }
 

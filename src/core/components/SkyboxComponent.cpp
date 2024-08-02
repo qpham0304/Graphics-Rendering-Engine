@@ -1,4 +1,4 @@
-#include "headers/SkyboxComponent.h"
+#include "SkyboxComponent.h"
 
 void SkyboxComponent::setup()
 {

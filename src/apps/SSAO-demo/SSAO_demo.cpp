@@ -20,9 +20,9 @@ int SSAO_Demo::show_demo()
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
 
     //SkyboxComponent skybox("Textures/night-skybox");
-    OpenGLController::addComponent("Models/backpack/backpack.obj");
+    SceneManager::addComponent("Models/backpack/backpack.obj");
     std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
+    for (const auto& pair : SceneManager::components) {
         components.push_back(pair.second.get());
     }
 

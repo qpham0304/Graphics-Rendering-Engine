@@ -20,16 +20,21 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate()
 {
+	Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
+	Shader modelShader("Shaders/models.vert", "Shaders/model.frag");
+	Shader bloomShader("Shaders/bloom/bloom.vert", "Shaders/bloom/bloom.frag");
+
 	Shader frameShaderProgram("src/apps/frame-buffer/framebuffer.vert", "src/apps/frame-buffer/framebuffer.frag");
 	frameShaderProgram.Activate();
 	frameShaderProgram.setFloat("screenTexture", 0);
-
 	auto fbo = LayerManager::getFrameBuffer("first pass");
-	fbo->Bind();
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, fbo->texture);
-	Utils::OpenGL::Draw::drawQuad();
-	fbo->Unbind();
+	if (fbo) {
+		fbo->Bind();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fbo->texture);
+		Utils::OpenGL::Draw::drawQuad();
+		fbo->Unbind();
+	}
 }
 
 void EditorLayer::OnGuiUpdate()
@@ -40,9 +45,6 @@ void EditorLayer::OnGuiUpdate()
 	auto fbo = LayerManager::getFrameBuffer("first pass");
 	if (fbo) {
 		ImGui::Image((ImTextureID)fbo->texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-	}
-	else {
-		Console::println("cannot get texture");
 	}
 	ImGui::EndChild();
 	ImGui::End();

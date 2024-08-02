@@ -93,7 +93,7 @@ namespace Utils::OpenGL {
         void drawInstancedCube(unsigned int& numInstances, std::vector<glm::mat4>& matrixModels);
         void drawQuadNormals();
         void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO);
-        void drawCube();
+        // void drawCube();
         void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount);
         void drawSkyDome();
     };

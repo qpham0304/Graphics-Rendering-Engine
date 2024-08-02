@@ -12,11 +12,11 @@
 #include <mutex>
 #include <thread>
 #include "../../gui/GuiController.h"
-#include "../../graphics/GraphicsController.h"
+#include "../../core/scene/SceneManager.h"
 #include "../../graphics/utils/headers/utils.h"
-#include "../../graphics/components/headers/SkyboxComponent.h"
-#include "../../graphics/components/headers/GridComponent.h"
-#include "../../graphics/components/headers/LightComponent.h"
+#include "../../core/components/SkyboxComponent.h"
+#include "../../core/components/GridComponent.h"
+#include "../../core/components/LightComponent.h"
 
 enum Platform {
 	PLATFORM_UNDEFINED, PLATFORM_OPENGL, PLATFORM_VULKAN, PLATFORM_DIRECTX,
@@ -49,7 +49,7 @@ public:
 	
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
 	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
-	static int renderScene();				// the main rendering part that run the ui and the graphics
+	static int renderScene();
 	static int renderScene(std::function<int()> runFunction);
 	static void renderGuizmo(Component& component, const bool drawCube, const bool drawGrid);
 

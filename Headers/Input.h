@@ -152,4 +152,5 @@ public:
 
 	static int GetMouseButton(MouseCodes);
 	static int GetCursorPos(MouseCodes);
+	static int GetKey(MouseCodes);
 };

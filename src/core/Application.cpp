@@ -2,10 +2,12 @@
 
 #include "../core/features/AppWindow.h"
 #include "../../src/apps/particle-demo/ParticleDemo.h"
+#include "../../src/apps/deferred-IBL-demo/deferredIBL_demo.h"
 #include "../../src/events/EventManager.h"
 #include "features/Timer.h"
 #include "./layers/AppLayer.h"
 #include "./layers/EditorLayer.h"
+#include "entt.hpp"
 
 //Application* application;
 bool guiOn = true;
@@ -24,18 +26,18 @@ struct Point {
 void cursorPos() {
 	std::cout << "Cursor Event" << std::endl;
 }
-
+// /components/headers
 void HandleMouseMoveEvent(Event& event) {
 	MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-	OpenGLController::cameraController->processMouse(mouseEvent.window);
-	std::cout << "moving... " << mouseEvent.GetName() << std::endl;
+	if (SceneManager::cameraController) {
+		SceneManager::cameraController->processMouse(mouseEvent.window);
+	}
 	event.Handled = true;
 };
 
 void HandleMouseScrollEvent(Event& event) {
 	MouseScrollEvent& mouseEvent = static_cast<MouseScrollEvent&>(event);
-	OpenGLController::cameraController->scroll_callback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
-	std::cout << "scrolling... " << mouseEvent.GetName() << std::endl;
+	SceneManager::cameraController->scroll_callback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
 	//ImGui_ImplGlfw_ScrollCallback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
 };
 
@@ -88,10 +90,11 @@ void Application::run() {
 	glEnable(GL_DEPTH_TEST);
 
 	//layerManager.AddLayer(new AppLayer("Application"));
-	layerManager.AddLayer(new ParticleDemo("Particle Demo"));
+	//layerManager.AddLayer(new ParticleDemo("Particle Demo"));
+	layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
 	layerManager.AddLayer(new EditorLayer("Editor"));
-	layerManager.DisableLayer(0);
-	layerManager.EnableLayer(0);
+	layerManager.DisableLayer(1);
+	//layerManager.EnableLayer(1);
 	//layerManager[1].m_Enabled = false;
 	//layerManager[1].m_Enabled = true;
 
@@ -102,8 +105,11 @@ void Application::run() {
 			}
 			layer->OnUpdate();
 		}
-		OpenGLController::cameraController->onUpdate();
-		OpenGLController::cameraController->processKeyboard(window);
+
+		if (SceneManager::cameraController != nullptr) {
+			SceneManager::cameraController->onUpdate();
+			SceneManager::cameraController->processKeyboard(window);
+		}
 
 		if (guiOn) {
 			guiController.start();

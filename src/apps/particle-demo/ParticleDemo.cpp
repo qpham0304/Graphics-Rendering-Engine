@@ -1,28 +1,23 @@
 #include "ParticleDemo.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
-#include "../../src/events/EventManager.h"
-#include "../../core/layers/LayerManager.h"
-
-bool swapCamera = false;
 
 void HandleMouseMoveEvent2(Event& event) {
     MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-    OpenGLController::cameraController->processMouse(mouseEvent.window);
+    SceneManager::cameraController->processMouse(mouseEvent.window);
     std::cout << "moving... 2" << mouseEvent.GetName() << std::endl;
 }
 
 ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
-    Console::println(std::to_string(particleControl.size.z));
 }
 
 void ParticleDemo::OnAttach()
 {
     AppLayer::OnAttach();
-    OpenGLController::cameraController = &camera;
-    camera = *OpenGLController::cameraController;
+    SceneManager::cameraController = &camera;
+    camera = *SceneManager::cameraController;
     EventManager& eventManager = EventManager::getInstance();
     eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent2);
     LayerManager::addFrameBuffer("first pass", applicationFBO);
@@ -53,14 +48,6 @@ void ParticleDemo::OnGuiUpdate()
     AppLayer::OnGuiUpdate();
     if (ImGui::Begin("control")) {
         ImGui::BeginChild("gBuffers textures");
-        if(ImGui::Checkbox("switch camera", &swapCamera)) {
-            if (swapCamera) {
-                //camera = *OpenGLController::cameraController;
-            }
-            else {
-                //camera = *appCamera;
-            }
-        }
         ImVec2 wsize = ImGui::GetWindowSize();
         ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
         ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances / 100.0, 0, particleControl.numInstances, 0, true);
@@ -116,7 +103,7 @@ int ParticleDemo::show_demo()
     FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
     std::vector<Component*> components;
-    for (const auto& pair : OpenGLController::components) {
+    for (const auto& pair : SceneManager::components) {
         components.push_back(pair.second.get());
     }
 

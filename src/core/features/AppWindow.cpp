@@ -51,8 +51,8 @@ void AppWindow::renderGuizmo(Component& component, const bool drawCube, const bo
 	float viewManipulateRight = ImGui::GetIO().DisplaySize.x;
 	float viewManipulateTop = 0;
 
-	auto v = &OpenGLController::cameraController->getViewMatrix()[0][0];
-	auto p = glm::value_ptr(OpenGLController::cameraController->getProjectionMatrix());
+	auto v = &SceneManager::cameraController->getViewMatrix()[0][0];
+	auto p = glm::value_ptr(SceneManager::cameraController->getProjectionMatrix());
 	glm::mat4 transform = component.getModelMatrix();
 	glm::vec3 originRotation = component.rotationVector;
 
@@ -214,7 +214,7 @@ void AppWindow::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, 
 	}
 	else
 		glDisable(GL_CULL_FACE);
-	OpenGLController::renderShadow(shadowMapShader, light);
+	SceneManager::renderShadow(shadowMapShader, light);
 
 	shadowMap.Unbind();
 }
@@ -261,13 +261,13 @@ void AppWindow::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap,
 	float dt = currentTime - lf;
 	lf = currentTime;
 	if (animate_enable && !id.empty()) {
-		if (OpenGLController::getComponent(id) != nullptr)
-			OpenGLController::getComponent(id)->updateAnimation(dt);
+		if (SceneManager::getComponent(id) != nullptr)
+			SceneManager::getComponent(id)->updateAnimation(dt);
 	}
 
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
 	//glStencilMask(0xFF);
-	OpenGLController::render(lights, uniforms);
+	SceneManager::render(lights, uniforms);
 	//glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 	//glStencilMask(0x00);
 	//glDisable(GL_DEPTH_TEST);
@@ -279,23 +279,23 @@ int AppWindow::renderScene()
 {
 	guiController.init(window, width, height);
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5f, -0.2f, -1.0f));
-	OpenGLController::cameraController = &camera;
+	SceneManager::cameraController = &camera;
 	
 	SkyboxComponent skybox("Textures/skybox");
 	skybox.setUniform();
 
 	glm::vec3 translate(5.0f, 0.0f, 2.0f);
 	glm::vec3 scaleVector(0.5f, 0.5f, 0.5f);
-	std::string cubeID = OpenGLController::addComponent("Models/planet/planet.obj");
-	OpenGLController::getComponent(cubeID)->translate(translate);
-	std::string reimuID = OpenGLController::addComponent("Models/reimu/reimu.obj");
+	std::string cubeID = SceneManager::addComponent("Models/planet/planet.obj");
+	SceneManager::getComponent(cubeID)->translate(translate);
+	std::string reimuID = SceneManager::addComponent("Models/reimu/reimu.obj");
 	translate += glm::vec3(0.0f, 3.0f, 0.0f);
-	OpenGLController::getComponent(reimuID)->translate(translate);
-	OpenGLController::getComponent(reimuID)->scale(scaleVector);
-	id = OpenGLController::addComponent("Models/aru/aru.gltf");
-	OpenGLController::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
+	SceneManager::getComponent(reimuID)->translate(translate);
+	SceneManager::getComponent(reimuID)->scale(scaleVector);
+	id = SceneManager::addComponent("Models/aru/aru.gltf");
+	SceneManager::getComponent(id)->loadAnimation("Models/aru/aru.gltf");
 	translate += glm::vec3(-9.0f, 1.0f, 2.0f);
-	OpenGLController::getComponent(id)->translate(translate);
+	SceneManager::getComponent(id)->translate(translate);
 
 	Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 	Shader pointShadowShader("Shaders/shadow/pointShadowsDepth.vert", 
@@ -351,7 +351,7 @@ int AppWindow::renderScene()
 		// Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
 		if (ImGui::Begin("Global Control")) {
 			if(ImGui::SliderInt("Camera speed", &cameraSpeed, 1, 10))
-				OpenGLController::cameraController->setCameraSpeed(cameraSpeed);
+				SceneManager::cameraController->setCameraSpeed(cameraSpeed);
 			//ImGui::SliderFloat3("Light position", &light.position[0], -20.0f, 20.0f);
 			ImGui::SliderFloat3("Direcion Light position", &lights[0].position[0], -20.0f, 20.0f);
 			ImGui::SliderFloat3("Point Light position", &lights[1].position[0], -20.0f, 20.0f);
@@ -386,12 +386,12 @@ int AppWindow::renderScene()
 			ImGui::Checkbox("enable fog", &enablefog);
 			ImGui::SameLine();
 			ImGui::Checkbox("enable tencil", &enableTencil);
-			ImGui::Checkbox("Gamma Correction", &OpenGLController::gammaCorrection);
+			ImGui::Checkbox("Gamma Correction", &SceneManager::gammaCorrection);
 			ImGui::End();
 		}
 
 
-		OpenGLController::cameraController->onUpdate();
+		SceneManager::cameraController->onUpdate();
 		glm::mat4 pointLightProjection = glm::perspective(glm::radians(90.0f), float(depthCubeMap.SHADOW_WIDTH) / float(depthCubeMap.SHADOW_HEIGHT), near_plane, far_plane * 2);
 		std::vector<glm::mat4> pointShadowMVP;
 		pointShadowMVP.push_back(pointLightProjection * glm::lookAt(lights[1].position, lights[1].position + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
@@ -409,7 +409,7 @@ int AppWindow::renderScene()
 			pointShadowShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", pointShadowMVP[i]);
 		pointShadowShader.setFloat("far_plane", far_plane * 2);
 		pointShadowShader.setVec3("lightPos", lights[1].position);
-		OpenGLController::renderShadow(pointShadowShader, lights[1]);
+		SceneManager::renderShadow(pointShadowShader, lights[1]);
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubeMap.texture);
 		depthCubeMap.Unbind();
@@ -427,7 +427,7 @@ int AppWindow::renderScene()
 
 
 		if (render_skybox)
-			skybox.render(*OpenGLController::cameraController);
+			skybox.render(*SceneManager::cameraController);
 		framebuffer.Unbind();
 
 		if(ImGui::Begin("Application Window"))
@@ -436,7 +436,7 @@ int AppWindow::renderScene()
 			ImVec2 wsize = ImGui::GetWindowSize();
 			int wWidth = static_cast<int>(ImGui::GetWindowWidth());
 			int wHeight = static_cast<int>(ImGui::GetWindowHeight());
-			OpenGLController::cameraController->updateViewResize(wWidth, wHeight);
+			SceneManager::cameraController->updateViewResize(wWidth, wHeight);
 
 			if (show_post_processing) {
 				postRenderFrame.Bind();
@@ -451,9 +451,9 @@ int AppWindow::renderScene()
 			else
 				ImGui::Image((ImTextureID)framebuffer.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 			if (ImGui::IsItemHovered())
-				OpenGLController::cameraController->processInput(window);
+				SceneManager::cameraController->processInput(window);
 			if (show_navigator) {
-				Component* component = OpenGLController::getSelectedComponent();
+				Component* component = SceneManager::getSelectedComponent();
 				if (component != nullptr && component->isSelected() && !debug)
 					renderGuizmo(*component, drawCube_enabled, drawGrid_enabled);
 			}
@@ -496,13 +496,13 @@ void AppWindow::processProgramInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
 		GuizmoType = ImGuizmo::OPERATION::SCALE;
 	if (glfwGetKey(window, GLFW_KEY_DELETE) == GLFW_PRESS)
-		OpenGLController::removeComponent(OpenGLController::getSelectedID());
+		SceneManager::removeComponent(SceneManager::getSelectedID());
 }
 
 void AppWindow::framebuffer_size_callback(GLFWwindow* window, int w, int h)
 {
 	width = w;
 	height = h;
-	//OpenGLController::cameraController->updateViewResize(width, height);
+	//SceneManager::cameraController->updateViewResize(width, height);
 	glViewport(0, 0, width, height);
 }

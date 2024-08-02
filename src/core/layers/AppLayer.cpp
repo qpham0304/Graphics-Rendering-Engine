@@ -1,5 +1,7 @@
 #include "AppLayer.h"
 
+unsigned int VAO, VBO;
+
 AppLayer::AppLayer(const std::string& name) : Layer(name)
 {
 	
@@ -18,7 +20,7 @@ void AppLayer::OnAttach()
 		nullptr
 	);
 	camera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
-	OpenGLController::cameraController = new Camera(
+	SceneManager::cameraController = new Camera(
 		AppWindow::width, 
 		AppWindow::height, 
 		glm::vec3(-6.5f, 3.5f, 8.5f), 
@@ -45,7 +47,7 @@ void AppLayer::OnUpdate()
 	lightShader.setMat4("mvp", camera.getMVP());
 	lightShader.setMat4("matrix", glm::mat4(1.0));
 	lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
-	Utils::OpenGL::Draw::drawCube();
+	Utils::OpenGL::Draw::drawCube(VAO, VBO);
 	skybox->render(camera);
 	applicationFBO.Unbind();
 }

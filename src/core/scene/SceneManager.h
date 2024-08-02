@@ -9,15 +9,15 @@
 #include <future>
 #include <mutex>
 #include <thread>
-#include "components/headers/Component.h"
-#include "components/headers/SkyboxComponent.h"
-#include "components/headers/LightComponent.h"
+#include "../components/Component.h"
+#include "../components/SkyboxComponent.h"
+#include "../components/LightComponent.h"
 
-class OpenGLController {
+class SceneManager {
 private:
-	static std::unordered_map<std::string, Shader> shaders;
+	static std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
 	static std::string selectedID;
-	OpenGLController();
+	SceneManager();
 
 public:
 	static Texture defaultAlbedo;
