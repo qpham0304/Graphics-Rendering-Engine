@@ -2,8 +2,8 @@
 #include "../../graphics/core/OpenGL/ShadowMapRenderer.h"
 
 int VolumetricLightDemo::show_demo() {
-    float width = SceneRenderer::width;
-    float height = SceneRenderer::height;
+    float width = AppWindow::width;
+    float height = AppWindow::height;
 
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     SkyboxComponent skybox;
@@ -11,7 +11,7 @@ int VolumetricLightDemo::show_demo() {
     bool guiOn = true;
     ImGuiController guiController;
     if (guiOn)
-        guiController.init(SceneRenderer::window, width, height);
+        guiController.init(AppWindow::window, width, height);
 
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
     //Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
@@ -69,8 +69,8 @@ int VolumetricLightDemo::show_demo() {
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
     //glDepthFunc(GL_LEQUAL);
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        camera.cameraViewUpdate();
+    while (!glfwWindowShouldClose(AppWindow::window)) {
+        camera.onUpdate();
         camera.setCameraSpeed(5);
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -81,7 +81,7 @@ int VolumetricLightDemo::show_demo() {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Deferred Shading Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentFrame;
             frameCounter = 0;
         }
@@ -115,7 +115,7 @@ int VolumetricLightDemo::show_demo() {
         model = glm::scale(model, glm::vec3(0.125f));
         lightShader.setMat4("matrix", model);
         lightShader.setVec3("lightColor", glm::vec3(light.color));
-        Utils::Draw::drawSphere(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawSphere(cubeVAO, cubeVBO);
         
         Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
         //pbrShader.reloadShader();
@@ -147,10 +147,10 @@ int VolumetricLightDemo::show_demo() {
 
         model = glm::scale(glm::mat4(1.0f), glm::vec3(0.05f));
         pbrShader.setMat4("matrix", model);
-        //Utils::Draw::drawQuad();
+        //Utils::OpenGL::Draw::drawQuad();
         sponza.Draw(pbrShader);
 
-        //skybox.render(camera);
+        skybox.render(camera);
         applicationFBO.Unbind();
 
         if (guiOn) {
@@ -178,7 +178,7 @@ int VolumetricLightDemo::show_demo() {
                 camera.updateViewResize(wWidth, wHeight);
                 ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 if (ImGui::IsItemHovered())
-                    camera.processInput(SceneRenderer::window);
+                    camera.processInput(AppWindow::window);
                 ImGui::EndChild();
                 ImGui::End();
             }
@@ -188,11 +188,11 @@ int VolumetricLightDemo::show_demo() {
             postProcessShader.Activate();
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
-            Utils::Draw::drawQuad();
+            Utils::OpenGL::Draw::drawQuad();
         }
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
     return 0;
 }

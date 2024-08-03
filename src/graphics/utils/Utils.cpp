@@ -2,6 +2,7 @@
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glad/glad.h>
+#include <iostream>
 
 namespace Utils::Math {
 
@@ -106,19 +107,26 @@ namespace Utils::uuid {
 	}
 }
 
-namespace Utils::Draw {
+namespace Console{
+	void print(const std::string& msg) {
+		std::cout << msg;
+	}
+
+	void error(const std::string& msg) {
+		std::cerr << msg;
+	}
+
+	void println(const std::string& msg) {
+		std::cout << msg << std::endl;
+	}
+}
+
+namespace Utils::OpenGL::Draw {
 	void drawQuad() {
 		unsigned int quadVAO = 0;
 		unsigned int quadVBO;
 		if (quadVAO == 0)
 		{
-			float quadVertices[] = {
-				// positions        // texture Coords
-				-1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-				-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-				 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-				 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-			};
 			// setup plane VAO
 			glGenVertexArrays(1, &quadVAO);
 			glGenBuffers(1, &quadVBO);
@@ -133,62 +141,132 @@ namespace Utils::Draw {
 		glBindVertexArray(quadVAO);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
+	}
+
+	void drawQuad(unsigned int& quadVAO, unsigned int& quadVBO) {
+		if (quadVAO == 0)
+		{
+			// setup plane VAO
+			glGenVertexArrays(1, &quadVAO);
+			glGenBuffers(1, &quadVBO);
+			glBindVertexArray(quadVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		}
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
+	}
+
+	void drawInstancedCube(unsigned int& numInstances, std::vector<glm::mat4>& matrixModels) {
+		// initialize (if necessary)
+		unsigned int cubeVAO = 0;
+		unsigned int cubeVBO;
+		unsigned int instanceVBO;
+
+		glGenVertexArrays(1, &cubeVAO);
+		glGenBuffers(1, &cubeVBO);
+		glGenBuffers(1, &instanceVBO);
+
+		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+		glBindVertexArray(cubeVAO);
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+			
+		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+		glBufferData(GL_ARRAY_BUFFER, matrixModels.size() * sizeof(glm::mat4), &matrixModels[0], GL_STATIC_DRAW);
+		//glEnableVertexAttribArray(3);
+		//glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)0);
+		//glEnableVertexAttribArray(4);
+		//glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(1 * sizeof(glm::vec4)));
+		//glEnableVertexAttribArray(5);
+		//glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(2 * sizeof(glm::vec4)));
+		//glEnableVertexAttribArray(6);
+		//glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(3 * sizeof(glm::vec4)));
+
+		//glVertexAttribDivisor(3, 1);
+		//glVertexAttribDivisor(4, 1);
+		//glVertexAttribDivisor(5, 1);
+		//glVertexAttribDivisor(6, 1);
+
+		for (int i = 0; i < 4; i++) {
+			glEnableVertexAttribArray(3 + i);
+			glVertexAttribPointer(3 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(sizeof(glm::vec4) * i));
+			glVertexAttribDivisor(3 + i, 1); // Set attribute divisor to 1 for instanced rendering
+		}
+
+		// render Cube
+		glBindVertexArray(cubeVAO);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, numInstances);
+		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &cubeVAO);
+		glDeleteBuffers(1, &cubeVBO);
+	}
+
+	void drawQuadNormals() {
+		unsigned int quadVAO = 0;
+		unsigned int quadVBO;
+		if (quadVAO == 0)
+		{
+			float quadVertices[] = {
+				 //positions		// normals	// texture Coords
+				-1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+				-1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+				 1.0f, 0.0f,  1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+				 1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+			};
+			// setup plane VAO
+			glGenVertexArrays(1, &quadVAO);
+			glGenBuffers(1, &quadVBO);
+
+			glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+			
+			glBindVertexArray(quadVAO);
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+		}
+		glBindVertexArray(quadVAO);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glBindVertexArray(0);
+
+		glDeleteVertexArrays(1, &quadVAO);
+		glDeleteBuffers(1, &quadVBO);
 	}
 
 	void drawCube(unsigned int& cubeVAO, unsigned int& cubeVBO) {
 		// initialize (if necessary)
 		if (cubeVAO == 0)
 		{
-			float vertices[] = {
-				// back face
-				-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-				 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-				 1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
-				 1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-				-1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
-				-1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
-				// front face
-				-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-				 1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f, // bottom-right
-				 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-				 1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f, // top-right
-				-1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f, // top-left
-				-1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f, // bottom-left
-				// left face
-				-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-				-1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-left
-				-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-				-1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-left
-				-1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-				-1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-right
-				// right face
-				 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-				 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-				 1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f, // top-right         
-				 1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
-				 1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
-				 1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-				 // bottom face
-				 -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-				  1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-				  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-				  1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-				 -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-				 -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-				 // top face
-				 -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-				  1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-				  1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-				  1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-				 -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-				 -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
-			};
 			glGenVertexArrays(1, &cubeVAO);
 			glGenBuffers(1, &cubeVBO);
-			// fill buffer
+
 			glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
-			glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-			// link vertex attributes
+			glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
 			glBindVertexArray(cubeVAO);
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
@@ -203,7 +281,41 @@ namespace Utils::Draw {
 		glBindVertexArray(cubeVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+
+		// glDeleteVertexArrays(1, &cubeVAO);
+		// glDeleteBuffers(1, &cubeVBO);
 	}
+
+	// void drawCube() {
+	// 	unsigned int cubeVAO = 0;
+	// 	unsigned int cubeVBO;
+
+	// 	if (cubeVAO == 0)
+	// 	{
+	// 		glGenVertexArrays(1, &cubeVAO);
+	// 		glGenBuffers(1, &cubeVBO);
+
+	// 		glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	// 		glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+
+	// 		glBindVertexArray(cubeVAO);
+	// 		glEnableVertexAttribArray(0);
+	// 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	// 		glEnableVertexAttribArray(1);
+	// 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	// 		glEnableVertexAttribArray(2);
+	// 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	// 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// 		glBindVertexArray(0);
+	// 	}
+	// 	// render Cube
+	// 	glBindVertexArray(cubeVAO);
+	// 	glDrawArrays(GL_TRIANGLES, 0, 36);
+	// 	glBindVertexArray(0);
+
+	// 	glDeleteVertexArrays(1, &cubeVAO);
+	// 	glDeleteBuffers(1, &cubeVBO);
+	// }
 
 	void drawSphere(unsigned int& sphereVAO, unsigned int& indexCount)
 	{
@@ -299,6 +411,10 @@ namespace Utils::Draw {
 		glBindVertexArray(sphereVAO);
 		glDrawElements(GL_TRIANGLE_STRIP, indexCount, GL_UNSIGNED_INT, 0);
 	}
+
+	void drawSkyDome() {
+
+	}
 }
 
 namespace Utils::Window {
@@ -348,7 +464,7 @@ namespace Utils::Window {
 	}
 }
 
-std::string Utils::filereader::loadHDRTexture(const char* path, unsigned int& hdrTexture)
+std::string Utils::OpenGL::loadHDRTexture(const char* path, unsigned int& hdrTexture)
 {
 	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrComponents;
@@ -373,7 +489,7 @@ std::string Utils::filereader::loadHDRTexture(const char* path, unsigned int& hd
 	}
 }
 
-unsigned int Utils::filereader::loadTexture(const char* path)
+unsigned int Utils::OpenGL::loadTexture(const char* path)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -382,7 +498,7 @@ unsigned int Utils::filereader::loadTexture(const char* path)
 	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
 	if (data)
 	{
-		GLenum format;
+		GLenum format = -1;
 		if (nrComponents == 1)
 			format = GL_RED;
 		else if (nrComponents == 3)
@@ -403,14 +519,14 @@ unsigned int Utils::filereader::loadTexture(const char* path)
 	}
 	else
 	{
-		std::runtime_error("Texture failed to load texture");
+		throw std::runtime_error("Texture failed to load texture");
 		stbi_image_free(data);
 	}
 
 	return textureID;
 }
 
-unsigned int Utils::filereader::loadMTexture(const float* ltc)
+unsigned int Utils::OpenGL::loadMTexture(const float* ltc)
 {
 	GLuint texture = 0;
 	glGenTextures(1, &texture);
@@ -425,4 +541,37 @@ unsigned int Utils::filereader::loadMTexture(const float* ltc)
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	return texture;
+}
+
+
+float Utils::Random::randomFloat(float min, float max) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(min, max);
+    return static_cast<float>(dis(gen));
+}
+
+glm::mat4 Utils::Random::createRandomTransform(glm::vec3 ranges, glm::vec3 scale) {
+    glm::vec3 translation(
+        randomFloat(-ranges.x, ranges.x),
+        randomFloat(ranges.y, ranges.y),    // all spawn at the same height
+        randomFloat(-ranges.z, ranges.z)
+    );
+
+    // random rotation angles (in degrees)
+    float angleX = randomFloat(0.0f, 360.0f);
+    float angleY = randomFloat(0.0f, 360.0f);
+    float angleZ = randomFloat(0.0f, 360.0f);
+
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), translation);
+	glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0), scale);
+
+    glm::mat4 rotationXMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angleX), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationYMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angleY), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(angleZ), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::mat4 rotationMatrix = rotationZMatrix * rotationYMatrix * rotationXMatrix;
+    glm::mat4 transformMatrix = translationMatrix * scaleMatrix * rotationMatrix;
+
+    return transformMatrix;
 }

@@ -183,14 +183,12 @@ void main() {
     float NdotR = max(0.0, dot(normal, halfwayDir));
     vec3 specular = pow(NdotR, 32) * texture(specularMap, uv).rgb;
 
-	// vec3 L = normalize(-lightDir);
 	vec3 L = lightDir;
-	// vec3 V = updatedPos - camPos;
-	vec3 V = updatedPos - camPos;
+	vec3 V = updatedPos - camPos;	//t1 - t0
 	const float NUM_STEPS = float(NUM_STEPS_INT);
 	float stepSize = length(V) / NUM_STEPS;
 	V = normalize(V);
-	vec3 step = V * stepSize;
+	vec3 step = V * stepSize;	//direction x step size dx
 	vec3 position = camPos;
 	position += step * DITHER_PATTERN[int(uv.x * SCREEN_WIDTH) % 4][int(uv.y * SCREEN_HEIGHT) % 4];
 	vec3 volume = vec3(0.0f);
@@ -198,12 +196,12 @@ void main() {
 	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
 	for(int i = 0; i < NUM_STEPS_INT; ++i) {
 		vec4 fragPosLight = lightSpaceVP * vec4(position, 1.0f);
-		vec3 projCoords = fragPosLight.xyz / fragPosLight.w * 0.5f + 0.5f;
+		vec3 projCoords = fragPosLight.xyz / fragPosLight.w * 0.5f + 0.5f;	// the uv position at every step
 
 		float depth = texture(depthMap, projCoords.xy).r;
 		// float bias = max(0.05 * (1.0 - dot(normal, normalize(lightPos - updatedPos))), 0.005); 
 		
-		float beersLaw = logDepth(projCoords.z, 0.2f, 0.5);
+		float beersLaw = logDepth(projCoords.z, 0.2f, 0.5f);
 		float density = fbm(position);	// TODO: THIS IS REALLY SLOW, find better approach when have time
 		if (density > 1e-3) {	// If density is unignorable...
 			// We estimate the color with w.r.t. density

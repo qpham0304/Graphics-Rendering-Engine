@@ -11,7 +11,7 @@
 #include "headers/LeftSidebarWidget.h"
 #include "headers/RightSidebarWidget.h"
 #include "headers/ConsoleLogWidget.h"
-#include "IconsFontAwesome5.h"
+#include "../../src/gui/headers/IconsFontAwesome5.h"
 
 class GuiController {
 private:

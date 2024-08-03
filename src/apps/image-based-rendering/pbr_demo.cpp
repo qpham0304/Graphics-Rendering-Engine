@@ -1,8 +1,7 @@
-
 #include "pbr_demo.h"
 
 int DemoPBR::show_demo() {
-    Camera camera(SceneRenderer::width, SceneRenderer::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+    Camera camera(AppWindow::width, AppWindow::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -73,7 +72,7 @@ int DemoPBR::show_demo() {
     std::vector<Texture> aoMaps = { ao0, albedo1, ao2, ao3, ao4, ao5, ao6 };
 
     unsigned int hdrTexture;
-    std::string texRes = Utils::filereader::loadHDRTexture("Textures/hdr/dikhololo_night_1k.hdr", hdrTexture);
+    std::string texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
     std::cout << texRes << std::endl;
 
     Shader pbrShader("Shaders/default-2.vert", "Shaders/default-2.frag");
@@ -85,7 +84,7 @@ int DemoPBR::show_demo() {
 
     Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
     Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    Model backpackModel("Models/sponza/sponza.obj");
+    Model backpackModel("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);
@@ -153,7 +152,7 @@ int DemoPBR::show_demo() {
             GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemapTexture, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Utils::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //------------------------------------------------------------//
@@ -194,7 +193,7 @@ int DemoPBR::show_demo() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        Utils::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //------------------------------------------------------------//
@@ -241,7 +240,7 @@ int DemoPBR::show_demo() {
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            Utils::Draw::drawCube(cubeVAO, cubeVBO);
+            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
         }
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -270,18 +269,18 @@ int DemoPBR::show_demo() {
     glViewport(0, 0, 512, 512);
     brdfShader.Activate();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Utils::Draw::drawQuad();
+    Utils::OpenGL::Draw::drawQuad();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //-----------------------------------------------------------//
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera.fov), (float)SceneRenderer::width / SceneRenderer::height, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(camera.getFOV()), (float)AppWindow::width / AppWindow::height, 0.1f, 100.0f);
     backgroundShader.Activate();
     backgroundShader.setMat4("projection", projection);
 
     // then before rendering, configure the viewport to the original framebuffer's screen dimensions
     int scrWidth, scrHeight;
-    glfwGetFramebufferSize(SceneRenderer::window, &scrWidth, &scrHeight);
+    glfwGetFramebufferSize(AppWindow::window, &scrWidth, &scrHeight);
     glViewport(0, 0, scrWidth, scrHeight);
 
     int nrRows = 7;
@@ -297,7 +296,7 @@ int DemoPBR::show_demo() {
 
     Texture emissiveMap("Textures/default/emissive.png", "emissiveMap");
     
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
+    while (!glfwWindowShouldClose(AppWindow::window)) {
 
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -307,18 +306,18 @@ int DemoPBR::show_demo() {
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "PBR - IBL demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentTime;
             frameCounter = 0;
         }
 
         // Clear the color buffer
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.5f, 0.5f, 0.5f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        camera.cameraViewUpdate();
-        camera.processInput(SceneRenderer::window);
+        camera.onUpdate();
+        camera.processInput(AppWindow::window);
         glm::mat4 model = glm::mat4(1.0f);
 
         pbrShader.Activate();
@@ -366,7 +365,7 @@ int DemoPBR::show_demo() {
                 pbrShader.setBool("hasAnimation", false);
                 pbrShader.setBool("hasEmission", false);
                 pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-                Utils::Draw::drawSphere(sphereVAO, indexCount);
+                Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
             }
         }
         
@@ -381,6 +380,8 @@ int DemoPBR::show_demo() {
         pbrShader.setBool("hasAnimation", false);
         pbrShader.setBool("hasEmission", false);
         model = glm::translate(glm::mat4(1.0f), glm::vec3(3.0f, 3.0f, 3.0f));
+        model = glm::scale(model, glm::vec3(20.0f));
+        model = glm::rotate(model, glm::radians(0.0f), glm::vec3(1.0, 0.0, 0.0));
         pbrShader.setMat4("matrix", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         backpackModel.Draw(pbrShader);
@@ -397,7 +398,7 @@ int DemoPBR::show_demo() {
             model = glm::scale(model, glm::vec3(0.5f));
             pbrShader.setMat4("matrix", model);
             pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-            Utils::Draw::drawSphere(sphereVAO, indexCount);
+            Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
         }
 
 
@@ -407,10 +408,10 @@ int DemoPBR::show_demo() {
         backgroundShader.setMat4("view", camera.getViewMatrix());
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-        Utils::Draw::drawCube(cubeVAO, cubeVBO);
+        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
     }
     return 0;
 

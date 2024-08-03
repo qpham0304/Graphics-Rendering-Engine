@@ -58,6 +58,8 @@ Texture::Texture(const char* fileName, const char* texType, const std::string& d
 	loadTexture(finalPath.c_str(), false);
 }
 
+Texture::~Texture() = default;
+
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
 {
 	this->unit = unit;

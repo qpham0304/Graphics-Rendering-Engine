@@ -59,8 +59,8 @@ void setupBuffers()
 
 int AreaLightDemo::show_demo()
 {
-	Camera camera(SceneRenderer::width, SceneRenderer::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
-	Camera reflectionCamera(SceneRenderer::width, SceneRenderer::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+	Camera camera(AppWindow::width, AppWindow::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
+	Camera reflectionCamera(AppWindow::width, AppWindow::height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
     
     glm::mat4 reflectionMatrix = glm::mat4(
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -69,8 +69,8 @@ int AreaLightDemo::show_demo()
         0.0f, 0.0f, 0.0f, 1.0f
     );
     
-    GLuint mat1 = Utils::filereader::loadMTexture(LTC1);
-    GLuint mat2 = Utils::filereader::loadMTexture(LTC2);
+    GLuint mat1 = Utils::OpenGL::loadMTexture(LTC1);
+    GLuint mat2 = Utils::OpenGL::loadMTexture(LTC2);
 
     Shader lightShader("Shaders/areaLight.vert", "Shaders/areaLight.frag");
     Shader planeShader("Shaders/light.vert", "Shaders/light.frag");
@@ -84,12 +84,12 @@ int AreaLightDemo::show_demo()
     Texture ao("pbr/concrete/ao.png", "aoMap", "Textures");
 
     ImGuiController guiController;
-    guiController.init(SceneRenderer::window, SceneRenderer::width, SceneRenderer::height);
+    guiController.init(AppWindow::window, AppWindow::width, AppWindow::height);
 
-    FrameBuffer applicationFBO(SceneRenderer::width, SceneRenderer::height);
-    FrameBuffer reflectionFBO(SceneRenderer::width, SceneRenderer::height);
-    FrameBuffer blackSceneFBO(SceneRenderer::width, SceneRenderer::height);
-    FrameBuffer postProcessFBO(SceneRenderer::width, SceneRenderer::height);
+    FrameBuffer applicationFBO(AppWindow::width, AppWindow::height);
+    FrameBuffer reflectionFBO(AppWindow::width, AppWindow::height);
+    FrameBuffer blackSceneFBO(AppWindow::width, AppWindow::height);
+    FrameBuffer postProcessFBO(AppWindow::width, AppWindow::height);
 
     float frameCounter = 0.0f;
     float deltaTime = 0.0f;
@@ -131,8 +131,8 @@ int AreaLightDemo::show_demo()
 
 
     glEnable(GL_DEPTH_TEST);
-    while (!glfwWindowShouldClose(SceneRenderer::window)) {
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+    while (!glfwWindowShouldClose(AppWindow::window)) {
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -170,7 +170,7 @@ int AreaLightDemo::show_demo()
             std::string FPS = std::to_string((1.0 / deltaTime) * frameCounter);
             std::string ms = std::to_string((deltaTime / frameCounter) * 1000);
             std::string updatedTitle = "Area Light Demo - " + FPS + "FPS / " + ms + "ms";
-            glfwSetWindowTitle(SceneRenderer::window, updatedTitle.c_str());
+            glfwSetWindowTitle(AppWindow::window, updatedTitle.c_str());
             lastFrame = currentTime;
             frameCounter = 0;
         }
@@ -181,13 +181,13 @@ int AreaLightDemo::show_demo()
         glm::vec3 lightSpecular = glm::vec3(1.0f, 1.0f, 1.0f);
         glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 1.0f, 12.5f);
         float near_plane = 1.00f, far_plane = 25.0f;
-        //glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), float(SceneRenderer::width) / float(SceneRenderer::height), near_plane, far_plane * 2);
+        //glm::mat4 lightProjection = glm::perspective(glm::radians(90.0f), float(AppWindow::width) / float(AppWindow::height), near_plane, far_plane * 2);
         glm::mat4  lightView = glm::lookAt(lightPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         glm::mat4 lightMVP = lightProjection * lightView;
 
         Light light = Light(lightPosition, glm::vec4(1.0, 1.0, 1.0, 1.0), lightAmbient, lightDiffuse, lightSpecular, lightMVP, 2);
 
-        camera.cameraViewUpdate();
+        camera.onUpdate();
 
         lightShader.Activate();
         glm::mat4 model(1.0f);
@@ -199,7 +199,7 @@ int AreaLightDemo::show_demo()
         lightShader.setVec3("lightPosition", lightPosition);
 
         applicationFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -230,7 +230,7 @@ int AreaLightDemo::show_demo()
         applicationFBO.Unbind();
 
         blackSceneFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -256,7 +256,7 @@ int AreaLightDemo::show_demo()
         blackSceneFBO.Unbind();
 
         reflectionFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -266,7 +266,7 @@ int AreaLightDemo::show_demo()
         reflectionFBO.Unbind();
 
         postProcessFBO.Bind();
-        glViewport(0, 0, SceneRenderer::width, SceneRenderer::height);
+        glViewport(0, 0, AppWindow::width, AppWindow::height);
         glClearColor(0.16f, 0.18f, 0.17f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -294,7 +294,7 @@ int AreaLightDemo::show_demo()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, applicationFBO.texture);
 
-        Utils::Draw::drawQuad();
+        Utils::OpenGL::Draw::drawQuad();
         postProcessFBO.Unbind();
 
         ImGui::Begin("Application window");
@@ -309,7 +309,7 @@ int AreaLightDemo::show_demo()
             ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
         
         if (ImGui::IsItemHovered())
-            camera.processInput(SceneRenderer::window);
+            camera.processInput(AppWindow::window);
         ImGui::EndChild();
         ImGui::End();
 
@@ -320,7 +320,7 @@ int AreaLightDemo::show_demo()
         guiController.end();
 
         glfwPollEvents();
-        glfwSwapBuffers(SceneRenderer::window);
+        glfwSwapBuffers(AppWindow::window);
 	}
 
     glDeleteVertexArrays(1, &planeVAO);

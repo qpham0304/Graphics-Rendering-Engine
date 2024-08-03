@@ -24,6 +24,13 @@ void Model::Draw(Shader& shader)
     }
 }
 
+void Model::Draw(Shader& shader, unsigned int numInstances)
+{
+    for (unsigned int i = 0; i < meshes.size(); i++) {
+        meshes[i].Draw(shader);
+    }
+}
+
 int Model::getNumVertices()
 {
     int numVertices = 0;

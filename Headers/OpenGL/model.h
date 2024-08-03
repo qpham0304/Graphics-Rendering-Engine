@@ -42,6 +42,7 @@ class Model
 public:
     Model(const char* path);
     void Draw(Shader& shader);
+    void Draw(Shader& shader, unsigned int numInstances);
 
     std::map<std::string, BoneInfo> GetBoneInfoMap();
     int& GetBoneCount();

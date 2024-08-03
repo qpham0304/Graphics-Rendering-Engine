@@ -3,8 +3,9 @@
 #include <Animator.h>
 #include <FrameBuffer.h>
 #include "camera.h"
-#include "../../graphics/components/headers/SkyboxComponent.h"
-#include "../../graphics/components/headers/PlaneComponent.h"
+#include "../../core/components/headers/SkyboxComponent.h"
+#include "../../core/components/s/SkyboxComponent.h"
+#include "../../core/components/s/PlaneComponent.h"
 #include "../../gui/ImGuiController.h"
 #include <DepthMap.h>
 

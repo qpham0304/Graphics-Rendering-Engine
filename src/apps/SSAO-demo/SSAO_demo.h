@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../SceneRenderer.h"
-#include "../../graphics/core/OpenGL/BloomRenderer.h"
+#include "../../core/features/AppWindow.h"
 
 class SSAO_Demo
 {

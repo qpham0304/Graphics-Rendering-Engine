@@ -1,5 +1,5 @@
 #include "../headers/LeftSidebarWidget.h"
-#include "../../graphics/GraphicsController.h"
+#include "../../core/scene/SceneManager.h"
 
 #include <windows.h>
 #include <shobjidl.h> 
@@ -117,14 +117,14 @@ void LeftSidebarWidget::AddEntityButton() {
         // Unknown or unsupported platform
 #endif
         if (!path.empty()) {
-            std::string id = OpenGLController::addComponent(path.c_str());
+            std::string id = SceneManager::addComponent(path.c_str());
 
             if (!id.empty()) {
                 size_t pos = path.find_last_of('/');
                 nodes.push_back(id);
                 selectedIndex = nodes.size() - 1;
-                OpenGLController::setSelectedID(id);
-                Component* component = OpenGLController::getComponent(id);
+                SceneManager::setSelectedID(id);
+                Component* component = SceneManager::getComponent(id);
                 component->select();
             }
             else {
@@ -138,16 +138,16 @@ void LeftSidebarWidget::LightTab()
 {
     if (ImGui::Begin("Lights")) {
         if (ImGui::Button("+ Add Light", ImVec2(-1, 0))) {
-            if (OpenGLController::lights.size() < 4) {
-                OpenGLController::addPointLight(lightPositions[0], lightColors[0]);
-                OpenGLController::addPointLight(lightPositions[1], lightColors[1]);
-                OpenGLController::addPointLight(lightPositions[2], lightColors[2]);
-                OpenGLController::addPointLight(lightPositions[3], lightColors[3]);
+            if (SceneManager::lights.size() < 4) {
+                SceneManager::addPointLight(lightPositions[0], lightColors[0]);
+                SceneManager::addPointLight(lightPositions[1], lightColors[1]);
+                SceneManager::addPointLight(lightPositions[2], lightColors[2]);
+                SceneManager::addPointLight(lightPositions[3], lightColors[3]);
             }
             else
                 std::cout << "maximum number of lights reached" << std::endl;
         }
-        for (auto& pair : OpenGLController::lights) {
+        for (auto& pair : SceneManager::lights) {
             std::string name = pair.first;
             auto lightComponent = pair.second.get();
             if (lightComponent!= nullptr && lightComponent->light != nullptr) {
@@ -176,9 +176,9 @@ void LeftSidebarWidget::EntityTab() {
         static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
         //static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
-        if (OpenGLController::components.size() > 0) {
+        if (SceneManager::components.size() > 0) {
             nodes = {};
-            for (auto& component : OpenGLController::components) {
+            for (auto& component : SceneManager::components) {
                 nodes.push_back(component.first);
             }
         }
@@ -187,7 +187,7 @@ void LeftSidebarWidget::EntityTab() {
         for (int i = 0; i < nodes.size(); i++) {
             ImGuiTreeNodeFlags node_flags = base_flags;
             prevIndex = selectedIndex;
-            Component* component = OpenGLController::getComponent(nodes[i]);
+            Component* component = SceneManager::getComponent(nodes[i]);
             if (component != nullptr) {
                 if (selectedIndex == i) {
                     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.000f, 0.682f, 0.000f, 0.949f));
@@ -221,9 +221,9 @@ void LeftSidebarWidget::EntityTab() {
 
         if (ImGui::Begin("Properties")) {
             if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
-                Component* component = OpenGLController::getComponent(nodes[selectedIndex]);
+                Component* component = SceneManager::getComponent(nodes[selectedIndex]);
                 if (component != nullptr) {
-                    OpenGLController::setSelectedID(nodes[selectedIndex]);
+                    SceneManager::setSelectedID(nodes[selectedIndex]);
                     glm::vec3 translateVector(component->translateVector);
                     glm::vec3 scaleVector(component->scaleVector);
                     glm::vec3 rotationVector(component->rotationVector);
@@ -256,7 +256,7 @@ void LeftSidebarWidget::EntityTab() {
 
         if (ImGui::Begin("Animation")) {
             if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
-                Component* component = OpenGLController::getComponent(nodes[selectedIndex]);
+                Component* component = SceneManager::getComponent(nodes[selectedIndex]);
                 float time;
                 if (component != nullptr) {
                     if (!component->canAnimate())

@@ -8,14 +8,14 @@
 class Skybox
 {
 public:
-	GLuint ID;
-	GLuint skyboxVAO;
-	GLuint skyboxVBO;
-
-
 	Skybox(std::vector<std::string> faces);
+	~Skybox();
+	void updateTexture(const unsigned int& id);
+	unsigned int textureID();
 
 private:
-	GLuint loadCubeMap(std::vector<std::string> faces);
+	unsigned int ID;
+	unsigned int loadCubeMap(std::vector<std::string> faces);
+	void Delete();
 };
 

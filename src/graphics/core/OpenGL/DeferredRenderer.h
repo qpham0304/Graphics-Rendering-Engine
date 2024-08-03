@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <Shader.h>
-#include "../../src/graphics/components/headers/Component.h"
+#include "../../src/core/components/Component.h"
 
 class DeferredRenderer
 {
@@ -13,6 +13,7 @@ private:
 	unsigned int gNormal;
 	unsigned int gColorSpec;
 	unsigned int gAlbedoSpec;
+	unsigned int rboDepth;
 	int width;
 	int height;
 

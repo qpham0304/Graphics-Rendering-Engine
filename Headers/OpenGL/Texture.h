@@ -28,7 +28,7 @@ public:
 
 	//Texture& operator=(Texture&& other) noexcept;
 
-	~Texture() = default;
+	~Texture();
 
 	// Assigns a texture unit to a texture
 	void texUnit(Shader& shader, const char* uniform, GLuint unit);

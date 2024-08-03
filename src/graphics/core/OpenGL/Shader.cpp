@@ -7,7 +7,7 @@ static bool validateFormat(const char* str) {
 	return false;
 }
 
-Shader::Shader(const char* vertexFile, const char* fragmentFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile) : ID(0)
 {
 	try {
 		ID = createShader(vertexFile, fragmentFile);
@@ -17,7 +17,7 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile)
 	}
 }
 
-Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geometryFile)  : ID(0)
 {
 	try {
 		ID = createShader(vertexFile, fragmentFile, geometryFile);
@@ -27,9 +27,34 @@ Shader::Shader(const char* vertexFile, const char* fragmentFile, const char* geo
 	}
 }
 
+Shader::Shader() : ID(0)
+{
+	type = "";
+}
+
 Shader::~Shader()
 {
-	glDeleteProgram(ID);
+	Delete();
+}
+
+void Shader::Init(const char* vertexFile, const char* fragmentFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
+}
+
+void Shader::Init(const char* vertexFile, const char* fragmentFile, const char* geometryFile)
+{
+	try {
+		ID = createShader(vertexFile, fragmentFile, geometryFile);
+	}
+	catch (const std::runtime_error& e) {
+		std::cerr << e.what() << std::endl;
+	}
 }
 
 // Activates the Shader Program
@@ -99,6 +124,8 @@ std::string Shader::get_file_contents(const char* filepath)
 // Checks if the different Shaders have compiled properly
 void Shader::compileErrors(unsigned int shader, const char* type)
 {
+#define DEBUG
+#ifdef DEBUG
 	// Stores status of compilation
 	GLint hasCompiled;
 	// Character array to store error message in
@@ -125,6 +152,9 @@ void Shader::compileErrors(unsigned int shader, const char* type)
 			//std::cout << "SHADER_LINKING_ERROR for:" << type << "\n" << infoLog << std::endl;
 		}
 	}
+#else
+	std::cout << "Ignore shader compile error message\n";
+#endif
 }
 
 void Shader::reloadShader()
@@ -195,6 +225,8 @@ GLuint Shader::createShader(const char* vertexFile, const char* fragmentFile)
 	glLinkProgram(id);
 	compileErrors(fragmentShader, "PROGRAM");
 
+	glDetachShader(ID, vertexShader);
+	glDetachShader(ID, fragmentShader);
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 	return id;

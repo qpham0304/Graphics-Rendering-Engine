@@ -1,5 +1,5 @@
 #include "GuiController.h"
-#include "../graphics/GraphicsController.h"
+#include "../core/scene/SceneManager.h"
 
 ImGuiController::ImGuiController()
 {
@@ -83,15 +83,13 @@ void ImGuiController::init(GLFWwindow* window, int width, int height)
 	widgets.push_back(std::move(menu));
 }
 
-ImGuiController::~ImGuiController()
-{
-	
-}
+ImGuiController::~ImGuiController() = default;
 
 void ImGuiController::start()
 {
-	if(width == -1 && height == -1)
+	if (width == -1 && height == -1) {
 		throw std::logic_error("Object not fully initialized. Did you call init() function before start?");
+	}
 	
 	// Start the ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
@@ -104,16 +102,16 @@ void ImGuiController::start()
 
 void ImGuiController::debugWindow(ImTextureID texture)
 {
-	glm::vec3 camPos = OpenGLController::cameraController->getPosition();
+	glm::vec3 camPos = SceneManager::cameraController->getPosition();
 	std::string x = "x: " + std::to_string(camPos.x).substr(0, 4);
 	std::string y = "y: " + std::to_string(camPos.y).substr(0, 4);
 	std::string z = "z: " + std::to_string(camPos.z).substr(0, 4);
 
 	if (ImGui::Begin("Debug Window"))
 	{
-		std::string countVertices = "Vertices: " + std::to_string(OpenGLController::getNumVertices() * 3);
+		std::string countVertices = "Vertices: " + std::to_string(SceneManager::getNumVertices() * 3);
 		ImGui::Text(countVertices.c_str());
-		countVertices = "Triangles: " + std::to_string(OpenGLController::getNumVertices());
+		countVertices = "Triangles: " + std::to_string(SceneManager::getNumVertices());
 		ImGui::SameLine();
 		ImGui::Text(countVertices.c_str());
 		ImGui::Text("Camera positon");

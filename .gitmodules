@@ -1,3 +1,6 @@
-[submodule "libraries/include/imgui"]
-	path = libraries/include/imgui
+[submodule "Libraries/include/imgui"]
+	path = Libraries/include/imgui
 	url = https://github.com/ocornut/imgui.git
+[submodule "Libraries/include/ImGuizmo"]
+	path = Libraries/include/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git

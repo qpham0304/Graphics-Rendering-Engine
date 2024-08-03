@@ -456,7 +456,7 @@ int main() {
 
 		// camera inputs
 		camera.processInput(window);
-		camera.cameraViewUpdate();
+		
 
 		//mesh
 		for (const std::tuple<Mesh, Shader>& tuple : meshes) {

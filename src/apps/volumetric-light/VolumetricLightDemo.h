@@ -1,4 +1,4 @@
-#include "../../SceneRenderer.h"
+#include "../../core/features/AppWindow.h"
 
 #pragma once
 class VolumetricLightDemo

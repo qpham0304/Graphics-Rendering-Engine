@@ -80,7 +80,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -96,7 +96,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -143,6 +143,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -150,6 +151,9 @@
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <NoEntryPoint>false</NoEntryPoint>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(projectDir)dll\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -160,6 +164,7 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -168,11 +173,31 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(projectDir)dll\*.dll" "$(OutDir)"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Headers\Input.h" />
+    <ClCompile Include="src\core\layers\AppLayer.cpp" />
+    <ClCompile Include="src\core\layers\LayerManager.cpp" />
+    <ClCompile Include="src\core\layers\EditorLayer.cpp" />
+    <ClCompile Include="src\core\layers\RenderLayer.cpp" />
+    <ClCompile Include="src\core\scene\SceneManager.cpp" />
+    <ClCompile Include="src\events\EventManager.cpp" />
+    <ClCompile Include="src\core\Application.cpp" />
+    <ClCompile Include="src\core\features\Timer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp" />
+    <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp" />
+    <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp" />
+    <ClCompile Include="src\graphics\renderer\AtmosphereRenderer.cpp" />
+    <ClCompile Include="src\graphics\renderer\Renderer.cpp" />
+    <ClCompile Include="src\core\components\ModelComponent.cpp" />
+    <ClCompile Include="src\apps\deferred-IBL-demo\deferredIBL_demo.cpp" />
+    <ClCompile Include="src\apps\SSR-view-demo\SSR_view_demo.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\DeferredRenderer.cpp" />
-    <ClCompile Include="src\graphics\core\OpenGL\ImageBasedRenderer.cpp" />
+    <ClCompile Include="src\graphics\renderer\ImageBasedRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomFBO.cpp" />
     <ClCompile Include="src\apps\deferred-rendering\deferred_render_demo.cpp" />
@@ -184,20 +209,19 @@
     <ClCompile Include="Libraries\include\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="Libraries\include\ImGuizmo\ImSequencer.cpp" />
     <ClCompile Include="src\apps\image-based-rendering\pbr_demo.cpp" />
-    <ClCompile Include="src\graphics\components\LightComponent.cpp" />
+    <ClCompile Include="src\core\components\LightComponent.cpp" />
     <ClCompile Include="src\graphics\utils\Utils.cpp" />
-    <ClCompile Include="src\SceneRenderer.cpp" />
+    <ClCompile Include="src\core\features\AppWindow.cpp" />
     <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp" />
     <ClCompile Include="src\apps\sanbox\main.cpp" />
-    <ClCompile Include="src\graphics\GraphicsController.cpp" />
     <ClCompile Include="src\gui\widgets\MenuWidget.cpp" />
     <ClCompile Include="src\gui\widgets\MainViewWidget.cpp" />
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp" />
     <ClCompile Include="src\gui\widgets\LeftSidebarWidget.cpp" />
     <ClCompile Include="src\gui\widgets\RightSidebarWidget.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp" />
-    <ClCompile Include="src\graphics\components\Component.cpp" />
-    <ClCompile Include="src\graphics\components\SkyboxComponent.cpp" />
+    <ClCompile Include="src\core\components\Component.cpp" />
+    <ClCompile Include="src\core\components\SkyboxComponent.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Animation.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Animator.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Bone.cpp" />
@@ -226,13 +250,41 @@
     <ClCompile Include="src\gui\widgets\SubViewWidget.cpp" />
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
+    <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="Libraries\include\entt\entt.hpp" />
+    <ClInclude Include="src\core\components\Component.h" />
+    <ClInclude Include="src\core\components\GridComponent.h" />
+    <ClInclude Include="src\core\components\LightComponent.h" />
+    <ClInclude Include="src\core\components\ModelComponent.h" />
+    <ClInclude Include="src\core\components\SkyboxComponent.h" />
+    <ClInclude Include="src\core\layers\AppLayer.h" />
+    <ClInclude Include="src\core\layers\LayerManager.h" />
+    <ClInclude Include="src\core\layers\EditorLayer.h" />
+    <ClInclude Include="src\core\layers\RenderLayer.h" />
+    <ClInclude Include="src\core\layers\Layer.h" />
+    <ClInclude Include="src\core\scene\SceneManager.h" />
+    <ClInclude Include="src\events\EventListener.h" />
+    <ClInclude Include="src\events\EventManager.h" />
+    <ClInclude Include="src\core\Application.h" />
+    <ClInclude Include="src\events\Event.h" />
+    <ClInclude Include="Headers\OpenGL\ParticleGeometry.h" />
+    <ClInclude Include="Headers\PreCompile.h" />
+    <ClInclude Include="src\apps\particle-demo\ParticleDemo.h" />
+    <ClInclude Include="src\apps\ray-tracing\BasicRayTracing.h" />
+    <ClInclude Include="src\core\features\Timer.h" />
+    <ClInclude Include="src\graphics\renderer\AtmosphereRenderer.h" />
+    <ClInclude Include="src\graphics\renderer\Renderer.h" />
+    <ClInclude Include="src\core\components\headers\ModelComponent.h" />
+    <ClInclude Include="src\apps\deferred-IBL-demo\deferredIBL_demo.h" />
+    <ClInclude Include="src\apps\SSR-view-demo\SSR_view_demo.h" />
     <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h" />
     <ClInclude Include="src\graphics\core\OpenGL\BloomRenderer.h" />
     <ClInclude Include="Headers\OpenGL\BloomFBO.h" />
     <ClInclude Include="Headers\OpenGL\DepthCubeMap.h" />
-    <ClInclude Include="src\graphics\core\OpenGL\ImageBasedRenderer.h" />
+    <ClInclude Include="src\graphics\renderer\ImageBasedRenderer.h" />
     <ClInclude Include="src\graphics\core\OpenGL\ShadowMapRenderer.h" />
     <ClInclude Include="src\apps\area-light\area_light_demo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\GraphEditor.h" />
@@ -241,13 +293,13 @@
     <ClInclude Include="Libraries\include\ImGuizmo\ImGuizmo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImSequencer.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImZoomSlider.h" />
-    <ClInclude Include="Libraries\include\imgui\IconsFontAwesome5.h" />
+    <ClInclude Include="src\gui\headers\IconsFontAwesome5.h" />
     <ClInclude Include="src\apps\deferred-rendering\deferred_render_demo.h" />
     <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h" />
-    <ClInclude Include="src\graphics\components\headers\LightComponent.h" />
+    <ClInclude Include="src\core\components\headers\LightComponent.h" />
     <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h" />
     <ClInclude Include="src\graphics\utils\headers\Utils.h" />
-    <ClInclude Include="src\SceneRenderer.h" />
+    <ClInclude Include="src\core\features\AppWindow.h" />
     <ClInclude Include="src\gui\headers\EntityControlWidget.h" />
     <ClInclude Include="Headers\OpenGL\Axis.h" />
     <ClInclude Include="Headers\OpenGL\FrameBuffer.h" />
@@ -255,14 +307,14 @@
     <ClInclude Include="Headers\OpenGL\Animator.h" />
     <ClInclude Include="Headers\OpenGL\assimp_glm_helpers.h" />
     <ClInclude Include="Headers\OpenGL\Bone.h" />
-    <ClInclude Include="src\graphics\GraphicsController.h" />
+    <ClInclude Include="src\graphics\SceneManager.h" />
     <ClInclude Include="src\gui\headers\MenuWidget.h" />
     <ClInclude Include="src\gui\headers\MainViewWidget.h" />
     <ClInclude Include="src\gui\headers\ConsoleLogWidget.h" />
     <ClInclude Include="src\gui\headers\LeftSidebarWidget.h" />
     <ClInclude Include="src\gui\headers\RightSidebarWidget.h" />
-    <ClInclude Include="src\graphics\components\headers\GridComponent.h" />
-    <ClInclude Include="src\graphics\components\headers\Component.h" />
+    <ClInclude Include="src\core\components\headers\GridComponent.h" />
+    <ClInclude Include="src\core\components\headers\Component.h" />
     <ClInclude Include="Headers\OpenGL\camera.h" />
     <ClInclude Include="Headers\OpenGL\DepthMap.h" />
     <ClInclude Include="Headers\OpenGL\EBO.h" />
@@ -274,13 +326,14 @@
     <ClInclude Include="Headers\OpenGL\VAO.h" />
     <ClInclude Include="Headers\OpenGL\VBO.h" />
     <ClInclude Include="Headers\OpenGL\skybox.h" />
-    <ClInclude Include="src\graphics\components\headers\SkyboxComponent.h" />
+    <ClInclude Include="src\core\components\headers\SkyboxComponent.h" />
     <ClInclude Include="src\gui\headers\Themes.h" />
     <ClInclude Include="src\gui\GuiController.h" />
     <ClInclude Include="src\gui\headers\Widget.h" />
     <ClInclude Include="src\gui\headers\SubViewWidget.h" />
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
     <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
+    <ClInclude Include="src\apps\SSR-demo\SSR_demo.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />
@@ -326,6 +379,7 @@
     <None Include="Shaders\skeletonModel.vert" />
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\skybox.vert" />
+    <None Include="src\apps\ray-tracing\rayTracer.frag" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="Textures\ice-snow.png" />

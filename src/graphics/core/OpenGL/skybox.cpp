@@ -5,7 +5,12 @@ Skybox::Skybox(std::vector<std::string> faces) {
     ID = loadCubeMap(faces);
 }
 
-GLuint Skybox::loadCubeMap(std::vector<std::string> faces)
+Skybox::~Skybox()
+{
+    Delete();
+}
+
+unsigned int Skybox::loadCubeMap(std::vector<std::string> faces)
 {
     unsigned int textureID;
     glGenTextures(1, &textureID);
@@ -33,4 +38,19 @@ GLuint Skybox::loadCubeMap(std::vector<std::string> faces)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return textureID;
+}
+
+void Skybox::updateTexture(const unsigned int& id)
+{
+    ID = id;
+}
+
+unsigned Skybox::textureID()
+{
+    return ID;
+}
+
+void Skybox::Delete()
+{
+    glDeleteTextures(1, &ID);
 }
