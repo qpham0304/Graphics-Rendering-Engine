@@ -13,7 +13,7 @@
 #include <thread>
 #include "../../gui/GuiController.h"
 #include "../../core/scene/SceneManager.h"
-#include "../../graphics/utils/headers/utils.h"
+#include "../../graphics/utils/Utils.h"
 #include "../../core/components/SkyboxComponent.h"
 #include "../../core/components/GridComponent.h"
 #include "../../core/components/LightComponent.h"

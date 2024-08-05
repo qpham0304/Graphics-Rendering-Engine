@@ -1,20 +1,28 @@
 #include "Timer.h"
-#include "../../src/graphics/utils/headers/Utils.h"
+#include "../../src/graphics/utils/Utils.h"
+#include "Profiler.h"
 
-Timer::Timer()
+Timer::Timer() : label("default")
 {
-    this->label = "default";
     Start();
 }
 
-Timer::Timer(const char* label)
+Timer::Timer(const char* label, const bool guiOn) : label(label), guiOn(guiOn)
 {
     Start();
-    this->label = label;
 }
 
 Timer::~Timer() {
-    Stop();
+    float ms = Stop();
+    std::ostringstream oss;
+    if (!guiOn) {
+        oss << "Operation took: " << ms << " ms " << "label: " << label;
+        std::string timeTaken = oss.str();
+        Console::println(timeTaken);
+    }
+    else {
+        Profiler::getInstance().addTracker({ label, ms });
+    }
 }
 
 void Timer::Start()
@@ -22,15 +30,10 @@ void Timer::Start()
     start = std::chrono::high_resolution_clock::now();
 }
 
-void Timer::Stop()
+float Timer::Stop()
 {
     end = std::chrono::high_resolution_clock::now();
     duration = end - start;
     float ms = duration.count() * 1000.0f;
-    //const std::string timeTaken = "Operation took: " + std::to_string(ms) + " ms " + "label: " + label;
-    
-    std::ostringstream oss;
-    oss << "Operation took: " << ms << " ms " << "label: " << label;
-    std::string timeTaken = oss.str();
-    Console::println(timeTaken);
+    return ms;
 }

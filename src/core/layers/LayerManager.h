@@ -26,7 +26,7 @@ public:
 	static std::shared_ptr<FrameBuffer> getFrameBuffer(const std::string name);
 
 	bool AddLayer(Layer* layer);
-	void RemoveLayer(const int&& index);
+	bool RemoveLayer(const int&& index);
 	void EnableLayer(const int&& index);
 	void DisableLayer(const int&& index);
 	const std::string& CurrentLayer();

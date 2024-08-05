@@ -98,7 +98,7 @@ public:
 	// swap to other camera on selected
 	void mouseControl(GLFWwindow* window);
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+	void scroll_callback(double xoffset, double yoffset);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
 };

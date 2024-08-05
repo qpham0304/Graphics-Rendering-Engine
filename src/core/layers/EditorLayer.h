@@ -6,6 +6,8 @@
 class EditorLayer : public Layer
 {
 private:
+	unsigned int VAO, VBO;
+	Camera editorCamera;
 
 public:
 	EditorLayer(const std::string& name);

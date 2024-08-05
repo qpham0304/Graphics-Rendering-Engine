@@ -5,31 +5,32 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 
-enum class EventType {
+enum class EventType
+{
 	None = 0,
 	WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowUpdate,
 	KeyPressed, KeyReleased, KeyTyped,
-	MousePressed, MouseReleased, MouseMoved, MouseScrolled
+	MousePressed, MouseReleased, MouseMoved, MouseScrolled,
+	AsyncEvent
 };
 
 class Event
 {
 public:
-	virtual ~Event() = default;
-
 	bool Handled = false;
+
+	virtual ~Event() = default;
 
 	virtual EventType GetEventType() const = 0;
 	virtual const char* GetName() const = 0;
 	virtual std::string ToString() const { return GetName(); }
 };
 
-class MouseMoveEvent : public Event {
-private:
-	double m_x = 0; 
-	double m_y = 0;
-
+class MouseMoveEvent : public Event
+{
 public:
+	double m_x = 0;
+	double m_y = 0;
 	GLFWwindow* window;
 
 	MouseMoveEvent(GLFWwindow*& window, double x, double y) : m_x(x), m_y(y), window(window) {}
@@ -47,7 +48,8 @@ public:
 	}
 };
 
-class MouseScrollEvent : public Event {
+class MouseScrollEvent : public Event
+{
 public:
 	double m_x = 0;
 	double m_y = 0;
@@ -65,5 +67,70 @@ public:
 
 	std::string ToString() const override {
 		return "MouseScrollEvent";
+	}
+};
+
+class WindowCloseEvent : public Event
+{
+public:
+	GLFWwindow* window;
+
+	WindowCloseEvent(GLFWwindow*& window) : window(window) {}
+
+	EventType GetEventType() const override {
+		return EventType::WindowClose;
+	}
+
+	const char* GetName() const override {
+		return "WindowCloseEvent";
+	};
+
+	std::string ToString() const override {
+		return "WindowCloseEvent";
+	}
+};
+
+class WindowResizeEvent : public Event
+{
+public:
+	int m_width;
+	int m_height;
+	GLFWwindow* window;
+
+	WindowResizeEvent(GLFWwindow*& window, int width, int height) : m_width(width), m_height(height), window(window) {}
+
+	EventType GetEventType() const override {
+		return EventType::WindowResize;
+	}
+
+	const char* GetName() const override {
+		return "WindowResizeEvent";
+	};
+
+	std::string ToString() const override {
+		return "WindowResizeEvent";
+	}
+};
+
+class AsyncEvent : public Event
+{
+public:
+	bool isCompleted;
+	
+	AsyncEvent() : isCompleted(false) 
+	{
+
+	};
+
+	EventType GetEventType() const override {
+		return EventType::AsyncEvent;
+	}
+
+	const char* GetName() const override {
+		return "AsyncEvent";
+	};
+
+	std::string ToString() const override {
+		return "AsyncEvent";
 	}
 };

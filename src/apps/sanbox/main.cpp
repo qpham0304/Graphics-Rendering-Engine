@@ -47,7 +47,7 @@ int main()
 	#define USE_EDITOR
 
 	#ifdef USE_EDITOR
-		Application app;
+		Application& app = Application::getInstance();
 		app.run();
 	#else
 		AppWindow::init(PLATFORM_OPENGL);

@@ -142,26 +142,9 @@ bool Camera::processKeyboard(GLFWwindow* window) {
 	return isPressing;
 }
 
-Camera* instance = nullptr;
-
-void mousecb(GLFWwindow* window, double xpos, double ypos) {
-	instance->mouse_callback(window, xpos, ypos);
-}
-
-void scrollcb(GLFWwindow* window, double xpos, double ypos) {
-	instance->scroll_callback(window, xpos, ypos);
-}
-
-void keycb(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	instance->key_callback(window, key, scancode, action, mods);
-}
-
 bool Camera::processMouse(GLFWwindow* window) {
-	instance = this;
 
 	bool isMouseMoved = false;
-	//glfwSetScrollCallback(window, scrollcb);
-	//glfwSetCursorPosCallback(window, mousecb);
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 		isMouseMoved = true;
@@ -266,7 +249,7 @@ void Camera::mouse_callback(GLFWwindow* window, double x, double y)
 	mouseControl(window);
 }
 
-void Camera::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void Camera::scroll_callback(double xoffset, double yoffset)
 {
 	fov -= (float)yoffset;
 	if (fov < 1.0f)

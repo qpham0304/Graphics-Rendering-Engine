@@ -15,6 +15,7 @@ class EventManager
 {
 private:
 	EventManager() = default;
+	void PublishAsync(EventListener& eventListener);
 
 public:
 	using EventCallback = std::function<void(Event&)>;
@@ -40,13 +41,15 @@ public:
 
 	void Subscribe(EventType eventType, EventCallback callback);
 	void Publish(Event& event);
-	void Queue(EventType eventType, EventCallback callback);
+	void Queue(AsyncEvent event, EventCallback callback);
 	void OnUpdate();
+	std::vector<std::pair<std::thread, bool*>> threads;
 
 private:
 	std::unordered_map<std::string, std::vector<EventListener>> listeners;
 	std::unordered_map<EventType, std::vector<EventCallback>> callbacks;
 
-	//std::queue<Event> eventQueue;
+	std::queue<std::pair<AsyncEvent, EventCallback>> eventQueue;
 	std::mutex queueMutex;
+	std::vector<std::future<void>> futures;
 };

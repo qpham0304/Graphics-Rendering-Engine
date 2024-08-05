@@ -1,13 +1,6 @@
 #include "AppLayer.h"
 
-unsigned int VAO, VBO;
-
-AppLayer::AppLayer(const std::string& name) : Layer(name)
-{
-	
-}
-
-void AppLayer::OnAttach()
+AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(0), VBO(0)
 {
 	//applicationFBO.reset(new FrameBuffer(AppWindow::width, AppWindow::height));
 	//camera.reset(new Camera(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0)));
@@ -19,41 +12,50 @@ void AppLayer::OnAttach()
 		GL_FLOAT,
 		nullptr
 	);
-	camera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
-	SceneManager::cameraController = new Camera(
+	layerCamera.reset(new Camera(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0)));
+	camera.Init(
 		AppWindow::width, 
 		AppWindow::height, 
 		glm::vec3(-6.5f, 3.5f, 8.5f), 
 		glm::vec3(0.5, -0.2, -1.0f)
 	);
+	SceneManager::cameraController = &camera;
 	skybox.reset(new SkyboxComponent());
+}
+
+void AppLayer::OnAttach()
+{
+	EventManager& eventManager = EventManager::getInstance();
+	eventManager.Subscribe(EventType::MouseScrolled, [this](Event& event) {
+		MouseScrollEvent& mouseEvent = static_cast<MouseScrollEvent&>(event);
+		if (isActive) {
+			SceneManager::cameraController->scroll_callback(mouseEvent.m_x, mouseEvent.m_y);
+			std::cout << "scrolling..." << mouseEvent.GetName() << std::endl;
+		}
+	});
+
+	eventManager.Subscribe(EventType::MouseMoved, [this](Event& event) {
+		MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
+		if (isActive) {
+			SceneManager::cameraController->processMouse(mouseEvent.window);
+			std::cout << "moving..." << mouseEvent.GetName() << std::endl;
+		}
+	});
 }
 
 void AppLayer::OnDetach()
 {
-
+	// detach the event
 }
 
 void AppLayer::OnUpdate()
 {
 	camera.onUpdate();
-	camera.processInput(AppWindow::window);
-	applicationFBO.Bind();
-	glViewport(0.0, 0.0, AppWindow::width, AppWindow::height);
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
-	lightShader.Activate();
-	lightShader.setMat4("mvp", camera.getMVP());
-	lightShader.setMat4("matrix", glm::mat4(1.0));
-	lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
-	Utils::OpenGL::Draw::drawCube(VAO, VBO);
-	skybox->render(camera);
-	applicationFBO.Unbind();
 }
 
 void AppLayer::OnGuiUpdate()
 {
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	if (ImGui::Begin("control")) {
 
 		ImGui::End();
@@ -65,12 +67,18 @@ void AppLayer::OnGuiUpdate()
 		int wWidth = static_cast<int>(ImGui::GetWindowWidth());
 		int wHeight = static_cast<int>(ImGui::GetWindowHeight());
 		ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-		if (ImGui::IsItemHovered()) {
-			//camera.processInput(AppWindow::window);
+		//(ImGui::IsItemHovered() && ImGui::IsWindowFocused()) ? isActive = true : false;
+		if (ImGui::IsItemHovered() && ImGui::IsWindowFocused()) {
+			camera.processKeyboard(AppWindow::window);
+			isActive = true;
+		}
+		else {
+			isActive = false;
 		}
 		ImGui::EndChild();
 		ImGui::End();
 	}
+	ImGui::PopStyleVar();
 }
 
 void AppLayer::OnEvent(Event& event)

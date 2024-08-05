@@ -12,10 +12,10 @@ private:
 	unsigned int cubeVAO = 0;
 	unsigned int cubeVBO = 0;
 	unsigned int sphereVAO = 0;
-	unsigned int indexCount;
+	unsigned int indexCount = 0;
 
 
-	float speed = 0.001;
+	float speed = 0.001f;
 	bool pause = true;
 	bool reset = false;
 	bool isPopulating = false;
@@ -23,7 +23,7 @@ private:
 	glm::vec3 direction = glm::vec3(0.0, 0.0, 0.0);
 	unsigned int numInstances = 100000;
 	int numRender = numInstances;
-	int heightLimit = 100.0;
+	float heightLimit = 100.0f;
 	glm::vec2 randomRange = glm::vec2(-5.0, 5.0);
 
 	glm::vec3 particleSize = glm::vec3(0.1, 0.1, 0.1);

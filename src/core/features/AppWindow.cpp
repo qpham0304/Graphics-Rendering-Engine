@@ -158,24 +158,24 @@ int AppWindow::end() {
 void AppWindow::setEventCallback()
 {
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		Timer timer("cursor event");
-		MouseMoveEvent cursorMoveEvent(window, x, y);
-		EventManager::getInstance().Publish(cursorMoveEvent);
-	});
+		{
+			//Timer timer("cursor event");
+			MouseMoveEvent cursorMoveEvent(window, x, y);
+			EventManager::getInstance().Publish(cursorMoveEvent);
+		});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		Timer timer("scroll event");
-		MouseScrollEvent scrollEvent(window, x, y);
-		EventManager::getInstance().Publish(scrollEvent);
-		//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
-	});
+		{
+			Timer timer("scroll event");
+			MouseScrollEvent scrollEvent(window, x, y);
+			EventManager::getInstance().Publish(scrollEvent);
+			//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
+		});
 
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
-		switch (action) {
+		{
+			//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
+			switch (action) {
 			case GLFW_PRESS: {
 				Console::println("key");
 			}
@@ -186,8 +186,20 @@ void AppWindow::setEventCallback()
 				Console::println("key repeat");
 				//application->camera.processKeyboard(window);
 			}
-		}
-	});
+			}
+		});
+
+	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
+		{
+			WindowResizeEvent resizeEvent(window, width, height);
+			EventManager::getInstance().Publish(resizeEvent);
+		});
+
+	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
+		{
+			WindowCloseEvent closeEvent(window);
+			EventManager::getInstance().Publish(closeEvent);
+		});
 }
 
 void AppWindow::pollEvents()

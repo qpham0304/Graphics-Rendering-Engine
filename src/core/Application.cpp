@@ -3,43 +3,43 @@
 #include "../core/features/AppWindow.h"
 #include "../../src/apps/particle-demo/ParticleDemo.h"
 #include "../../src/apps/deferred-IBL-demo/deferredIBL_demo.h"
+#include "../../src/apps/volumetric-light/VolumetricLightDemo.h"
 #include "../../src/events/EventManager.h"
 #include "features/Timer.h"
 #include "./layers/AppLayer.h"
 #include "./layers/EditorLayer.h"
 #include "entt.hpp"
+#include "FileWatch.hpp"
+#include "features/Profiler.h"
 
-//Application* application;
-bool guiOn = true;
+
+void HandleWindowResize() {
+
+}
+
 
 Application::Application()
 {
-	//application = this;
 	isRunning = false;
 	AppWindow::init(PLATFORM_OPENGL);
 }
-struct Point {
-	int x;
-	int y;
-	Point(int x, int y) : x(x), y(y) {};
-};
-void cursorPos() {
-	std::cout << "Cursor Event" << std::endl;
-}
-// /components/headers
-void HandleMouseMoveEvent(Event& event) {
-	MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-	if (SceneManager::cameraController) {
-		SceneManager::cameraController->processMouse(mouseEvent.window);
-	}
-	event.Handled = true;
-};
 
-void HandleMouseScrollEvent(Event& event) {
-	MouseScrollEvent& mouseEvent = static_cast<MouseScrollEvent&>(event);
-	SceneManager::cameraController->scroll_callback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
-	//ImGui_ImplGlfw_ScrollCallback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
-};
+Application& Application::getInstance()
+{
+	static Application application;
+	return application;
+}
+
+bool Application::addLayer(Layer* layer)
+{
+	uint32_t a = 0;
+	return layerManager.AddLayer(layer);
+}
+
+bool Application::removeLayer(int&& index)
+{
+	return layerManager.RemoveLayer(std::move(index));
+}
 
 void Application::run() {
 	isRunning = true;
@@ -53,52 +53,80 @@ void Application::run() {
 
 	EventManager& eventManager = EventManager::getInstance();
 
-	Point p(1, 1);
-	auto lambda = []() -> void {
-		Console::println("clicked");
-	};
-	auto clickEvent = std::function<void()>(lambda);
-	EventListener buttonClickListener(clickEvent);
-	eventManager.Subscribe("buttonClickEvent", buttonClickListener);
-
-	//auto f = std::function<void(double, double)>([](double, double) {
-	//	Timer time("f event");
-	//});
-	//auto f1 = std::function<void(Point)>(mycb);
-	//auto f1 = std::function<void(Point)>([](Point p) -> void {
-	//	Timer timer;
-	//	glm::mat4 model;
-	//	glm::translate(model, glm::vec3(1.0));
-	//	glm::scale(model, glm::vec3(1.0));
-	//});
-	//EventListener scrollListener(f);
-	//EventListener mouseMoveListener(f);
-	//EventListener xyListener(f1);
-	//eventManager.Subscribe("mouseScrollEvent", scrollListener);
-	//eventManager.Subscribe("mouseMoveEvent", mouseMoveListener);
-	//eventManager.Subscribe("xyListener", xyListener);
-
-	eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent);
-	eventManager.Subscribe(EventType::MouseScrolled, HandleMouseScrollEvent);
-
-	SkyboxComponent skybox;
-	FrameBuffer applicationFBO(width, height, GL_RGBA16F);
-
 	glfwSetWindowUserPointer(AppWindow::window, this);
 	glfwSwapInterval(1);
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glEnable(GL_DEPTH_TEST);
 
-	//layerManager.AddLayer(new AppLayer("Application"));
-	//layerManager.AddLayer(new ParticleDemo("Particle Demo"));
-	layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
-	layerManager.AddLayer(new EditorLayer("Editor"));
-	layerManager.DisableLayer(1);
+	//addLayer(new AppLayer("Application"));
+	addLayer(new ParticleDemo("Particle Demo"));
+	//addLayer(new DeferredIBLDemo("Deferred IBL Demo"));
+	addLayer(new EditorLayer("Editor"));
+	//layerManager.DisableLayer(1);
 	//layerManager.EnableLayer(1);
 	//layerManager[1].m_Enabled = false;
 	//layerManager[1].m_Enabled = true;
 
+	//std::bind(&Application::onClose, this, std::placeholders::_1);
+	eventManager.Subscribe(EventType::WindowClose, [this](Event& event) {
+		onClose();
+	});
+
+	//TODO: experimentation file watcher for now
+	std::unique_ptr<filewatch::FileWatch<std::string>> fileWatcher;
+	fileWatcher.reset(new filewatch::FileWatch<std::string>(
+		"./Shaders",
+		[](const std::string& path, const filewatch::Event change_type) {
+			std::cout << path << "-" << (int)change_type << "\n";
+		}
+	));
+	
+	auto func = [](Event& event) -> void {
+		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+		Component terrain("Models/death-valley-terrain/scene.gltf");
+		SceneManager::addComponent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+		SceneManager::addComponent(terrain);
+	};
+	AsyncEvent addComponentEvent;
+	eventManager.Queue(addComponentEvent, func);
+
+	auto func2 = [](Event& event) -> void {
+		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+		Component terrain("Models/death-valley-terrain/scene.gltf");
+		SceneManager::addComponent(terrain);
+	};
+	AsyncEvent addComponentEvent2;
+	eventManager.Queue(addComponentEvent2, func2);
+
+	auto func3 = [](Event& event) -> void {
+		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+		Texture tex("Textures/wood.png", "diffuse");
+	};
+
+	AsyncEvent addComponentEvent3;
+	eventManager.Queue(addComponentEvent3, func3);
+
+	bool joined = false;
+	eventManager.OnUpdate();
 	while (isRunning) {
+		int counter = 0;
+
+		for (auto& [thread, status] : EventManager::getInstance().threads) {
+			Console::println(std::to_string(*status));
+			if (*status == true) {
+				counter++;
+			}
+
+			if (counter == EventManager::getInstance().threads.size() && !EventManager::getInstance().threads.empty()) {
+				thread.join();
+				EventManager::getInstance().threads.clear();
+				joined = true;
+				Console::println("all thread completed join and clear pool");
+			}
+		}
+
+		Timer time("total time", true);
+
 		for (const auto& layer : layerManager) {
 			if (!layer->m_Enabled) {
 				continue;
@@ -106,19 +134,34 @@ void Application::run() {
 			layer->OnUpdate();
 		}
 
-		if (SceneManager::cameraController != nullptr) {
-			SceneManager::cameraController->onUpdate();
-			SceneManager::cameraController->processKeyboard(window);
+		guiController.start();
+		guiController.render();
+
+		for (auto& layer : layerManager) {
+			if (!layer->m_Enabled) {
+				continue;
+			}
+			layer->OnGuiUpdate();
+		}
+		if (ImGui::Begin("right side bar")) {
+			if (ImGui::Button("add layer")) {
+				addLayer(new AppLayer("Application"));
+				//layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
+			}
+			if (ImGui::Button("remove layer")) {
+				removeLayer(1);
+				//layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
+			}
+			ImGui::End();
+		}
+		for (auto& layer : layerManager) {
+			if (ImGui::Begin("right side bar")) {
+				ImGui::Checkbox(layer->GetName().c_str(), &layer->m_Enabled);
+				ImGui::End();
+			}
 		}
 
-		if (guiOn) {
-			guiController.start();
-			guiController.render();
-			for (auto& layer : layerManager) {
-				layer->OnGuiUpdate();
-			}
-			guiController.end();
-		}
+		guiController.end();
 
 		AppWindow::pollEvents();
 		AppWindow::swapBuffer();
@@ -131,8 +174,11 @@ bool Application::running()
 	return isRunning;
 }
 
-void Application::close()
+void Application::onClose()
 {
+	for (auto& [thread, status] : EventManager::getInstance().threads) {
+		thread.join();
+	}
 	isRunning = false;
 }
 

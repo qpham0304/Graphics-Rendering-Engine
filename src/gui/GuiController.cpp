@@ -72,7 +72,7 @@ void ImGuiController::init(GLFWwindow* window, int width, int height)
 	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.078f, 0.078f, 0.078f, 0.540f);
 	colors[ImGuiCol_Border] = ImVec4(0.212f, 0.212f, 0.212f, 1.000f);
 	colors[ImGuiCol_TitleBg] = ImVec4(0.137f, 0.137f, 0.137f, 1.000f);
-	colors[ImGuiCol_TitleBgActive] = ImVec4(0.137f, 0.137f, 0.137f, 1.000f);
+	colors[ImGuiCol_TitleBgActive] = ImVec4(1.000f, 0.682f, 0.000f, 0.100f);
 	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.137f, 0.137f, 0.137f, 1.000f);
 	colors[ImGuiCol_Button] = ImVec4(0.303f, 0.303f, 0.303f, 0.540f);
 	colors[ImGuiCol_ButtonHovered] = ImVec4(0.379f, 0.379f, 0.379f, 0.540f);
@@ -166,7 +166,6 @@ void ImGuiController::render()
 	for (const auto& widget : widgets) {
 		widget->render();
 	}
-
 	menu.render();
 	leftSidebar.render();
 	rightSidebar.render();

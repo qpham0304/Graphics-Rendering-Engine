@@ -1,12 +1,6 @@
 #include "deferredIBL_demo.h"
 #include "ParticleGeometry.h"
 
-void HandleMouseMoveEvent3(Event& event) {
-    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-    SceneManager::cameraController->processMouse(mouseEvent.window);
-    std::cout << "moving... 3" << mouseEvent.GetName() << std::endl;
-}
-
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
@@ -19,7 +13,6 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     backgroundShader.reset(new Shader("Shaders/background.vert", "Shaders/background.frag"));
     prefilterShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag"));
     brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
-    modelShader.reset(new Shader("Shaders/model.vert", "Shaders/model.frag"));
 
 
     Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
@@ -201,14 +194,27 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void myfunc(Event& event)
+{
+    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
+    SceneManager::cameraController->processMouse(mouseEvent.window);
+    std::cout << "moving... 3" << mouseEvent.GetName() << std::endl;
+    //event.Handled = true;
+}
+
 void DeferredIBLDemo::OnAttach()
 {
     AppLayer::OnAttach();
     SceneManager::cameraController = &camera;
     camera = *SceneManager::cameraController;
     EventManager& eventManager = EventManager::getInstance();
-    eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent3);
-    LayerManager::addFrameBuffer("first pass", applicationFBO);
+    eventManager.Subscribe(EventType::MouseMoved, [this](Event& event) {
+        this->OnEvent(event);
+    });
+    //eventManager.Subscribe(
+    //    EventType::MouseMoved, std::bind(&DeferredIBLDemo::OnEvent, this, std::placeholders::_1)
+    //);
+    LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -292,7 +298,11 @@ void DeferredIBLDemo::OnGuiUpdate()
 
 void DeferredIBLDemo::OnEvent(Event& event)
 {
-
+    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
+    SceneManager::cameraController->processMouse(mouseEvent.window);
+    //SceneManager::cameraController->mouse_callback(mouseEvent.window, mouseEvent.m_x, mouseEvent.m_y);
+    std::cout << "moving... 3" << mouseEvent.GetName() << std::endl;
+    //event.Handled = true;
 }
 
 int DeferredIBLDemo::show_demo()
@@ -363,7 +373,6 @@ int DeferredIBLDemo::show_demo()
     Shader backgroundShader("Shaders/background.vert", "Shaders/background.frag");
     Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
     Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
-    Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);

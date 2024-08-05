@@ -1,5 +1,5 @@
 #include "BloomRenderer.h"
-#include "../../utils/headers/Utils.h"
+#include "../../utils/Utils.h"
 
 BloomRenderer::BloomRenderer() : mInit(false) {}
 BloomRenderer::~BloomRenderer() {}

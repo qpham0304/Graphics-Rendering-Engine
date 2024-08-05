@@ -3,7 +3,7 @@
 
 #include <windows.h>
 #include <shobjidl.h> 
-#include "../../graphics/utils/headers/Utils.h"
+#include "../../graphics/utils/Utils.h"
 
 glm::vec3 lightPositions[] = {
     glm::vec3(-5.0f,  5.0f, 5.0f),

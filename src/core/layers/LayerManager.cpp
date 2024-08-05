@@ -5,12 +5,6 @@
     throw std::runtime_error(msg); \
 }
 
-#define FRAME_NOT_FOUND_ERROR(name) { \
-    std::string msg = "Framebuffer does not exist: \"" + name + "\""; \
-    throw std::runtime_error(msg); \
-}
-
-
 std::unordered_map<std::string, std::shared_ptr<FrameBuffer>> LayerManager::frameBuffers = {};
 
 bool LayerManager::boundCheck(const int& index) {
@@ -46,7 +40,6 @@ std::shared_ptr<FrameBuffer> LayerManager::getFrameBuffer(const std::string name
 	if (frameBuffers.find(name) != frameBuffers.end()) {
 		return frameBuffers[name];
 	}
-	//FRAME_NOT_FOUND_ERROR(name);
 	return nullptr;
 }
 
@@ -57,13 +50,19 @@ bool LayerManager::AddLayer(Layer* layer)
 	return true;
 }
 
-void LayerManager::RemoveLayer(const int&& index)
+bool LayerManager::RemoveLayer(const int&& index)
 {
-	//layer->OnDetach();
 	if (!boundCheck(index)) {
-		OUT_OF_BOUND_ERROR(index);
+		return false;
 	}
-	m_Layers.pop_back();
+	m_Layers[index]->OnDetach();
+	delete m_Layers[index];
+
+	//auto it = m_Layers.begin();
+	//std::advance(it, index);
+	//m_Layers.erase(it);
+	m_Layers.erase(m_Layers.begin() + index);
+	return true;
 }
 
 void LayerManager::EnableLayer(const int&& index)
