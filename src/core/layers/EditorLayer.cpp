@@ -23,6 +23,7 @@ void EditorLayer::OnDetach()
 void EditorLayer::OnUpdate()
 {
 	editorCamera.onUpdate();
+	SceneManager::getInstance().onUpdate(glfwGetTime());
 
 	Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
 	Shader bloomShader("Shaders/bloom/bloom.vert", "Shaders/bloom/bloom.frag");

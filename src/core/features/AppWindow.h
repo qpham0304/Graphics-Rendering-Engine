@@ -6,7 +6,6 @@
 #include <DepthMap.h>
 #include <DepthCubeMap.h>
 #include <imgui_internal.h>
-#include <camera.h>
 #include <set>
 #include <future>
 #include <mutex>
@@ -37,9 +36,10 @@ public:
 	static Platform platform;
 	static const std::set<Platform> supportPlatform;
 	static ImGuizmo::OPERATION GuizmoType;
-
-	static ImGuiController guiController;
 	static GLFWwindow* window;
+
+	// currently bind with an app inside window, remove after done refactoring
+	static ImGuiController guiController;
 
 	static int init(Platform platform);		// set up and init the graphics api depending on the platform
 	static int start(const char* title);	// start creating windows and context

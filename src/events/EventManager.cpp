@@ -41,7 +41,7 @@ void EventManager::CleanUpThread()
 
 	for (auto& [thread, status] : threads) {
 		if (status != nullptr) {
-			if (*status == true) {
+			if (*status) {
 				counter++;
 				if (thread.joinable()) {
 					Console::println("...threads joined...");

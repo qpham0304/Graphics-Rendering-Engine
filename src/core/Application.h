@@ -14,7 +14,7 @@ private:
 	std::vector<std::future<void>> futures;
 
 public:
-	LayerManager layerManager; // user should be able to manage the layer systerm
+	LayerManager layerManager; // user should be able to manage the layer system
 
 	~Application() = default;
 

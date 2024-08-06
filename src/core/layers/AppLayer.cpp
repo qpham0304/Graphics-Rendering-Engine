@@ -41,6 +41,11 @@ void AppLayer::OnAttach()
 			std::cout << "moving..." << mouseEvent.GetName() << std::endl;
 		}
 	});
+
+	eventManager.Subscribe(EventType::WindowResize, [this](Event& event) {
+		WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
+		camera.updateViewResize(windowResizeEvent.m_width, windowResizeEvent.m_height);
+	});
 }
 
 void AppLayer::OnDetach()

@@ -1,13 +1,36 @@
 #include "SceneManager.h"
 
-std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
 std::unordered_map<std::string, std::unique_ptr<Shader>> SceneManager::shaders = {};
+std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
 Camera* SceneManager::cameraController = nullptr;
 std::string SceneManager::selectedID = "";
 std::unordered_map<std::string, std::unique_ptr<LightComponent>> SceneManager::lights = {};
 
 
 bool SceneManager::gammaCorrection = true;
+
+SceneManager::SceneManager() {
+	
+	scenes["default"].reset(new Scene());
+}
+
+SceneManager::~SceneManager()
+{
+
+}
+
+SceneManager& SceneManager::getInstance()
+{
+	static SceneManager instance;
+	return instance;
+}
+
+void SceneManager::onUpdate(const float&& deltaTime)
+{
+	for (auto& [name, scene] : scenes) {
+		scene->onUpdate(deltaTime);
+	}
+}
 
 void SceneManager::renderPBR(Light& light, UniformProperties& uniforms)
 {

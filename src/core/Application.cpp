@@ -8,15 +8,8 @@
 #include "features/Timer.h"
 #include "./layers/AppLayer.h"
 #include "./layers/EditorLayer.h"
-#include "entt.hpp"
 #include "FileWatch.hpp"
 #include "features/Profiler.h"
-
-
-void HandleWindowResize() {
-
-}
-
 
 Application::Application()
 {
@@ -62,8 +55,6 @@ void Application::run() {
 	addLayer(new ParticleDemo("Particle Demo"));
 	//addLayer(new DeferredIBLDemo("Deferred IBL Demo"));
 	addLayer(new EditorLayer("Editor"));
-	//layerManager.DisableLayer(1);
-	//layerManager.EnableLayer(1);
 	//layerManager[1].m_Enabled = false;
 	//layerManager[1].m_Enabled = true;
 
@@ -119,9 +110,9 @@ void Application::run() {
 	while (isRunning) {
 		eventManager.OnUpdate();
 
-		if (component && *ready) {
-			SceneManager::addComponent(*component);
-		}
+		//if (component && *ready) {
+		//	SceneManager::addComponent(*component);
+		//}
 
 		for (const auto& layer : layerManager) {
 			if (!layer->m_Enabled) {

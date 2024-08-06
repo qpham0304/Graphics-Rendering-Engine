@@ -2,6 +2,7 @@
 #include "Timer.h"
 #include "../../events/Event.h"
 #include "../../events/EventManager.h"
+#include <camera.h>
 
 unsigned int AppWindow::width = DEFAULT_WIDTH;
 unsigned int AppWindow::height = DEFAULT_HEIGHT;
@@ -176,16 +177,19 @@ void AppWindow::setEventCallback()
 		{
 			//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
 			switch (action) {
-			case GLFW_PRESS: {
-				Console::println("key");
-			}
-			case GLFW_RELEASE: {
-				Console::println("released");
-			}
-			case GLFW_REPEAT: {
-				Console::println("key repeat");
-				//application->camera.processKeyboard(window);
-			}
+				case GLFW_PRESS: {
+					if (key == GLFW_KEY_ESCAPE) {
+						WindowCloseEvent windowCloseEvent;
+						EventManager::getInstance().Publish(windowCloseEvent);
+					}
+				}
+				case GLFW_RELEASE: {
+					Console::println("released");
+				}
+				case GLFW_REPEAT: {
+					Console::println("key repeat");
+					//application->camera.processKeyboard(window);
+				}
 			}
 		});
 
@@ -197,7 +201,7 @@ void AppWindow::setEventCallback()
 
 	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
 		{
-			WindowCloseEvent closeEvent(window);
+			WindowCloseEvent closeEvent;
 			EventManager::getInstance().Publish(closeEvent);
 		});
 }

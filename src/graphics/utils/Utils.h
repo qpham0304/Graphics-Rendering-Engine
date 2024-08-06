@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <random>
+#include <iostream>
 #include <sstream>
 #include <windows.h>
 #include <shobjidl.h> 
@@ -76,9 +77,74 @@ namespace Utils::uuid {
 }
 
 namespace Console {
-    void print(const std::string& msg);
-    void error(const std::string& msg);
-    void println(const std::string& msg);
+    //void print(const std::string& msg);
+    //void error(const std::string& msg);
+    //void println(const std::string& msg);
+#define DEBUG
+
+#ifdef DEBUG
+	template<typename... Args>
+	void error(const Args&& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str() << std::endl;
+	}
+
+	template<typename... Args>
+	void error(const Args& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str() << std::endl;
+	}
+
+	template<typename... Args>
+	void print(const Args& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str();
+	}
+
+	template<typename... Args>
+	void print(const Args&& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str();
+	}
+
+	template<typename... Args>
+	void println(const Args& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str() << std::endl;
+	}
+
+	template<typename... Args>
+	void println(const Args&& ...args) {
+		std::ostringstream oss;
+		(oss << ... << args);
+		std::cout << oss.str() << std::endl;
+	}
+
+#else
+	template<typename... Args>
+	void error(const Args&& ...args) {}
+
+	template<typename... Args>
+	void error(const Args& ...args) {}
+
+	template<typename... Args>
+	void print(const Args& ...args) {}
+
+	template<typename... Args>
+	void print(const Args&& ...args) {}
+
+	template<typename... Args>
+	void println(const Args& ...args) {}
+
+	template<typename... Args>
+	void println(const Args&& ...args) {}
+#endif
+
 }
 
 namespace Utils::Random {

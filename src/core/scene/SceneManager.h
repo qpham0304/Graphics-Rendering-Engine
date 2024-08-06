@@ -12,25 +12,33 @@
 #include "../components/Component.h"
 #include "../components/SkyboxComponent.h"
 #include "../components/LightComponent.h"
-
+#include "Scene.h"
 class SceneManager {
 private:
 	static std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
 	static std::string selectedID;
+	
+	std::unordered_map<std::string, std::unique_ptr<Scene>> scenes;
 	SceneManager();
 
 public:
-	static Texture defaultAlbedo;
-	static Texture defaultNormal;
-	static Texture defaultMetallic;
-	static Texture defaultRoughness;
-	static Texture defaultAO;
+	~SceneManager();
+
+	static SceneManager& getInstance();
+	//static Texture defaultAlbedo;
+	//static Texture defaultNormal;
+	//static Texture defaultMetallic;
+	//static Texture defaultRoughness;
+	//static Texture defaultAO;
 
 	static std::unordered_map<std::string, std::unique_ptr<Component>> components; //take uuid 
 	static std::unordered_map<std::string, std::unique_ptr<LightComponent>> lights;
 	static Camera* cameraController;
 	static bool gammaCorrection;
 
+	void onUpdate(const float&& deltaTime);
+	
+	//TODO: refactor these static functions into a new project or remove them completely
 	static void renderPBR(Light& light, UniformProperties& uniforms);
 	static void render(std::vector<Light> light, UniformProperties& uniforms);
 	static void renderShadow(Shader& shadowMapShader, Light& light);

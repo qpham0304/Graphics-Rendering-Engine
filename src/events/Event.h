@@ -74,9 +74,8 @@ public:
 class WindowCloseEvent : public Event
 {
 public:
-	GLFWwindow* window;
 
-	WindowCloseEvent(GLFWwindow*& window) : window(window) {}
+	WindowCloseEvent() {}
 
 	EventType GetEventType() const override {
 		return EventType::WindowClose;

@@ -108,17 +108,17 @@ namespace Utils::uuid {
 }
 
 namespace Console{
-	void print(const std::string& msg) {
-		std::cout << msg;
-	}
+	//void print(const std::string& msg) {
+	//	std::cout << msg;
+	//}
 
-	void error(const std::string& msg) {
-		std::cerr << msg;
-	}
+	//void error(const std::string& msg) {
+	//	std::cerr << msg;
+	//}
 
-	void println(const std::string& msg) {
-		std::cout << msg << std::endl;
-	}
+	//void println(const std::string& msg) {
+	//	std::cout << msg << std::endl;
+	//}
 }
 
 namespace Utils::OpenGL::Draw {
