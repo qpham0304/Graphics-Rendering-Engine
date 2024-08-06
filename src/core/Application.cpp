@@ -81,51 +81,55 @@ void Application::run() {
 		}
 	));
 	
-	auto func = [](Event& event) -> void {
-		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-		Component terrain("Models/death-valley-terrain/scene.gltf");
-		SceneManager::addComponent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-		SceneManager::addComponent(terrain);
-	};
-	AsyncEvent addComponentEvent;
-	eventManager.Queue(addComponentEvent, func);
-
-	auto func2 = [](Event& event) -> void {
-		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-		Component terrain("Models/death-valley-terrain/scene.gltf");
-		SceneManager::addComponent(terrain);
-	};
 	AsyncEvent addComponentEvent2;
-	eventManager.Queue(addComponentEvent2, func2);
+	auto func2 = [](Event& event) -> void {
+		Component reimu("Models/reimu/reimu.obj");
 
-	auto func3 = [](Event& event) -> void {
-		//Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-		Texture tex("Textures/wood.png", "diffuse");
+		SceneManager::addComponent(reimu);
 	};
-
-	AsyncEvent addComponentEvent3;
-	eventManager.Queue(addComponentEvent3, func3);
-
+	for (int i = 0; i < 3; i++) {
+		eventManager.Queue(addComponentEvent2, func2);
+	}
 	bool joined = false;
-	eventManager.OnUpdate();
+	int i = 0;
+	std::vector<std::pair<std::thread, bool*>> threads;
 	while (isRunning) {
-		int counter = 0;
+		//eventManager.OnUpdate();
+		while (i < 10) {
+			Timer time("thread time", true);
 
-		for (auto& [thread, status] : EventManager::getInstance().threads) {
-			Console::println(std::to_string(*status));
-			if (*status == true) {
-				counter++;
-			}
+			i++;
+			std::thread thread([func2, &addComponentEvent2]() {
+				//Console::println("read gets called");
 
-			if (counter == EventManager::getInstance().threads.size() && !EventManager::getInstance().threads.empty()) {
-				thread.join();
-				EventManager::getInstance().threads.clear();
-				joined = true;
-				Console::println("all thread completed join and clear pool");
+				func2(addComponentEvent2);
+				addComponentEvent2.isCompleted = true;
+			});
+			threads.push_back(std::make_pair(std::move(thread), &addComponentEvent2.isCompleted));
+		}
+		Console::println(std::to_string(threads.size()));
+		if (!joined) {
+			int counter = 0;
+			for (auto& [thread, status] : threads) {
+				if (status != nullptr) {
+					if (*status == true) {
+						counter++;
+						Console::println("...completed...");
+					}
+
+					if (counter == threads.size()) {
+						if (thread.joinable()) {
+							Console::println("...threads joined...");
+							thread.join();
+						}
+					}
+				}
 			}
+			joined = true;
+			//threads.clear();
+			//Console::println(std::to_string(threads.size()));
 		}
 
-		Timer time("total time", true);
 
 		for (const auto& layer : layerManager) {
 			if (!layer->m_Enabled) {
@@ -136,7 +140,9 @@ void Application::run() {
 
 		guiController.start();
 		guiController.render();
-
+		if (ImGui::Button("clear")) {
+			eventManager.threads.clear();
+		}
 		for (auto& layer : layerManager) {
 			if (!layer->m_Enabled) {
 				continue;
@@ -177,7 +183,9 @@ bool Application::running()
 void Application::onClose()
 {
 	for (auto& [thread, status] : EventManager::getInstance().threads) {
-		thread.join();
+		if (thread.joinable()) {
+			thread.join();
+		}
 	}
 	isRunning = false;
 }
