@@ -16,6 +16,7 @@ class EventManager
 private:
 	EventManager() = default;
 	void PublishAsync(EventListener& eventListener);
+	void CleanUpThread();
 
 public:
 	using EventCallback = std::function<void(Event&)>;
@@ -41,7 +42,7 @@ public:
 
 	void Subscribe(EventType eventType, EventCallback callback);
 	void Publish(Event& event);
-	void Queue(AsyncEvent event, EventCallback callback);
+	void Queue(AsyncEvent& event, EventCallback callback);
 	void OnUpdate();
 	std::vector<std::pair<std::thread, bool*>> threads;
 

@@ -4,6 +4,7 @@
 #include <string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
+#include "../core/components/Component.h"
 
 enum class EventType
 {
@@ -116,8 +117,32 @@ class AsyncEvent : public Event
 {
 public:
 	bool isCompleted;
+	std::string id;
 	
-	AsyncEvent() : isCompleted(false) 
+	AsyncEvent() : isCompleted(false), id("")
+	{
+
+	};
+
+	virtual EventType GetEventType() const override {
+		return EventType::AsyncEvent;
+	}
+
+	virtual const char* GetName() const override {
+		return "AsyncEvent";
+	};
+
+	virtual std::string ToString() const override {
+		return "AsyncEvent";
+	}
+};
+
+class ModelLoadAsyncEvent : public AsyncEvent
+{
+public:
+	Component* component = nullptr;
+
+	ModelLoadAsyncEvent(Component* component) : component(component)
 	{
 
 	};
@@ -127,10 +152,10 @@ public:
 	}
 
 	const char* GetName() const override {
-		return "AsyncEvent";
+		return "ModelLoadAsyncEvent";
 	};
 
 	std::string ToString() const override {
-		return "AsyncEvent";
+		return "ModelLoadAsyncEvent";
 	}
 };

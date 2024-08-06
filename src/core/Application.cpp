@@ -81,55 +81,47 @@ void Application::run() {
 		}
 	));
 	
-	AsyncEvent addComponentEvent2;
-	auto func2 = [](Event& event) -> void {
+	AsyncEvent addComponentEvent;
+	auto func = [](Event& event) -> void {
 		Component reimu("Models/reimu/reimu.obj");
-
 		SceneManager::addComponent(reimu);
 	};
-	for (int i = 0; i < 3; i++) {
-		eventManager.Queue(addComponentEvent2, func2);
-	}
+	eventManager.Queue(addComponentEvent, func);
+
+	AsyncEvent addComponentEvent1;
+	auto func1 = [](Event& event) -> void {
+		Component reimu("Models/sponza/sponza.obj");
+		SceneManager::addComponent(reimu);
+	};
+	eventManager.Queue(addComponentEvent1, func1);
+
+	AsyncEvent addComponentEvent2;
+	auto func2 = [](Event& event) -> void {
+		Component reimu("Models/aru/aru.gltf");
+		SceneManager::addComponent(reimu);
+	};
+	eventManager.Queue(addComponentEvent2, func2);
+
+	Component* component = nullptr;
+	bool* ready = nullptr;
+	ModelLoadAsyncEvent addComponentEvent3(component);
+	auto func3 = [&component, &ready](Event& event) -> void {
+		ModelLoadAsyncEvent& e = static_cast<ModelLoadAsyncEvent&>(event);
+		component = new Component("Models/aru/aru.gltf");
+		ready = &e.isCompleted;
+	};
+	eventManager.Queue(addComponentEvent3, func3);
+
 	bool joined = false;
 	int i = 0;
-	std::vector<std::pair<std::thread, bool*>> threads;
+	std::vector<std::thread> threads;
+	std::vector<bool*> statuses;
 	while (isRunning) {
-		//eventManager.OnUpdate();
-		while (i < 10) {
-			Timer time("thread time", true);
+		eventManager.OnUpdate();
 
-			i++;
-			std::thread thread([func2, &addComponentEvent2]() {
-				//Console::println("read gets called");
-
-				func2(addComponentEvent2);
-				addComponentEvent2.isCompleted = true;
-			});
-			threads.push_back(std::make_pair(std::move(thread), &addComponentEvent2.isCompleted));
+		if (component && *ready) {
+			SceneManager::addComponent(*component);
 		}
-		Console::println(std::to_string(threads.size()));
-		if (!joined) {
-			int counter = 0;
-			for (auto& [thread, status] : threads) {
-				if (status != nullptr) {
-					if (*status == true) {
-						counter++;
-						Console::println("...completed...");
-					}
-
-					if (counter == threads.size()) {
-						if (thread.joinable()) {
-							Console::println("...threads joined...");
-							thread.join();
-						}
-					}
-				}
-			}
-			joined = true;
-			//threads.clear();
-			//Console::println(std::to_string(threads.size()));
-		}
-
 
 		for (const auto& layer : layerManager) {
 			if (!layer->m_Enabled) {
@@ -140,9 +132,6 @@ void Application::run() {
 
 		guiController.start();
 		guiController.render();
-		if (ImGui::Button("clear")) {
-			eventManager.threads.clear();
-		}
 		for (auto& layer : layerManager) {
 			if (!layer->m_Enabled) {
 				continue;

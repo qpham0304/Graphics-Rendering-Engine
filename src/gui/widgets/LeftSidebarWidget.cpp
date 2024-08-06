@@ -1,5 +1,6 @@
 #include "../headers/LeftSidebarWidget.h"
 #include "../../core/scene/SceneManager.h"
+#include "../../events/EventManager.h"
 
 #include <windows.h>
 #include <shobjidl.h> 
@@ -119,16 +120,28 @@ void LeftSidebarWidget::AddEntityButton() {
         if (!path.empty()) {
             std::string id = SceneManager::addComponent(path.c_str());
 
-            if (!id.empty()) {
+            //AsyncEvent addComponentEvent;
+            //auto func = [this, path](Event& event) -> void {
+            //    AsyncEvent& e = static_cast<AsyncEvent&>(event);
+            //    e.id = SceneManager::addComponent(path.c_str());
+            //    loadedID = e.id;
+            //};
+            //EventManager::getInstance().Queue(addComponentEvent, func);
+            //std::string& id = loadedID;
+
+
+            if (id.empty()) {
+                ImGui::OpenPopup("Model loading error!");
+            }
+            else {
                 size_t pos = path.find_last_of('/');
                 nodes.push_back(id);
                 selectedIndex = nodes.size() - 1;
                 SceneManager::setSelectedID(id);
                 Component* component = SceneManager::getComponent(id);
-                component->select();
-            }
-            else {
-                ImGui::OpenPopup("Model loading error!");
+                if (component) {
+                    component->select();
+                }
             }
         }
     }
