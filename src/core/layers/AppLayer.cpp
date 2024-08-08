@@ -30,7 +30,6 @@ void AppLayer::OnAttach()
 		MouseScrollEvent& mouseEvent = static_cast<MouseScrollEvent&>(event);
 		if (isActive) {
 			SceneManager::cameraController->scroll_callback(mouseEvent.m_x, mouseEvent.m_y);
-			std::cout << "scrolling..." << mouseEvent.GetName() << std::endl;
 		}
 	});
 
@@ -38,7 +37,6 @@ void AppLayer::OnAttach()
 		MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
 		if (isActive) {
 			SceneManager::cameraController->processMouse(mouseEvent.window);
-			std::cout << "moving..." << mouseEvent.GetName() << std::endl;
 		}
 	});
 

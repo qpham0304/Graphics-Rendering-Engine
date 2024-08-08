@@ -81,6 +81,11 @@ void LayerManager::DisableLayer(const int&& index)
 	m_Layers[index]->m_Enabled = false;
 }
 
+const int& LayerManager::size() const
+{
+	return m_Layers.size();
+}
+
 const std::string& LayerManager::CurrentLayer()
 {
 	return m_Layers[m_SelectedLayer]->GetName();

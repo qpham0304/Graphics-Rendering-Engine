@@ -13,15 +13,17 @@
 #include "../components/SkyboxComponent.h"
 #include "../components/LightComponent.h"
 #include "Scene.h"
+
 class SceneManager {
 private:
 	static std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
 	static std::string selectedID;
 	
-	std::unordered_map<std::string, std::unique_ptr<Scene>> scenes;
 	SceneManager();
 
 public:
+	std::unordered_map<std::string, std::unique_ptr<Scene>> scenes;
+
 	~SceneManager();
 
 	static SceneManager& getInstance();
@@ -36,7 +38,11 @@ public:
 	static Camera* cameraController;
 	static bool gammaCorrection;
 
+	bool addScene(const std::string& name);
+	bool addScene(std::unique_ptr<Scene> scene);
+	bool removeScene(const std::string& name);
 	void onUpdate(const float&& deltaTime);
+	void onGuiUpdate(const float&& deltaTime);
 	
 	//TODO: refactor these static functions into a new project or remove them completely
 	static void renderPBR(Light& light, UniformProperties& uniforms);

@@ -11,11 +11,9 @@
 #include "../ray-tracing/BasicRayTracing.h"
 #include "../particle-demo/ParticleDemo.h"
 #include "../../core/Application.h"
-#include <iostream>
 
 int main()
 {
-
 	try {
 		auto demo0 = DemoPBR::run;
 		auto demo1 = AreaLightDemo::run;

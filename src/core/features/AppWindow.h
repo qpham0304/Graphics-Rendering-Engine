@@ -47,6 +47,7 @@ public:
 	static void pollEvents();
 	static void swapBuffer();
 	
+	// legacy demo within the window, might to a separate project
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
 	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
 	static int renderScene();

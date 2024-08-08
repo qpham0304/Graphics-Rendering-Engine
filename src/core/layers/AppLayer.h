@@ -6,7 +6,7 @@
 #include "Layer.h"
 #include "../../core/features/AppWindow.h"
 #include "../../src/events/EventManager.h"
-#include "../../core/layers/LayerManager.h"
+#include "LayerManager.h"
 
 class AppLayer : public Layer
 {

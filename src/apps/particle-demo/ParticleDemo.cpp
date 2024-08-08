@@ -15,6 +15,13 @@ void ParticleDemo::OnAttach()
     //EventManager& eventManager = EventManager::getInstance();
 
     LayerManager::addFrameBuffer("ParticleDemo", applicationFBO);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	EventManager& eventManager = EventManager::getInstance();
 }
 
 void ParticleDemo::OnDetach()
@@ -24,6 +31,7 @@ void ParticleDemo::OnDetach()
 
 void ParticleDemo::OnUpdate()
 {
+    glEnable(GL_DEPTH_TEST);
     AppLayer::OnUpdate();
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
@@ -33,13 +41,8 @@ void ParticleDemo::OnUpdate()
     glViewport(0.0, 0.0, AppWindow::width, AppWindow::height);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    lightShader.Activate();
-    lightShader.setMat4("mvp", camera.getMVP());
-    lightShader.setMat4("matrix", glm::mat4(1.0));
-    lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
-    Utils::OpenGL::Draw::drawCube(VAO, VBO);
-    skybox->render(camera);
     particleRenderer.render(particleShader, camera, numRender, speed, pause);
+    //skybox->render(camera);
     applicationFBO.Unbind();
 }
 
@@ -135,7 +138,9 @@ int ParticleDemo::show_demo()
         glViewport(0.0, 0.0, width, height);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         demo->particleRenderer.render(particleShader, camera, demo->numRender, demo->speed, demo->pause);
+
         skybox.render(camera);
 
         applicationFBO.Unbind();

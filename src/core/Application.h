@@ -1,28 +1,28 @@
 #pragma once
 
-#include <functional>
-#include <camera.h>
 #include "layers/LayerManager.h"
-#include "future"
-#include <mutex>
+#include "scene/SceneManager.h"
+#include "../../src/events/EventManager.h"
+#include "layers/EditorLayer.h"
+#include "../gui/GuiController.h"
 
 class Application
 {
 private:
 	bool isRunning;
 	Application();
-	std::vector<std::future<void>> futures;
 
 public:
-	LayerManager layerManager; // user should be able to manage the layer system
+	SceneManager& sceneManager = SceneManager::getInstance();
+	EventManager& eventManager = EventManager::getInstance();
+	ImGuiController guiController;
+	EditorLayer editorLayer;
 
 	~Application() = default;
 
 	static Application& getInstance();
-	bool addLayer(Layer* layer);
-	bool removeLayer(int&& index);
+
 	void run();
-	bool running();
 	void onClose();
 };
 

@@ -29,6 +29,7 @@ public:
 	bool RemoveLayer(const int&& index);
 	void EnableLayer(const int&& index);
 	void DisableLayer(const int&& index);
+	const int& size() const;
 	const std::string& CurrentLayer();
 
 	//std::vector<Layer*>::iterator begin();

@@ -11,7 +11,6 @@ bool SceneManager::gammaCorrection = true;
 
 SceneManager::SceneManager() {
 	
-	scenes["default"].reset(new Scene());
 }
 
 SceneManager::~SceneManager()
@@ -25,10 +24,54 @@ SceneManager& SceneManager::getInstance()
 	return instance;
 }
 
+bool SceneManager::addScene(const std::string& name)
+{
+	if (scenes.find(name) == scenes.end()) {
+		scenes[name].reset(new Scene(name));
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool SceneManager::addScene(std::unique_ptr<Scene> scene)
+{
+	if (scenes.find(scene->getName()) == scenes.end()) {
+		scenes[scene->getName()] = std::move(scene);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool SceneManager::removeScene(const std::string& name)
+{
+	if (scenes.find(name) != scenes.end()) {
+		scenes[name].reset();
+		scenes.erase(name);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 void SceneManager::onUpdate(const float&& deltaTime)
 {
 	for (auto& [name, scene] : scenes) {
+		if(!scene->isEnabled) {
+			continue;
+		}
 		scene->onUpdate(deltaTime);
+	}
+}
+
+void SceneManager::onGuiUpdate(const float&& deltaTime)
+{
+	for (auto& [name, scene] : scenes) {
+		scene->onGuiUpdate(deltaTime);
 	}
 }
 

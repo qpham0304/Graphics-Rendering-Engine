@@ -178,6 +178,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\layers\BloomLayer.cpp" />
     <ClCompile Include="Headers\Input.h" />
     <ClCompile Include="src\core\features\Profiler.cpp" />
     <ClCompile Include="src\core\scene\Scene.cpp" />
@@ -253,9 +254,12 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
+    <ClCompile Include="src\core\layers\SSAOLayer.cpp" />
+    <ClCompile Include="src\core\layers\SSRLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="src\core\layers\BloomLayer.h" />
     <ClInclude Include="Libraries\include\entt\entt.hpp" />
     <ClInclude Include="src\core\features\Profiler.h" />
     <ClInclude Include="src\core\scene\Scene.h" />
@@ -338,6 +342,8 @@
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
     <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
     <ClInclude Include="src\apps\SSR-demo\SSR_demo.h" />
+    <ClInclude Include="src\core\layers\SSAOLayer.h" />
+    <ClInclude Include="src\core\layers\SSRLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

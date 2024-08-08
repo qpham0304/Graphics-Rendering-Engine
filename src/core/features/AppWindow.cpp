@@ -160,14 +160,14 @@ void AppWindow::setEventCallback()
 {
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
 		{
-			//Timer timer("cursor event");
+			Timer("cursor event", true);
 			MouseMoveEvent cursorMoveEvent(window, x, y);
 			EventManager::getInstance().Publish(cursorMoveEvent);
 		});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y)
 		{
-			Timer timer("scroll event");
+			Timer("scroll event", true);
 			MouseScrollEvent scrollEvent(window, x, y);
 			EventManager::getInstance().Publish(scrollEvent);
 			//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
