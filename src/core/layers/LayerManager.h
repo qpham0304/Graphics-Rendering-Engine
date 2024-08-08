@@ -15,7 +15,6 @@ private:
 
 	bool boundCheck(const int& index);
 
-
 public:
 	LayerManager() = default;
 	~LayerManager();

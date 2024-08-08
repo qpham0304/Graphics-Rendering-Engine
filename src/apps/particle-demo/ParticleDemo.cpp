@@ -1,10 +1,14 @@
 #include "ParticleDemo.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
+#include "../../core/scene/SceneManager.h"
+
+Scene* scene;
 
 ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
+    scene = SceneManager::getInstance().scenes["default"].get();
 }
 
 void ParticleDemo::OnAttach()
@@ -104,10 +108,6 @@ int ParticleDemo::show_demo()
     SkyboxComponent skybox;
     FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
-    std::vector<Component*> components;
-    for (const auto& pair : SceneManager::components) {
-        components.push_back(pair.second.get());
-    }
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);

@@ -1,4 +1,5 @@
 #include "AppLayer.h"
+#include "../scene/SceneManager.h"
 
 AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(0), VBO(0)
 {
@@ -19,8 +20,12 @@ AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(
 		glm::vec3(-6.5f, 3.5f, 8.5f), 
 		glm::vec3(0.5, -0.2, -1.0f)
 	);
-	SceneManager::cameraController = &camera;
 	skybox.reset(new SkyboxComponent());
+}
+
+AppLayer::~AppLayer()
+{
+	OnDetach();
 }
 
 void AppLayer::OnAttach()
@@ -29,14 +34,14 @@ void AppLayer::OnAttach()
 	eventManager.Subscribe(EventType::MouseScrolled, [this](Event& event) {
 		MouseScrollEvent& mouseEvent = static_cast<MouseScrollEvent&>(event);
 		if (isActive) {
-			SceneManager::cameraController->scroll_callback(mouseEvent.m_x, mouseEvent.m_y);
+			camera.scroll_callback(mouseEvent.m_x, mouseEvent.m_y);
 		}
 	});
 
 	eventManager.Subscribe(EventType::MouseMoved, [this](Event& event) {
 		MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
 		if (isActive) {
-			SceneManager::cameraController->processMouse(mouseEvent.window);
+			camera.processMouse(mouseEvent.window);
 		}
 	});
 
@@ -48,7 +53,7 @@ void AppLayer::OnAttach()
 
 void AppLayer::OnDetach()
 {
-	// detach the event
+	SceneManager::cameraController = nullptr;
 }
 
 void AppLayer::OnUpdate()

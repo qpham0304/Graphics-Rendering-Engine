@@ -28,6 +28,7 @@ private:
 	entt::registry registry;
 	entt::entity entity;
 	std::string sceneName;
+	std::unordered_map<uint32_t, Entity> entities;
 
 public:
 	LayerManager layerManager;
@@ -41,10 +42,8 @@ public:
 	bool removeLayer(int&& index);
 
 
-	void addEntity(Entity entity);
+	void addEntity();
 
-	template<typename T>
-	void addComponent(Entity& entity, T& component);
 	void onStart();
 	void onStop();
 	void onUpdate(const float& deltaTime);

@@ -8,12 +8,6 @@ Scene::Scene(const std::string name) : sceneName(name), isEnabled(true)
 	entity = registry.create();
 	registry.emplace<TransformComponent>(entity, transform);
 	registry.emplace<ShaderComponent>(entity, shaderPath);
-
-	//addLayer(new AppLayer("Application"));
-	//addLayer(new ParticleDemo("Particle Demo"));
-	//addLayer(new DeferredIBLDemo("Deferred IBL Demo"));
-	//layerManager[1].m_Enabled = false;
-	//layerManager[1].m_Enabled = true;
 }
 
 bool Scene::addLayer(Layer* layer)
@@ -24,6 +18,12 @@ bool Scene::addLayer(Layer* layer)
 bool Scene::removeLayer(int&& index)
 {
 	return layerManager.RemoveLayer(std::move(index));
+}
+
+void Scene::addEntity()
+{
+	auto a = registry.create();
+	Entity ent();
 }
 
 void Scene::onUpdate(const float& deltaTime)

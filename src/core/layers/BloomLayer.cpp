@@ -72,7 +72,9 @@ void BloomLayer::OnUpdate()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightShader.Activate();
-        lightShader.setMat4("mvp", SceneManager::cameraController->getMVP());
+        if (SceneManager::cameraController) {
+            lightShader.setMat4("mvp", SceneManager::cameraController->getMVP());
+        }
         lightShader.setMat4("matrix", glm::mat4(1.0));
         lightShader.setVec3("lightColor", glm::vec3(0.7, 0.8, 0.5));
         Utils::OpenGL::Draw::drawCube(VAO, VBO);

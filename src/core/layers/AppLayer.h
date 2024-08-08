@@ -20,7 +20,7 @@ protected:
 
 public:
 	AppLayer(const std::string& name);
-	~AppLayer() = default;
+	~AppLayer();
 
 	void OnAttach() override;
 	void OnDetach() override;

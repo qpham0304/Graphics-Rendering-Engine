@@ -178,6 +178,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\entities\Entity.cpp" />
     <ClCompile Include="src\core\layers\BloomLayer.cpp" />
     <ClCompile Include="Headers\Input.h" />
     <ClCompile Include="src\core\features\Profiler.cpp" />
@@ -259,6 +260,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="src\core\entities\Entity.h" />
     <ClInclude Include="src\core\layers\BloomLayer.h" />
     <ClInclude Include="Libraries\include\entt\entt.hpp" />
     <ClInclude Include="src\core\features\Profiler.h" />

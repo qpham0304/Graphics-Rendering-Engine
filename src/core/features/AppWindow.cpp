@@ -3,6 +3,7 @@
 #include "../../events/Event.h"
 #include "../../events/EventManager.h"
 #include <camera.h>
+#include "../../core/scene/SceneManager.h"
 
 unsigned int AppWindow::width = DEFAULT_WIDTH;
 unsigned int AppWindow::height = DEFAULT_HEIGHT;

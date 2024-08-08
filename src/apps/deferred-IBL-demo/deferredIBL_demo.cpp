@@ -1,5 +1,6 @@
 #include "deferredIBL_demo.h"
 #include "ParticleGeometry.h"
+#include "../../core/scene/SceneManager.h"
 
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
