@@ -178,6 +178,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\components\MComponent.cpp" />
     <ClCompile Include="src\core\entities\Entity.cpp" />
     <ClCompile Include="src\core\layers\BloomLayer.cpp" />
     <ClCompile Include="Headers\Input.h" />
@@ -186,7 +187,6 @@
     <ClCompile Include="src\core\layers\AppLayer.cpp" />
     <ClCompile Include="src\core\layers\LayerManager.cpp" />
     <ClCompile Include="src\core\layers\EditorLayer.cpp" />
-    <ClCompile Include="src\core\layers\RenderLayer.cpp" />
     <ClCompile Include="src\core\scene\SceneManager.cpp" />
     <ClCompile Include="src\events\EventManager.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
@@ -260,6 +260,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="src\core\components\MComponent.h" />
     <ClInclude Include="src\core\entities\Entity.h" />
     <ClInclude Include="src\core\layers\BloomLayer.h" />
     <ClInclude Include="Libraries\include\entt\entt.hpp" />
@@ -273,7 +274,6 @@
     <ClInclude Include="src\core\layers\AppLayer.h" />
     <ClInclude Include="src\core\layers\LayerManager.h" />
     <ClInclude Include="src\core\layers\EditorLayer.h" />
-    <ClInclude Include="src\core\layers\RenderLayer.h" />
     <ClInclude Include="src\core\layers\Layer.h" />
     <ClInclude Include="src\core\scene\SceneManager.h" />
     <ClInclude Include="src\events\EventListener.h" />

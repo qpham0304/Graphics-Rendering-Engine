@@ -35,7 +35,7 @@ void Application::run() {
 		onClose();
 	});
 
-	//TODO: experimentation file watcher for now
+	//TODO: experimentating with file watcher for now
 	std::unique_ptr<filewatch::FileWatch<std::string>> fileWatcher;
 	fileWatcher.reset(new filewatch::FileWatch<std::string>(
 		"./Shaders",

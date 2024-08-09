@@ -34,11 +34,6 @@ struct BoneInfo
 
 class Model
 {
-    struct MaterialPBR {
-        const char* materialMap;
-        const unsigned int materialType;
-    };
-
 public:
     Model(const char* path);
     void Draw(Shader& shader);

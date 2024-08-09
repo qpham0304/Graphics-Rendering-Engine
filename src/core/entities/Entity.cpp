@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-const uint32_t& Entity::getID() const
+const entt::entity& Entity::getID() const
 {
-    return id;
+    return entity;
 }

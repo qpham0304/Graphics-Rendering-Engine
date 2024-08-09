@@ -207,7 +207,7 @@ void DeferredIBLDemo::OnAttach()
 {
     AppLayer::OnAttach();
     SceneManager::cameraController = &camera;
-    camera = *SceneManager::cameraController;
+    //camera = *SceneManager::cameraController;
     EventManager& eventManager = EventManager::getInstance();
     eventManager.Subscribe(EventType::MouseMoved, [this](Event& event) {
         this->OnEvent(event);

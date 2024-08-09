@@ -5,32 +5,18 @@
 #include "../entities/Entity.h"
 #include "../layers/LayerManager.h"
 
-struct TransformComponent {
-public:
-	glm::mat4 model;
-
-	//TransformComponent(glm::mat4&& model) : model(model) {
-	//
-	//};
-};
-
-struct ShaderComponent {
-	std::string path;
-
-	ShaderComponent(const std::string&& path) : path(path) {
-	
-	};
-};
+//class Entity;
 
 class Scene
 {
 private:
-	entt::registry registry;
-	entt::entity entity;
 	std::string sceneName;
-	std::unordered_map<uint32_t, Entity> entities;
+	entt::registry registry;
+
+	friend Entity;
 
 public:
+	std::unordered_map<std::string, Entity> entities;
 	LayerManager layerManager;
 	bool isEnabled;
 
@@ -42,7 +28,10 @@ public:
 	bool removeLayer(int&& index);
 
 
-	void addEntity();
+	bool addEntity(const std::string& name);
+	bool removeEntity(const std::string& uuid);
+	bool hasEntity(const std::string& id);
+	Entity getEntity(const std::string& id);
 
 	void onStart();
 	void onStop();

@@ -1,13 +1,11 @@
 #include "Scene.h"
 #include "imgui.h"
+#include "../../graphics/utils/Utils.h"
+#include "../entities/Entity.h"
+#include "../components/MComponent.h"
 
 Scene::Scene(const std::string name) : sceneName(name), isEnabled(true)
 {
-	TransformComponent transform;
-	ShaderComponent shaderPath("Shaders/light");
-	entity = registry.create();
-	registry.emplace<TransformComponent>(entity, transform);
-	registry.emplace<ShaderComponent>(entity, shaderPath);
 }
 
 bool Scene::addLayer(Layer* layer)
@@ -20,10 +18,40 @@ bool Scene::removeLayer(int&& index)
 	return layerManager.RemoveLayer(std::move(index));
 }
 
-void Scene::addEntity()
+bool Scene::addEntity(const std::string& name)
 {
-	auto a = registry.create();
-	Entity ent();
+	std::string uuid = Utils::uuid::get_uuid();
+	if (entities.find(uuid) != entities.end()) {
+		return false;
+	}
+	entt::entity e = registry.create();
+	entities[uuid] = Entity(e, registry);
+	entities[uuid].addComponent<TransformComponent>();
+	entities[uuid].addComponent<NameComponent>(name);
+
+	return true;
+}
+
+bool Scene::removeEntity(const std::string& name)
+{
+	if (entities.find(name) != entities.end()) {
+		entities.erase(name);
+		return true;
+	}
+	return false;
+}
+
+bool Scene::hasEntity(const std::string& uuid)
+{
+	return (entities.find(uuid) != entities.end());
+}
+
+Entity Scene::getEntity(const std::string& uuid)
+{
+	if (entities.find(uuid) != entities.end()) {
+		return entities[uuid];
+	}
+	throw std::runtime_error("Entity does not exist");
 }
 
 void Scene::onUpdate(const float& deltaTime)

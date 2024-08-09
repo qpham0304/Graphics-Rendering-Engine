@@ -9,6 +9,7 @@
 #include "../../src/events/EventManager.h"
 #include "../layers/AppLayer.h"
 #include "../layers/BloomLayer.h"
+#include "../components/MComponent.h"
 
 EditorLayer::EditorLayer()
 {
@@ -71,6 +72,54 @@ void EditorLayer::onUpdate()
 void EditorLayer::onGuiUpdate()
 {
 	guiController->render();
+
+
+	ImGui::Begin("Scenes");
+	for (auto& [name, scene] : sceneManager.scenes) {
+		if (ImGui::Button("add entity")) {
+			Console::println(scene->addEntity("myentity"));
+		}
+
+		//if(ImGui::TreeNodeEx(scene->getName().c_str())) {
+			//for (auto& layer : scene->layerManager) {
+			//	ImGui::TreeNodeEx(layer->GetName().c_str());
+			//}
+			//scene->getEntity("myentity");
+		//}
+
+		//try {
+		//	Timer("component event", true);
+		//	for (auto& [uuid, entity] : scene->entities) {
+		//		if (ImGui::Button("remove entity")) {
+		//			scene->removeEntity(uuid);
+		//		}
+		//		if (ImGui::Button("addComponent")) {
+		//			entity.addComponent<ModelComponent>("Models/reimu/reimu.obj");
+		//		}
+		//		ImGui::SameLine();
+		//		if (ImGui::Button("addAnimationComponent")) {
+		//			entity.addComponent<AnimationComponent>();
+		//		}
+		//		//ImGui::SameLine();
+		//		//if (ImGui::Button("addMeshComponent")) {
+		//		//	entity.addComponent<MeshComponent>();
+		//		//}
+		//		if (ImGui::TreeNodeEx(uuid.c_str())) {
+		//			auto transform = entity.getComponent<TransformComponent>();
+		//			ImGui::Text(entity.getComponent<NameComponent>().name.c_str());
+		//			if (entity.hasComponent<ModelComponent>()) {
+		//				ImGui::Text(entity.getComponent<ModelComponent>().path.c_str());
+		//			}
+		//		}
+		//	}
+		//}
+
+		//catch (std::runtime_error e) {
+		//	Console::println(e.what());
+		//}
+	}
+
+	
 
 	ImGui::Begin("test board");
 	ImGui::BeginChild("test child");
