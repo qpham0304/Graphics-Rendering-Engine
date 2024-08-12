@@ -52,15 +52,15 @@ void EventManager::CleanUpThread()
 	}
 	if (!threads.empty() && counter == threads.size()) {
 		threads.clear();
-		Console::println("threads cleaned up");
+		Console::println("All threads cleaned up");
 	}
 }
 
-void EventManager::Queue(AsyncEvent& event, EventCallback callback)
+void EventManager::Queue(AsyncEvent event, AsyncCallback callback)
 {
 	std::scoped_lock<std::mutex> lock(queueMutex);
-	std::pair pair = std::make_pair(event, callback);
-	eventQueue.push(pair);
+	eventQueue.push(std::make_pair(std::move(event), std::move(callback)));
+	runningTasks++;
 }
 
 void EventManager::Subscribe(const std::string& event, EventListener& listener) {
@@ -78,26 +78,30 @@ void EventManager::OnUpdate()
 
 	while (!eventQueue.empty()) {
 		auto& [event, callback] = eventQueue.front();
-
-		std::scoped_lock<std::mutex> lock(queueMutex);
-		std::thread thread = std::thread([callback, &event, this]() {
-			callback(event);
-			event.isCompleted = true;
-		});
-		threads.push_back(std::make_pair(std::move(thread), &event.isCompleted));
-		eventQueue.pop();
-
-
-		//auto func = [callback, &event, this, count]() {
-			//std::scoped_lock<std::mutex> lock(queueMutex);
-		//	callback(event);
-		//	Console::println("hello world" + std::to_string(count));
-		//};
-		//futures.push_back(std::async(std::launch::async, func));
-		//eventQueue.pop();
+		
+		Console::println("num Tasks: ", runningTasks);
+		if (runningTasks <= 5) {
+			AsyncEvent mutableEvent(event);
+			std::thread thread = std::thread([this, &event, callback, mutableEvent]() mutable {
+				//if (runningTasks > 5) {
+					//std::scoped_lock<std::mutex> lock(queueMutex);
+				//	Console::println("lock queue");
+				//}
+				callback(mutableEvent);
+				//event.isCompleted = true;
+				runningTasks--;
+			});
+			threads.push_back(std::make_pair(std::move(thread), &event.isCompleted));
+			eventQueue.pop();
+		}
 	}
 
-	if (eventQueue.empty()) {
-		CleanUpThread();
-	}
+	//if (eventQueue.empty()) {
+	//	CleanUpThread();
+	//}
+}
+
+bool EventManager::canDraw()
+{
+	return threads.empty();
 }

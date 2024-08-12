@@ -22,7 +22,7 @@ public:
 	Animation();
 	Animation(const std::string& animationPath, Model* model);
 	~Animation();
-
+	
 	Bone* FindBone(const std::string& name);
 
 	inline float GetTicksPerSecond() { return static_cast<float>(m_TicksPerSecond); }

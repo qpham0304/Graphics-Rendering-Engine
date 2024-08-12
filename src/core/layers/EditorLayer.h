@@ -14,6 +14,8 @@ private:
 	EventManager& eventManager = EventManager::getInstance();
 	ImGuiController* guiController;
 
+	void mockThreadTasks();
+
 public:
 	EditorLayer();
 	~EditorLayer() = default;

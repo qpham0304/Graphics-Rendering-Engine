@@ -4,7 +4,6 @@
 #include <Shader.h>
 #include <camera.h>
 #include <unordered_map>
-#include <model.h>
 #include <Animation.h>
 #include <Animator.h>
 #include "../../graphics/utils/Utils.h"

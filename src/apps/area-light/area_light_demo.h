@@ -1,4 +1,5 @@
 #include "../../core/features/AppWindow.h"
+#include "camera.h"
 #include "../../graphics/utils/ltc_matrix.h"
 
 #pragma once

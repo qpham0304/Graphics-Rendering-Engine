@@ -123,6 +123,11 @@ public:
 
 	};
 
+	AsyncEvent(const std::string id) : isCompleted(false), id(id)
+	{
+
+	};
+
 	virtual EventType GetEventType() const override {
 		return EventType::AsyncEvent;
 	}
@@ -136,12 +141,36 @@ public:
 	}
 };
 
-class ModelLoadAsyncEvent : public AsyncEvent
+class ComponentLoadAsyncEvent : public AsyncEvent
 {
 public:
 	Component* component = nullptr;
 
-	ModelLoadAsyncEvent(Component* component) : component(component)
+	ComponentLoadAsyncEvent(Component* component) : component(component)
+	{
+
+	};
+
+	EventType GetEventType() const override {
+		return EventType::AsyncEvent;
+	}
+
+	const char* GetName() const override {
+		return "ComponentLoadAsyncEvent";
+	};
+
+	std::string ToString() const override {
+		return "ComponentLoadAsyncEvent";
+	}
+};
+
+class ModelLoadAsyncEvent : public AsyncEvent
+{
+public:
+	std::string path = "None";
+
+	ModelLoadAsyncEvent() = default;
+	ModelLoadAsyncEvent(const std::string path) : path(path)
 	{
 
 	};

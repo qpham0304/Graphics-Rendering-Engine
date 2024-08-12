@@ -8,11 +8,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp_glm_helpers.h>
-
 #include "mesh.h"
 #include "shader.h"
 #include "texture.h"
-
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -43,12 +41,11 @@ public:
     int& GetBoneCount();
     int getNumVertices();
     std::map<std::string, BoneInfo> m_BoneInfoMap;
+    std::unordered_map<std::string, Texture> loaded_textures;
 
 private:
-    // model data
     std::vector<Mesh> meshes;
     std::string directory;
-    std::unordered_map<std::string, Texture> loaded_textures;
     int m_BoneCounter = 0;
     std::string path;
     std::string extension;

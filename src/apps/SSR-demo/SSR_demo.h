@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../core/features/AppWindow.h"
+#include "camera.h"
 
 class SSR_demo
 {

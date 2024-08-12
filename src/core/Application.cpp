@@ -44,7 +44,6 @@ void Application::run() {
 		}
 	));
 
-
 	glfwSetWindowUserPointer(AppWindow::window, this);
 	//glfwSwapInterval(1);
 	while (isRunning) {
@@ -66,9 +65,7 @@ void Application::run() {
 void Application::onClose()
 {
 	for (auto& [thread, status] : EventManager::getInstance().threads) {
-		if (thread.joinable()) {
-			thread.join();
-		}
+		thread.join();
 	}
 	isRunning = false;
 }

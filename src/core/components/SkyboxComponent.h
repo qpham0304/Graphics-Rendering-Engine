@@ -1,14 +1,12 @@
 #pragma once
 
-#include <iostream>
 #include <Shader.h>
 #include <Texture.h>
 #include <skybox.h>
 #include <camera.h>
-#include "./Component.h"
 #include <algorithm>
 
-class SkyboxComponent : Component
+class SkyboxComponent
 {
 private:
 	void setup();
@@ -22,6 +20,7 @@ private:
 	};
 
 	std::unique_ptr<Skybox> skybox;
+	std::unique_ptr<Shader> shaderProgram_ptr;
 
 public:
 	GLuint VAO;

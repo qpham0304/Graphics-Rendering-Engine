@@ -1,7 +1,7 @@
 #pragma once
 
+#include "camera.h" // lots of dependencies here
 #include <Animation.h>
-#include <Animator.h>
 #include <FrameBuffer.h>
 #include <DepthMap.h>
 #include <DepthCubeMap.h>

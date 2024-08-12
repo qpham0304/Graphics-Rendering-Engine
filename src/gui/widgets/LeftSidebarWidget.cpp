@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <shobjidl.h> 
 #include "../../graphics/utils/Utils.h"
+#include "../../core/components/MComponent.h"
+#include "Texture.h"
 
 glm::vec3 lightPositions[] = {
     glm::vec3(-5.0f,  5.0f, 5.0f),
@@ -231,6 +233,31 @@ void LeftSidebarWidget::EntityTab() {
             if (prevIndex == i)
                 ImGui::PopStyleColor();
         }
+
+        ImVec2 wsize = ImGui::GetWindowSize();
+        wsize.x /= 3;
+        wsize.y /= 3;
+        //for (auto& [path, model] : SceneManager::getInstance().models) {
+        //    ImGui::Text(path.c_str());
+        //    for (auto [path, texture] : model->loaded_textures) {
+        //        ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
+        //    }
+        //}
+        for (auto& [id, component] : SceneManager::components) {
+            //ImGui::Text(path.c_str());
+            //for (auto& mesh : model->meshes) {
+            //    for (auto texture : mesh.textures) {
+            //        ImGui::Image(ImTextureID(&texture.ID), wsize, ImVec2(0, 1), ImVec2(1, 0));
+            //    }
+            //}
+            Component* c = component.get();
+            for (auto [path, texture] : c->model_ptr->loaded_textures) {
+                //Texture tex(path.c_str(), "diffuse");
+                ImGui::Text(std::to_string(texture.ID).c_str());
+                ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
+            }
+        }
+
 
         if (ImGui::Begin("Properties")) {
             if (nodes.size() > 0 && selectedIndex <= nodes.size()) {

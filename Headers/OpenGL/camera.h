@@ -2,26 +2,21 @@
 
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
-#include<glm/glm.hpp>
-#include<glm/gtc/matrix_transform.hpp>
-#include<glm/gtc/type_ptr.hpp>
-#include<Shader.h>
 #include<Input.h>
-
-//Camera* currentCamera = nullptr;
-static const float DEFAULT_SPEED = 0.1f;
-static const float DEFAULT_SENSITIVITY = 0.1f;;
-static const float DEFAULT_YAW = -90.0f;
-static const float DEFAULT_PITCH = 0.0f;
-static const float DEFAULT_FOV = 45.0f;
-static const float DEFAULT_NEARPLANE = 0.1f;
-static const float DEFAULT_FARPLANE = 1000.0f;
-static const unsigned int DEFAULT_WIDTH = 720;
-static const unsigned int DEFAULT_HEIGHT = 1280;
 
 class Camera
 {
 private:
+	const float DEFAULT_SPEED = 0.1f;
+	const float DEFAULT_SENSITIVITY = 0.1f;;
+	const float DEFAULT_YAW = -90.0f;
+	const float DEFAULT_PITCH = 0.0f;
+	const float DEFAULT_FOV = 45.0f;
+	const float DEFAULT_NEARPLANE = 0.1f;
+	const float DEFAULT_FARPLANE = 1000.0f;
+	const unsigned int DEFAULT_WIDTH = 720;
+	const unsigned int DEFAULT_HEIGHT = 1280;
+
 	glm::vec3 defaultPosition = glm:: vec3(0.0f, 0.0f, 3.0f);
 	glm::vec3 defaultOrientation = glm::vec3(0.01f, 0.0f, -1.0f);
 	glm::vec3 defaultUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -100,6 +95,5 @@ public:
 	void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 	void scroll_callback(double xoffset, double yoffset);
 	void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
 };
 

@@ -3,7 +3,8 @@
 #include<glm/glm.hpp>
 #include<string>
 #include "../../graphics/utils/Utils.h"
-//#include "model.h"
+#include "model.h"
+#include "Animation.h"
 
 struct TransformComponent {
 public:
@@ -35,15 +36,22 @@ public:
 
 struct ModelComponent {
 public:
-	std::string path;
+	std::string path = "None";
+	std::weak_ptr<Model> model;
 	ModelComponent() = default;
+	ModelComponent(const std::string&& path, std::shared_ptr<Model> model) : path(path), model(model) {};
 	ModelComponent(const std::string&& path) : path(path) {};
+
+	void reset() {
+		path = "None";
+		model.reset();
+	}
 };
 
 struct AnimationComponent {
 public:
 	std::string path;
-	//std::weak_ptr<Model> model;
+	std::weak_ptr<Animation> model;
 	AnimationComponent() = default;
 	AnimationComponent(const std::string&& path) : path(path) {};
 };
@@ -51,6 +59,5 @@ public:
 struct MeshComponent {
 public:
 	MeshComponent() = default;
-
 };
 

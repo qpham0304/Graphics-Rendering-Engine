@@ -21,6 +21,7 @@ bool Scene::removeLayer(int&& index)
 bool Scene::addEntity(const std::string& name)
 {
 	std::string uuid = Utils::uuid::get_uuid();
+	//std::string uuid = "123456";
 	if (entities.find(uuid) != entities.end()) {
 		return false;
 	}

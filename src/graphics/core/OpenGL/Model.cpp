@@ -14,6 +14,7 @@ Model::Model(const char* path)
     loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
     loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
 
+    std::cout << "----------------" << path << "\n";
     loadModel(path);
 }
 

@@ -8,7 +8,6 @@
 #include <vector>
 #include "Shader.h"
 #include "Texture.h"
-#include "camera.h"
 
 #define MAX_BONE_INFLUENCE 4
 
