@@ -40,13 +40,12 @@ private:
 	std::unique_ptr<Shader> brdfShader;
 	std::unique_ptr<Shader> modelShader;
 
-	std::vector<Component*> components;
 	std::vector<Light> lights;
 
 	unsigned int captureFBO, captureRBO;
 	unsigned int envCubemapTexture;
 	unsigned int hdrTexture;
-	std::string texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
+	std::string texRes;
 
 	unsigned int prefilterMap;
 	unsigned int irradianceMap;

@@ -52,6 +52,14 @@ bool SceneManager::addScene(std::unique_ptr<Scene> scene)
 	}
 }
 
+Scene* SceneManager::getScene(const std::string& name)
+{
+	if (scenes.find(name) != scenes.end()) {
+		return scenes[name].get();
+	}
+	return nullptr;
+}
+
 bool SceneManager::removeScene(const std::string& name)
 {
 	if (scenes.find(name) != scenes.end()) {
@@ -83,12 +91,17 @@ void SceneManager::onGuiUpdate(const float&& deltaTime)
 
 bool SceneManager::addModel(const std::string& path)
 {
-	std::scoped_lock<std::mutex> lock(modelsLock);
-	if(models.find(path) == models.end()) {
-		models[path] = std::make_shared<Model>(path.c_str());
+	try {
+		std::scoped_lock<std::mutex> lock(modelsLock);
+		if (models.find(path) == models.end()) {
+			models[path] = std::make_shared<Model>(path.c_str());
+		}
+		//TODO: might want to manual increase reference counter
 		return true;
 	}
-	return false;
+	catch (std::runtime_error) {
+		return false;
+	}
 }
 
 bool SceneManager::removeModel(const std::string& path)

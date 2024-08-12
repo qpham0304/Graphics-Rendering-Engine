@@ -16,17 +16,10 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     prefilterShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag"));
     brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
 
-
-    //Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+    texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
+    Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
     //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
-    //Component terrain("Models/death-valley-terrain/scene.gltf");
-    //Texture tex("Textures/squish.png", "colorScene");
-
-    //SceneManager::addComponent(helmetModel);
-    //SceneManager::addComponent(terrain);
-    //for (const auto& [id, component_ptr] : SceneManager::components) {
-    //    components.push_back(component_ptr.get());
-    //}
+    Component terrain("Models/death-valley-terrain/scene.gltf");
 
 
     glGenFramebuffers(1, &captureFBO);
@@ -216,7 +209,18 @@ void DeferredIBLDemo::OnAttach()
     //eventManager.Subscribe(
     //    EventType::MouseMoved, std::bind(&DeferredIBLDemo::OnEvent, this, std::placeholders::_1)
     //);
+
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
+    Scene& scene = *SceneManager::getInstance().getScene("default");
+    TransformComponent* transform;
+
+    std::string terrainID = scene.addEntity("terrain");
+    transform = &scene.entities[terrainID].getComponent<TransformComponent>();
+    transform->model = glm::scale(transform->model, glm::vec3(10.0));
+
+    std::string helmetID = scene.addEntity("helmet");
+    transform = &scene.entities[helmetID].getComponent<TransformComponent>();
+    transform->model = glm::translate(transform->model, glm::vec3(5.0, 0.0, 5.0));
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -262,37 +266,15 @@ void DeferredIBLDemo::OnUpdate()
     glActiveTexture(GL_TEXTURE0 + 8);
     glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
 
-    //pbrShader->setMat4("matrix", components[0]->getModelMatrix());
-    //pbrShader->setBool("hasAnimation", false);
-    //pbrShader->setBool("hasEmission", true);
-    //pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(components[0]->getModelMatrix()))));
-    //components[0]->model_ptr->Draw(*pbrShader);
-
-    //pbrShader->setBool("hasAnimation", false);
-    //pbrShader->setBool("hasEmission", false);
-    //components[1]->translate(glm::vec3(0.0f, -10.0f, -15.0f));
-    //components[1]->scale(glm::vec3(10.0f));
-    //glm::mat4 terrainModelMatrix = glm::rotate(components[1]->getModelMatrix(), glm::radians(180.0f), glm::vec3(1.0, 0.0, 0.0));
-    //pbrShader->setMat4("matrix", terrainModelMatrix);
-    //pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(terrainModelMatrix))));
-    //components[1]->model_ptr->Draw(*pbrShader);
-
-    //for (auto& [path, component] : SceneManager::components) {
-    //    std::scoped_lock<std::mutex> lock(SceneManager::mtx);
-    //    if (EventManager::getInstance().canDraw()) {
-    //        component->model_ptr->Draw(*pbrShader);
-    //    }
-    //}
-
-    Scene& scene = *SceneManager::getInstance().scenes["default"];
+    Scene& scene = *SceneManager::getInstance().getScene("default");
     for (auto& [id, entity] : scene.entities) {
-        std::scoped_lock<std::mutex> lock(SceneManager::getInstance().modelsLock);
         if (entity.hasComponent<ModelComponent>()) {
-            ModelComponent& component = entity.getComponent<ModelComponent>();
-            std::shared_ptr<Model> model = component.model.lock();
-            if (model != nullptr && component.path != "Loading..." && component.path != "None") {
-                //model->Draw(*pbrShader);
-                SceneManager::getInstance().models[component.path]->Draw(*pbrShader);
+            ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
+            TransformComponent& transform = entity.getComponent<TransformComponent>();
+            std::shared_ptr<Model> model = modelComponent.model.lock();
+            if (model != nullptr) {
+                pbrShader->setMat4("matrix", transform.model);
+                model->Draw(*pbrShader);
             }
         }
     }
@@ -375,7 +357,7 @@ int DeferredIBLDemo::show_demo()
     //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
     Component terrain("Models/death-valley-terrain/scene.gltf");
 
-    Texture tex("Textures/squish.png", "colorScene");
+    //Texture tex("Textures/squish.png", "colorScene");
 
     SceneManager::addComponent(helmetModel);
     SceneManager::addComponent(terrain);

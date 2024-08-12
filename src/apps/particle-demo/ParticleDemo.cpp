@@ -8,7 +8,7 @@ Scene* scene;
 ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
-    scene = SceneManager::getInstance().scenes["default"].get();
+    scene = SceneManager::getInstance().getScene("default");
 }
 
 void ParticleDemo::OnAttach()

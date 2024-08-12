@@ -18,19 +18,18 @@ bool Scene::removeLayer(int&& index)
 	return layerManager.RemoveLayer(std::move(index));
 }
 
-bool Scene::addEntity(const std::string& name)
+std::string Scene::addEntity(const std::string& name)
 {
 	std::string uuid = Utils::uuid::get_uuid();
-	//std::string uuid = "123456";
 	if (entities.find(uuid) != entities.end()) {
-		return false;
+		return "";
 	}
 	entt::entity e = registry.create();
 	entities[uuid] = Entity(e, registry);
 	entities[uuid].addComponent<TransformComponent>();
 	entities[uuid].addComponent<NameComponent>(name);
 
-	return true;
+	return uuid;
 }
 
 bool Scene::removeEntity(const std::string& name)

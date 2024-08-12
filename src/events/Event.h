@@ -5,6 +5,7 @@
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
 #include "../core/components/Component.h"
+#include "../core/entities/Entity.h"
 
 enum class EventType
 {
@@ -12,7 +13,7 @@ enum class EventType
 	WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowUpdate,
 	KeyPressed, KeyReleased, KeyTyped,
 	MousePressed, MouseReleased, MouseMoved, MouseScrolled,
-	AsyncEvent
+	AsyncEvent, ModelLoadEvent
 };
 
 class Event
@@ -185,5 +186,31 @@ public:
 
 	std::string ToString() const override {
 		return "ModelLoadAsyncEvent";
+	}
+};
+
+
+class ModelLoadEvent : public Event
+{
+public:
+	std::string path = "None";
+	Entity entity;
+
+	ModelLoadEvent() = default;
+	ModelLoadEvent(const std::string path, const Entity entity) : path(path), entity(entity)
+	{
+
+	};
+
+	EventType GetEventType() const override {
+		return EventType::ModelLoadEvent;
+	}
+
+	const char* GetName() const override {
+		return "ModelLoadEvent";
+	};
+
+	std::string ToString() const override {
+		return "ModelLoadEvent";
 	}
 };

@@ -26,7 +26,7 @@ struct ShaderComponent {
 
 struct NameComponent {
 public:
-	std::string name = "Entity";
+	std::string name = "";
 
 	NameComponent() = default;
 	NameComponent(const std::string& name) : name(name) {

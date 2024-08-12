@@ -8,10 +8,11 @@
 
 class LeftSidebarWidget : public Widget
 {
+
 private:
 	std::vector<std::string> nodes;
 	size_t selectedIndex;
-	std::string loadedID = "None";
+	const std::string ACTIVE_SCENE = "default";
 
 public:
 	LeftSidebarWidget();

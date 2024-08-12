@@ -47,14 +47,27 @@ void EditorLayer::init(ImGuiController& controller)
 	editorCamera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
 	guiController = &controller;
 	sceneManager.addScene("default");
-	//sceneManager.scenes["default"]->addLayer(new ParticleDemo("demo"));
-	//sceneManager.scenes["default"]->addLayer(new AppLayer("app"));
-	sceneManager.scenes["default"]->addLayer(new DeferredIBLDemo("demo"));
+	//sceneManager.getScene("default")->addLayer(new ParticleDemo("demo"));
+	//sceneManager.getScene("default")->addLayer(new AppLayer("app"));
+	sceneManager.getScene("default")->addLayer(new DeferredIBLDemo("demo"));
 }
 
 void EditorLayer::onAttach()
 {
-	
+	auto func = [](Event& event) {
+		ModelLoadEvent& e = static_cast<ModelLoadEvent&>(event);
+		ModelComponent& component = e.entity.getComponent<ModelComponent>();
+		component.path = "Loading...";
+		bool canAdd = SceneManager::getInstance().addModel(e.path.c_str());
+		if (component.path != e.path && canAdd) {
+			component.model = SceneManager::getInstance().models[e.path];
+			component.path = e.path;
+		}
+		else {
+			component.reset();
+		}
+	};
+	EventManager::getInstance().Subscribe(EventType::ModelLoadEvent, func);
 }
 
 void EditorLayer::onDetach()
@@ -67,106 +80,11 @@ void EditorLayer::onUpdate()
 	editorCamera.onUpdate();
 }
 
-void displayMatrix(glm::mat4& matrix) {
-    for (int row = 0; row < 4; ++row) {
-		for (int col = 0; col < 4; ++col) {
-			ImGui::PushID(row * 4 + col);  // unique ID for each input
-			ImGui::PushItemWidth(100.0);
-			ImGui::InputFloat(("##m" + std::to_string(row) + std::to_string(col)).c_str(), &matrix[row][col], 0.0f, 0.0f, "%.3f");
-			ImGui::PopItemWidth();
-			ImGui::PopID();
-			if (col < 3) {
-				ImGui::SameLine();
-			}
-        }
-    }
-}
-
 void EditorLayer::onGuiUpdate()
 {
 	guiController->render();
 
-	if (ImGui::Button("add thread tasks")) {
-		mockThreadTasks();
-	}
 
-	ImGui::Begin("Scenes");
-	for (auto& [name, scene] : sceneManager.scenes) {
-		Timer("component event", true);
-		if (ImGui::Button("add entity")) {
-			Console::println(scene->addEntity("myentity"));
-		}
-
-		//if(ImGui::TreeNodeEx(scene->getName().c_str())) {
-		//	for (auto& layer : scene->layerManager) {
-		//		ImGui::TreeNodeEx(layer->GetName().c_str());
-		//	}
-		//}
-
-		try {
-			for (auto& [uuid, entity] : scene->entities) {
-				if (ImGui::Button("remove entity")) {
-					scene->removeEntity(uuid);
-				}
-				ImGui::SameLine();
-				if (ImGui::Button("addComponent")) {
-					std::string path = Utils::Window::WindowFileDialog();
-					
-					if (!path.empty()) {
-						entity.addComponent<ModelComponent>();
-						//std::scoped_lock<std::mutex> lock(SceneManager::getInstance().modelsLock);
-						
-						auto func = [&entity](AsyncEvent& event) {
-							ModelComponent& component = entity.getComponent<ModelComponent>();
-							component.path = "Loading...";
-							SceneManager::getInstance().addModel(event.id.c_str());
-							if (component.path != event.id) {
-								component.model = SceneManager::getInstance().models[event.id];
-							}
-
-							// if another thread deletes the same model before this add, reset the model component's pointer
-							if (auto lockedModel = component.model.lock()) {	
-								if (lockedModel.get() == SceneManager::getInstance().models[event.id].get()) {
-									Console::println("match address");
-								}
-								Console::println("num references", lockedModel.use_count());
-								Console::println("path", lockedModel.get());
-								Console::println("path", SceneManager::getInstance().models[event.id].get());
-							}
-							else {
-								component.reset();
-							}
-							component.path = event.id;
-						};
-						AsyncEvent event(path);
-						EventManager::getInstance().Queue(event, func);
-					}
-				}
-
-
-				ImGui::SameLine();
-				if (ImGui::Button("addAnimationComponent")) {
-					entity.addComponent<AnimationComponent>();
-				}
-				//ImGui::SameLine();
-				//if (ImGui::Button("addMeshComponent")) {
-				//	entity.addComponent<MeshComponent>();
-				//}
-				if (ImGui::TreeNodeEx(uuid.c_str())) {
-					auto transform = entity.getComponent<TransformComponent>();
-					displayMatrix(transform.model);
-					ImGui::Text(entity.getComponent<NameComponent>().name.c_str());
-					if (entity.hasComponent<ModelComponent>()) {
-						ImGui::Text(entity.getComponent<ModelComponent>().path.c_str());
-					}
-				}
-			}
-		}
-
-		catch (std::runtime_error e) {
-			Console::println(e.what());
-		}
-	}
 
 	ImGui::Begin("test board");
 	ImGui::BeginChild("test child");
@@ -180,17 +98,18 @@ void EditorLayer::onGuiUpdate()
 
 	std::string id;
 	if (ImGui::Begin("right side bar")) {
+		Scene* scene = sceneManager.getScene("default");
 		if (ImGui::Button("add demo layer")) {
-			id = "demo " + std::to_string(sceneManager.scenes["default"]->layerManager.size());
-			sceneManager.scenes["default"]->addLayer(new ParticleDemo(id.c_str()));
+			id = "demo " + std::to_string(scene->layerManager.size());
+			scene->addLayer(new ParticleDemo(id.c_str()));
 			//layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
 		}
 		if (ImGui::Button("add bloom layer")) {
-			id = "bloom " + std::to_string(sceneManager.scenes["default"]->layerManager.size());
-			sceneManager.scenes["default"]->addLayer(new BloomLayer(id.c_str()));
+			id = "bloom " + std::to_string(scene->layerManager.size());
+			scene->addLayer(new BloomLayer(id.c_str()));
 		}
 		if (ImGui::Button("remove layer")) {	//TODO: should be able to delete selected layers
-			sceneManager.scenes["default"]->removeLayer(1);
+			scene->removeLayer(1);
 		}
 		ImGui::End();
 	}

@@ -43,10 +43,8 @@ void EventManager::CleanUpThread()
 		if (status != nullptr) {
 			if (*status) {
 				counter++;
-				if (thread.joinable()) {
-					Console::println("...threads joined...");
-					thread.join();
-				}
+				Console::println("...threads joined...");
+				thread.join();
 			}
 		}
 	}
@@ -72,6 +70,9 @@ void EventManager::Subscribe(const std::string& event, EventListener& listener) 
 	}
 }
 
+//TODO: use semaphore instead for running tasks instead of manual primitive
+//intead of joining threads per completed task, just keep them alive then clean all up on close
+//tldr: just use async instead
 void EventManager::OnUpdate()
 {
 	Timer timer("thread queue", true);
@@ -83,12 +84,8 @@ void EventManager::OnUpdate()
 		if (runningTasks <= 5) {
 			AsyncEvent mutableEvent(event);
 			std::thread thread = std::thread([this, &event, callback, mutableEvent]() mutable {
-				//if (runningTasks > 5) {
-					//std::scoped_lock<std::mutex> lock(queueMutex);
-				//	Console::println("lock queue");
-				//}
 				callback(mutableEvent);
-				//event.isCompleted = true;
+				event.isCompleted = true;
 				runningTasks--;
 			});
 			threads.push_back(std::make_pair(std::move(thread), &event.isCompleted));
@@ -96,12 +93,7 @@ void EventManager::OnUpdate()
 		}
 	}
 
-	//if (eventQueue.empty()) {
-	//	CleanUpThread();
-	//}
-}
-
-bool EventManager::canDraw()
-{
-	return threads.empty();
+	if (eventQueue.empty()) {
+		CleanUpThread();
+	}
 }

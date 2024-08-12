@@ -20,13 +20,15 @@ private:
 	static std::string selectedID;
 	std::mutex animationsLock;
 	std::mutex animatorsLock;
+	std::mutex modelsLock;
 
 	SceneManager();
 
-public:
-	std::mutex modelsLock;
-	static std::mutex mtx;
 	std::unordered_map<std::string, std::unique_ptr<Scene>> scenes;
+
+
+public:
+	static std::mutex mtx;
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
 	std::unordered_map<std::string, std::shared_ptr<Animation>> animations;
 	std::unordered_map<std::string, std::shared_ptr<Animator>> animators;
@@ -49,6 +51,7 @@ public:
 
 	bool addScene(const std::string& name);
 	bool addScene(std::unique_ptr<Scene> scene);
+	Scene* getScene(const std::string& name);
 	bool removeScene(const std::string& name);
 	void onUpdate(const float&& deltaTime);
 	void onGuiUpdate(const float&& deltaTime);

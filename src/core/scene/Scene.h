@@ -28,7 +28,7 @@ public:
 	bool removeLayer(int&& index);
 
 
-	bool addEntity(const std::string& name);
+	std::string addEntity(const std::string& name = "Entity");
 	bool removeEntity(const std::string& uuid);
 	bool hasEntity(const std::string& id);
 	Entity getEntity(const std::string& id);

@@ -46,7 +46,6 @@ public:
 	void Publish(Event& event);
 	void Queue(AsyncEvent event, AsyncCallback callback);
 	void OnUpdate();
-	bool canDraw();
 	std::vector<std::pair<std::thread, bool*>> threads;
 
 private:
