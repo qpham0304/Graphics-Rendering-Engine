@@ -1,10 +1,5 @@
 #include "SceneManager.h"
 
-//std::unordered_map<std::string, std::shared_ptr<Model>> SceneManager::models = {};
-//std::unordered_map<std::string, std::shared_ptr<Animation>> SceneManager::animations = {};
-//std::unordered_map<std::string, std::shared_ptr<Animator>> SceneManager::animators = {};
-
-
 std::unordered_map<std::string, std::unique_ptr<Shader>> SceneManager::shaders = {};
 std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
 Camera* SceneManager::cameraController = nullptr;

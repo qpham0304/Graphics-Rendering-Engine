@@ -13,7 +13,7 @@ private:
 	const float DEFAULT_PITCH = 0.0f;
 	const float DEFAULT_FOV = 45.0f;
 	const float DEFAULT_NEARPLANE = 0.1f;
-	const float DEFAULT_FARPLANE = 1000.0f;
+	const float DEFAULT_FARPLANE = 5000.0f;
 	const unsigned int DEFAULT_WIDTH = 720;
 	const unsigned int DEFAULT_HEIGHT = 1280;
 

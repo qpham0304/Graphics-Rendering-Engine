@@ -17,6 +17,7 @@ private:
 
 public:
 	std::unordered_map<std::string, Entity> entities;
+	std::vector<std::string> selectedEntities;
 	LayerManager layerManager;
 	bool isEnabled;
 

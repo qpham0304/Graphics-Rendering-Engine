@@ -5,13 +5,17 @@
 #include "../../graphics/utils/Utils.h"
 #include "model.h"
 #include "Animation.h"
+#include "Animator.h"
 
 struct TransformComponent {
 public:
-	glm::mat4 model;
+	glm::mat4 modelMatrix;
+	glm::vec3 translate;
+	glm::vec3 rotation;
+	glm::vec3 scale;
 
 	TransformComponent() = default;
-	TransformComponent(glm::mat4&& model) : model(model) {
+	TransformComponent(glm::mat4&& modelMatrix) : modelMatrix(modelMatrix) {
 		
 	};
 };
@@ -51,9 +55,17 @@ public:
 struct AnimationComponent {
 public:
 	std::string path;
-	std::weak_ptr<Animation> model;
+	std::weak_ptr<Animation> animation;
 	AnimationComponent() = default;
 	AnimationComponent(const std::string&& path) : path(path) {};
+};
+
+struct AnimatorComponent {
+public:
+	std::string path;
+	std::weak_ptr<Animator> animation;
+	AnimatorComponent() = default;
+	AnimatorComponent(const std::string&& path) : path(path) {};
 };
 
 struct MeshComponent {

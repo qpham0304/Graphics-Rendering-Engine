@@ -44,8 +44,9 @@ EditorLayer::EditorLayer()
 
 void EditorLayer::init(ImGuiController& controller)
 {
-	editorCamera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
 	guiController = &controller;
+	guiController->useDarkTheme();
+	editorCamera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
 	sceneManager.addScene("default");
 	//sceneManager.getScene("default")->addLayer(new ParticleDemo("demo"));
 	//sceneManager.getScene("default")->addLayer(new AppLayer("app"));
@@ -54,8 +55,11 @@ void EditorLayer::init(ImGuiController& controller)
 
 void EditorLayer::onAttach()
 {
-	auto func = [](Event& event) {
+	auto addModelFunc = [](Event& event) {
 		ModelLoadEvent& e = static_cast<ModelLoadEvent&>(event);
+		if (!e.entity.hasComponent<ModelComponent>()) {
+			e.entity.addComponent<ModelComponent>();
+		}
 		ModelComponent& component = e.entity.getComponent<ModelComponent>();
 		component.path = "Loading...";
 		bool canAdd = SceneManager::getInstance().addModel(e.path.c_str());
@@ -64,10 +68,11 @@ void EditorLayer::onAttach()
 			component.path = e.path;
 		}
 		else {
+			ImGui::OpenPopup("Failed to load file, please check the format");
 			component.reset();
 		}
 	};
-	EventManager::getInstance().Subscribe(EventType::ModelLoadEvent, func);
+	EventManager::getInstance().Subscribe(EventType::ModelLoadEvent, addModelFunc);
 }
 
 void EditorLayer::onDetach()
@@ -83,8 +88,6 @@ void EditorLayer::onUpdate()
 void EditorLayer::onGuiUpdate()
 {
 	guiController->render();
-
-
 
 	ImGui::Begin("test board");
 	ImGui::BeginChild("test child");

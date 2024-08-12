@@ -17,10 +17,6 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
 
     texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
-    Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
-    Component terrain("Models/death-valley-terrain/scene.gltf");
-
 
     glGenFramebuffers(1, &captureFBO);
     glGenRenderbuffers(1, &captureRBO);
@@ -189,38 +185,25 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void myfunc(Event& event)
-{
-    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-    SceneManager::cameraController->processMouse(mouseEvent.window);
-    std::cout << "moving... 3" << mouseEvent.GetName() << std::endl;
-    //event.Handled = true;
-}
-
 void DeferredIBLDemo::OnAttach()
 {
     AppLayer::OnAttach();
-    //SceneManager::cameraController = &camera;
-    //camera = *SceneManager::cameraController;
-    //EventManager& eventManager = EventManager::getInstance();
-    //eventManager.Subscribe(EventType::MouseMoved, [this](Event& event) {
-    //    this->OnEvent(event);
-    //});
-    //eventManager.Subscribe(
-    //    EventType::MouseMoved, std::bind(&DeferredIBLDemo::OnEvent, this, std::placeholders::_1)
-    //);
-
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
     Scene& scene = *SceneManager::getInstance().getScene("default");
     TransformComponent* transform;
+    ModelLoadEvent event;
 
-    std::string terrainID = scene.addEntity("terrain");
-    transform = &scene.entities[terrainID].getComponent<TransformComponent>();
-    transform->model = glm::scale(transform->model, glm::vec3(10.0));
+    //std::string terrainID = scene.addEntity("terrain");
+    //event = ModelLoadEvent("Models/death-valley-terrain/scene.gltf", scene.entities[terrainID]);
+    //EventManager::getInstance().Publish(event);
+    //transform = &scene.entities[terrainID].getComponent<TransformComponent>();
+    //transform->model = glm::scale(transform->model, glm::vec3(10.0));
 
     std::string helmetID = scene.addEntity("helmet");
+    event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
+    EventManager::getInstance().Publish(event);
     transform = &scene.entities[helmetID].getComponent<TransformComponent>();
-    transform->model = glm::translate(transform->model, glm::vec3(5.0, 0.0, 5.0));
+    transform->modelMatrix = glm::translate(transform->modelMatrix, glm::vec3(0.0, 0.0, -3.0));
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -273,7 +256,7 @@ void DeferredIBLDemo::OnUpdate()
             TransformComponent& transform = entity.getComponent<TransformComponent>();
             std::shared_ptr<Model> model = modelComponent.model.lock();
             if (model != nullptr) {
-                pbrShader->setMat4("matrix", transform.model);
+                pbrShader->setMat4("matrix", transform.modelMatrix);
                 model->Draw(*pbrShader);
             }
         }
