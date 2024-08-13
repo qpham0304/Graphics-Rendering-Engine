@@ -92,56 +92,53 @@ static void DrawVec3Control(const std::string& label, glm::vec3& values, float r
 }
 
 
-static void AddComponentDialog(Entity& entity, const std::string& label) {
-
-    if (ImGui::Button(label.c_str())) {
+static void AddComponentDialog(Entity& entity) {
 #if defined(_WIN32)
-        std::string path = Utils::Window::WindowFileDialog();
+    std::string path = Utils::Window::WindowFileDialog();
 #elif defined(__APPLE__) && defined(__MACH__)
-        // macOS specific code
+    // macOS specific code
 #elif defined(__linux__)
-        // Linux specific code
+    // Linux specific code
 #else
-        // Unknown or unsupported platform
+    // Unknown or unsupported platform
 #endif
 
-        if (!path.empty()) {
-            entity.addComponent<ModelComponent>();
-            //NOTE: disable for opengl since it doesn't like buffer generation on a separate thread
-            //#define USE_THREAD        
+    if (!path.empty()) {
+        entity.addComponent<ModelComponent>();
+        //NOTE: disable for opengl since it doesn't like buffer generation on a separate thread
+        //#define USE_THREAD        
 #ifdef USE_THREAD
-            AsyncEvent event(path);
-            auto func = [&entity](AsyncEvent& event) {
-                ModelComponent& component = entity.getComponent<ModelComponent>();
-                component.path = "Loading...";
-                SceneManager::getInstance().addModel(event.id.c_str());
-                if (component.path != event.id) {
-                    component.model = SceneManager::getInstance().models[event.id];
-                }
-
-                // if another thread deletes the same model before this add, reset the model component's pointer
-                if (auto lockedModel = component.model.lock()) {
-                    if (lockedModel.get() == SceneManager::getInstance().models[event.id].get()) {
-                        Console::println("match address");
-                    }
-                    Console::println("num references", lockedModel.use_count());
-                    Console::println("path", lockedModel.get());
-                    Console::println("path", SceneManager::getInstance().models[event.id].get());
-                }
-                else {
-                    component.reset();
-                }
-                component.path = event.id;
-                };
-            EventManager::getInstance().Queue(event, func);
-#else
-            ModelLoadEvent event(path, entity);
-            EventManager::getInstance().Publish(event);
-#endif
+        AsyncEvent event(path);
+        auto func = [&entity](AsyncEvent& event) {
             ModelComponent& component = entity.getComponent<ModelComponent>();
-            if (component.path == "None") {
-                ImGui::OpenPopup("Failed to load file, please check the format");
+            component.path = "Loading...";
+            SceneManager::getInstance().addModel(event.id.c_str());
+            if (component.path != event.id) {
+                component.model = SceneManager::getInstance().models[event.id];
             }
+
+            // if another thread deletes the same model before this add, reset the model component's pointer
+            if (auto lockedModel = component.model.lock()) {
+                if (lockedModel.get() == SceneManager::getInstance().models[event.id].get()) {
+                    Console::println("match address");
+                }
+                Console::println("num references", lockedModel.use_count());
+                Console::println("path", lockedModel.get());
+                Console::println("path", SceneManager::getInstance().models[event.id].get());
+            }
+            else {
+                component.reset();
+            }
+            component.path = event.id;
+            };
+        EventManager::getInstance().Queue(event, func);
+#else
+        ModelLoadEvent event(path, entity);
+        EventManager::getInstance().Publish(event);
+#endif
+        ModelComponent& component = entity.getComponent<ModelComponent>();
+        if (component.path == "None") {
+            ImGui::OpenPopup("Failed to load file, please check the format");
         }
     }
 }
@@ -371,12 +368,16 @@ void LeftSidebarWidget::EntityTab() {
             const char* name = entity.getComponent<NameComponent>().name.c_str();
             std::string addModelTex = "Add Model";
             if (ImGui::TreeNodeEx(name, node_flags)) {  
+                if (entity.hasComponent<ModelComponent>()) {
+                    addModelTex = "Change Model";
+                    std::string modelPath = "Path: " + entity.getComponent<ModelComponent>().path;
+                    ImGui::Text(modelPath.c_str());
+                }
+
                 if (ImGui::BeginPopupContextItem("Add Component")) {
-                    if (ImGui::MenuItem("Add Model")) {
-                        //if (entity.hasComponent<ModelComponent>()) {
-                        //    addModelTex = "Change Model";
-                        //}
-                        //AddComponentDialog(entity, addModelTex);
+                    if (ImGui::MenuItem(addModelTex.c_str())) {
+
+                        AddComponentDialog(entity);
                     }
 
                     if (ImGui::MenuItem("Add Animation")) {
@@ -396,20 +397,13 @@ void LeftSidebarWidget::EntityTab() {
 
                 ImGui::Text(std::string("id: " + uuid).c_str());
 
-                if (entity.hasComponent<ModelComponent>()) {
-                    addModelTex = "Change Model";
-                    std::string modelPath = "Path: " + entity.getComponent<ModelComponent>().path;
-                    ImGui::Text(modelPath.c_str());
-                }
-                else {
-                    ImGui::Text("None");
-                }
-
                 //ImGui::SameLine();
-                AddComponentDialog(entity, addModelTex);
+                if (ImGui::Button(addModelTex.c_str())) {
+                    AddComponentDialog(entity);
+                }
 
                 TransformComponent& transform = entity.getComponent<TransformComponent>();
-                displayMatrix(transform.modelMatrix);
+                //displayMatrix(transform.modelMatrix);
 
                 if (ImGui::SliderFloat3("Position", glm::value_ptr(transform.translate), -20.0f, 20.0f, 0)) {
                     transform.modelMatrix = glm::translate(glm::mat4(1.0), transform.translate);

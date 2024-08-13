@@ -58,5 +58,4 @@ int main()
 	catch (const std::runtime_error& e) {
 		std::cerr << "Exception: " << e.what() << std::endl;
 	}
-
 }

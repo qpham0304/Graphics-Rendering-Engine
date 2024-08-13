@@ -74,7 +74,7 @@ void ImGuiController::start()
 	ImGui::NewFrame();
 
 	// Create a dock space
-	ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+	ImGui::DockSpaceOverViewport((ImGuiID)ImGui::GetMainViewport());
 }
 
 void ImGuiController::debugWindow(ImTextureID texture)
