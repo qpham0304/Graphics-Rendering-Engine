@@ -8,13 +8,17 @@
 class EditorLayer
 {
 private:
-	unsigned int VAO, VBO;
 	Camera editorCamera;
 	SceneManager& sceneManager = SceneManager::getInstance();
 	EventManager& eventManager = EventManager::getInstance();
 	ImGuiController* guiController;
+	bool GuizmoActive = false;
+	bool drawGrid = false;
+	bool editorActive = true;
+	ImGuizmo::OPERATION GuizmoType = ImGuizmo::OPERATION::TRANSLATE;
 
 	void mockThreadTasks();
+	void renderGuizmo();
 
 public:
 	EditorLayer();
@@ -26,5 +30,6 @@ public:
 	void onUpdate();
 	void onGuiUpdate();
 	void onEvent(Event& event);
+	void handleKeyPressed(int keycode);
 };
 

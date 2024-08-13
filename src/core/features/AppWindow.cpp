@@ -179,17 +179,20 @@ void AppWindow::setEventCallback()
 			//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
 			switch (action) {
 				case GLFW_PRESS: {
-					if (key == GLFW_KEY_ESCAPE) {
+					if (key == KEY_ESCAPE) {
 						WindowCloseEvent windowCloseEvent;
 						EventManager::getInstance().Publish(windowCloseEvent);
 					}
+					else {
+						KeyPressedEvent keyPressEvent(key);
+						EventManager::getInstance().Publish(keyPressEvent);
+					}
 				}
 				case GLFW_RELEASE: {
-					Console::println("released");
+					//Console::println("released");
 				}
 				case GLFW_REPEAT: {
-					Console::println("key repeat");
-					//application->camera.processKeyboard(window);
+					//Console::println("key repeat");
 				}
 			}
 		});

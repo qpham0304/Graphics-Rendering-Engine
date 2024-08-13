@@ -53,6 +53,6 @@ public:
 		throw std::runtime_error("Component does not exist");
 	}
 
-	const entt::entity& getID() const;
+	const uint32_t& getID() const;
 };
 

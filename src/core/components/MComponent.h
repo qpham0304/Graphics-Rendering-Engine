@@ -21,6 +21,38 @@ public:
 		
 	};
 
+	glm::mat4 updateTransform() {
+		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rotateVec.x, glm::vec3(1.0, 0.0, 0.0))
+			* glm::rotate(glm::mat4(1.0f), rotateVec.y, glm::vec3(0.0, 1.0, 0.0))
+			* glm::rotate(glm::mat4(1.0f), rotateVec.z, glm::vec3(0.0, 0.0, 1.0));
+		glm::mat4 translateMat = glm::translate(glm::mat4(1.0), translateVec);
+		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), scaleVec);
+		modelMatrix = translateMat * rotationMat * scaleMat;
+		return modelMatrix;
+	}
+
+	void rotateGuizMo(glm::vec3 deltaRotation) {
+		modelMatrix = glm::translate(glm::mat4(1.0f), translateVec);
+		glm::mat4 rot = glm::toMat4(glm::quat(rotateVec));
+		modelMatrix *= rot;
+		modelMatrix = glm::scale(modelMatrix, scaleVec);
+	}
+
+	void translate(const glm::vec3& translate) {
+		translateVec = translate;
+		updateTransform();
+	}
+
+	void rotate(const glm::vec3& rotate) {
+		rotateVec = rotate;
+		updateTransform();
+	}
+
+	void scale(const glm::vec3& scale) {
+		scaleVec = scale;
+		updateTransform();
+	}
+
 	void translate(glm::vec3&& translate) {
 		translateVec = translate;
 		updateTransform();
@@ -37,16 +69,6 @@ public:
 	}
 
 	const glm::mat4& getModelMatrix() {
-		return modelMatrix;
-	}
-
-	glm::mat4 updateTransform() {
-		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rotateVec.x, glm::vec3(1.0, 0.0, 0.0))
-								* glm::rotate(glm::mat4(1.0f), rotateVec.y, glm::vec3(0.0, 1.0, 0.0))
-								* glm::rotate(glm::mat4(1.0f), rotateVec.z, glm::vec3(1.0, 0.0, 1.0));
-		glm::mat4 translateMat = glm::translate(glm::mat4(1.0), translateVec);
-		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), scaleVec);
-		modelMatrix = translateMat * rotationMat * scaleMat;
 		return modelMatrix;
 	}
 };

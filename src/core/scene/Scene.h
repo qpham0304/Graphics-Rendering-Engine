@@ -5,19 +5,16 @@
 #include "../entities/Entity.h"
 #include "../layers/LayerManager.h"
 
-//class Entity;
-
 class Scene
 {
 private:
 	std::string sceneName;
 	entt::registry registry;
+	std::vector<Entity> selectedEntities;
 
-	friend Entity;
 
 public:
-	std::unordered_map<std::string, Entity> entities;
-	std::vector<std::string> selectedEntities;
+	std::unordered_map<uint32_t, Entity> entities;
 	LayerManager layerManager;
 	bool isEnabled;
 
@@ -29,10 +26,12 @@ public:
 	bool removeLayer(int&& index);
 
 
-	std::string addEntity(const std::string& name = "Entity");
-	bool removeEntity(const std::string& uuid);
-	bool hasEntity(const std::string& id);
-	Entity getEntity(const std::string& id);
+	uint32_t addEntity(const std::string& name = "Entity");
+	bool removeEntity(const uint32_t& uuid);
+	bool hasEntity(const uint32_t& id);
+	Entity getEntity(const uint32_t& id);
+	void selectEntities(std::vector<Entity> entities);
+	const std::vector<Entity>& getSelectedEntities();
 
 	void onStart();
 	void onStop();

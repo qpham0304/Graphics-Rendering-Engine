@@ -72,6 +72,26 @@ public:
 	}
 };
 
+class KeyPressedEvent : public Event
+{
+public:
+	int keyCode = 0;
+
+	KeyPressedEvent(int keyCode) : keyCode(keyCode) {}
+
+	EventType GetEventType() const override {
+		return EventType::KeyPressed;
+	}
+
+	const char* GetName() const override {
+		return "KeyPressedEvent";
+	};
+
+	std::string ToString() const override {
+		return "KeyPressedEvent";
+	}
+};
+
 class WindowCloseEvent : public Event
 {
 public:

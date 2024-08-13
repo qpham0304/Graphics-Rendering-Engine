@@ -12,7 +12,6 @@
 #include "../layers/BloomLayer.h"
 #include "../components/MComponent.h"
 
-
 void EditorLayer::mockThreadTasks()
 {
 	AsyncEvent addComponentEvent;
@@ -37,6 +36,59 @@ void EditorLayer::mockThreadTasks()
 	eventManager.Queue(addComponentEvent2, func2);
 }
 
+void EditorLayer::renderGuizmo()
+{
+	glm::vec3 translateVector(0.0f, 0.0f, 0.0f);
+	glm::vec3 scaleVector(1.0f, 1.0f, 1.0f);
+
+	float viewManipulateRight = ImGui::GetIO().DisplaySize.x;
+	float viewManipulateTop = 0;
+
+	auto v = &SceneManager::cameraController->getViewMatrix()[0][0];
+	auto p = glm::value_ptr(SceneManager::cameraController->getProjectionMatrix());
+	Scene* scene = SceneManager::getInstance().getScene("default");
+	std::vector<Entity> selectedEntities = scene->getSelectedEntities();
+
+	if (!selectedEntities.empty()) {
+		TransformComponent& transformComponent = selectedEntities[0].getComponent<TransformComponent>();
+
+		glm::mat4 transform = transformComponent.getModelMatrix();
+		glm::vec3 originRotation = transformComponent.rotateVec;
+
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::SetDrawlist();
+		float wd = (float)ImGui::GetWindowWidth();
+		float wh = (float)ImGui::GetWindowHeight();
+
+		glm::mat4 modelMat = transformComponent.getModelMatrix();
+		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, wd, wh);
+		glm::mat4 identity(1.0f);
+
+		if (drawGrid)
+			ImGuizmo::DrawGrid(v, p, glm::value_ptr(identity), 100.f);
+
+		bool res = ImGuizmo::Manipulate(v, p, (ImGuizmo::OPERATION)GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+		viewManipulateRight = ImGui::GetWindowPos().x + wd;
+		viewManipulateTop = ImGui::GetWindowPos().y;
+		ImGuizmo::ViewManipulate(v, 5.0f, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+
+		if (ImGuizmo::IsUsing()) {
+			GuizmoActive = true;
+			glm::vec3 translation, rotation, scale;
+			Utils::Math::DecomposeTransform(transform, translation, rotation, scale);
+			glm::vec3 deltaRotation = rotation - originRotation;
+
+			transformComponent.translateVec = translation;
+			transformComponent.rotateVec += deltaRotation;
+			transformComponent.scaleVec = scale;
+			transformComponent.updateTransform();
+		}
+		else {
+			GuizmoActive = false;
+		}
+	}
+}
+
 EditorLayer::EditorLayer()
 {
 	onAttach();
@@ -55,7 +107,7 @@ void EditorLayer::init(ImGuiController& controller)
 
 void EditorLayer::onAttach()
 {
-	auto addModelFunc = [](Event& event) {
+	EventManager::getInstance().Subscribe(EventType::ModelLoadEvent, [](Event& event) {
 		ModelLoadEvent& e = static_cast<ModelLoadEvent&>(event);
 		if (!e.entity.hasComponent<ModelComponent>()) {
 			e.entity.addComponent<ModelComponent>();
@@ -71,8 +123,24 @@ void EditorLayer::onAttach()
 			ImGui::OpenPopup("Failed to load file, please check the format");
 			component.reset();
 		}
-	};
-	EventManager::getInstance().Subscribe(EventType::ModelLoadEvent, addModelFunc);
+		});
+
+	EventManager::getInstance().Subscribe(EventType::MouseMoved, [&](Event& event) {
+		MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
+		if (GuizmoActive && editorActive) {
+			mouseEvent.Handled = true;	// block mouse event from other layers
+		}
+		});
+
+	EventManager::getInstance().Subscribe(EventType::KeyPressed, [&](Event& event) {
+		KeyPressedEvent& keyPressedEvent = static_cast<KeyPressedEvent&>(event);
+		if (GuizmoActive || editorActive) {
+			handleKeyPressed(keyPressedEvent.keyCode);
+			keyPressedEvent.Handled = true;	// block keyboard event from other layers
+		}
+		});
+
+
 }
 
 void EditorLayer::onDetach()
@@ -89,15 +157,13 @@ void EditorLayer::onGuiUpdate()
 {
 	guiController->render();
 
-	ImGui::Begin("test board");
-	ImGui::BeginChild("test child");
-	ImVec2 wsize = ImGui::GetWindowSize();
-	auto fbo = LayerManager::getFrameBuffer("ParticleDemo");
-	if (fbo) {
-		ImGui::Image((ImTextureID)fbo->texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+	if (ImGui::Begin("Application window")) {
+		ImGui::BeginChild("Child");
+		ImGui::SetNextItemAllowOverlap();
+		renderGuizmo();
+		ImGui::EndChild();
+		ImGui::End();
 	}
-	ImGui::EndChild();
-	ImGui::End();
 
 	std::string id;
 	if (ImGui::Begin("right side bar")) {
@@ -121,6 +187,28 @@ void EditorLayer::onGuiUpdate()
 void EditorLayer::onEvent(Event& event)
 {
 
+}
+
+void EditorLayer::handleKeyPressed(int keycode)
+{
+	Console::println("key: ", keycode);
+	//glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS ? debug = true : debug = false;
+	if (keycode == KEY_T) {
+		GuizmoType = ImGuizmo::OPERATION::TRANSLATE;
+	}
+	if (keycode == KEY_R) {
+		GuizmoType = ImGuizmo::OPERATION::ROTATE;
+	}
+	if (keycode == KEY_Z) {
+		GuizmoType = ImGuizmo::OPERATION::SCALE;
+	}
+	if (keycode == KEY_DELETE) {
+		Scene* scene = SceneManager::getInstance().getScene("default");
+		std::vector<Entity> selectedEntities = scene->getSelectedEntities();
+		if (!selectedEntities.empty()) {
+			scene->removeEntity(selectedEntities[0].getID());
+		}
+	}
 }
 
 

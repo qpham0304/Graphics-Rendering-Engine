@@ -188,6 +188,7 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 void DeferredIBLDemo::OnAttach()
 {
     AppLayer::OnAttach();
+    SceneManager::cameraController = &camera;
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
     Scene& scene = *SceneManager::getInstance().getScene("default");
     TransformComponent* transform;
@@ -199,7 +200,7 @@ void DeferredIBLDemo::OnAttach()
     //transform = &scene.entities[terrainID].getComponent<TransformComponent>();
     //transform->model = glm::scale(transform->model, glm::vec3(10.0));
 
-    std::string helmetID = scene.addEntity("helmet");
+    uint32_t helmetID = scene.addEntity("helmet");
     event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
     EventManager::getInstance().Publish(event);
     transform = &scene.entities[helmetID].getComponent<TransformComponent>();

@@ -181,7 +181,7 @@ void displayMatrix(glm::mat4& matrix) {
 
 void LeftSidebarWidget::AddEntityButton() {
     if (ImGui::Button("+ Add Entity", ImVec2(-1, 0))) {
-        std::string id = SceneManager::getInstance().getScene(ACTIVE_SCENE)->addEntity();
+        SceneManager::getInstance().getScene(ACTIVE_SCENE)->addEntity();
     }
 }
 
@@ -364,7 +364,7 @@ void LeftSidebarWidget::EntityTab() {
 
         for (auto& [uuid, entity] : scene->entities) {
             ImGuiTreeNodeFlags node_flags = base_flags;
-            ImGui::PushID(uuid.c_str());
+            ImGui::PushID(std::to_string(uuid).c_str());
             const char* name = entity.getComponent<NameComponent>().name.c_str();
             std::string addModelTex = "Add Model";
 
@@ -425,9 +425,10 @@ void LeftSidebarWidget::EntityTab() {
 
                 ImGui::TreePop();
             }
-
+            // currently support single entity selection
             if (ImGui::IsItemClicked()) {
                 selectedEntity = &entity;
+                scene->selectEntities({ entity });
             }
 
             if (ImGui::IsItemHovered()) {

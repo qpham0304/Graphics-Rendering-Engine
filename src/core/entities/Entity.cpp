@@ -2,7 +2,7 @@
 
 bool Entity::operator==(const Entity& other) const
 {
-    return entity == other.getID() && registry == other.registry;
+    return entity == (entt::entity) other.getID() && registry == other.registry;
 }
 
 bool Entity::operator!=(const Entity& other) const
@@ -10,7 +10,7 @@ bool Entity::operator!=(const Entity& other) const
     return !operator==(other);
 }
 
-const entt::entity& Entity::getID() const
+const uint32_t& Entity::getID() const
 {
-    return entity;
+    return (uint32_t)entity;
 }

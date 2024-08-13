@@ -52,8 +52,8 @@ void Application::run() {
 		sceneManager.onUpdate(glfwGetTime());
 
 		guiController.start();
-		editorLayer.onGuiUpdate();
 		sceneManager.onGuiUpdate(glfwGetTime());
+		editorLayer.onGuiUpdate();	// render after app ui to show overlay
 		guiController.end();
 
 		AppWindow::pollEvents();

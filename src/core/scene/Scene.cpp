@@ -18,13 +18,14 @@ bool Scene::removeLayer(int&& index)
 	return layerManager.RemoveLayer(std::move(index));
 }
 
-std::string Scene::addEntity(const std::string& name)
+uint32_t Scene::addEntity(const std::string& name)
 {
-	std::string uuid = Utils::uuid::get_uuid();
-	if (entities.find(uuid) != entities.end()) {
-		return "";
-	}
 	entt::entity e = registry.create();
+	//std::string uuid = Utils::uuid::get_uuid();
+	uint32_t uuid = (uint32_t)e;
+	if (entities.find(uuid) != entities.end()) {
+		return -1;	//MAX_VALUE of uint32_t
+	}
 	entities[uuid] = Entity(e, registry);
 	entities[uuid].addComponent<TransformComponent>();
 	entities[uuid].addComponent<NameComponent>(name);
@@ -32,21 +33,21 @@ std::string Scene::addEntity(const std::string& name)
 	return uuid;
 }
 
-bool Scene::removeEntity(const std::string& name)
+bool Scene::removeEntity(const uint32_t& uuid)
 {
-	if (entities.find(name) != entities.end()) {
-		entities.erase(name);
+	if (entities.find(uuid) != entities.end()) {
+		entities.erase(uuid);
 		return true;
 	}
 	return false;
 }
 
-bool Scene::hasEntity(const std::string& uuid)
+bool Scene::hasEntity(const uint32_t& uuid)
 {
 	return (entities.find(uuid) != entities.end());
 }
 
-Entity Scene::getEntity(const std::string& uuid)
+Entity Scene::getEntity(const uint32_t& uuid)
 {
 	if (entities.find(uuid) != entities.end()) {
 		return entities[uuid];
@@ -54,11 +55,21 @@ Entity Scene::getEntity(const std::string& uuid)
 	throw std::runtime_error("Entity does not exist");
 }
 
+void Scene::selectEntities(std::vector<Entity> entities)
+{
+	selectedEntities = entities;
+}
+
+const std::vector<Entity>& Scene::getSelectedEntities()
+{
+	return selectedEntities;
+}
+
 void Scene::onUpdate(const float& deltaTime)
 {
-	entt::basic_view view = registry.view<TransformComponent, ShaderComponent>();
+	entt::basic_view view = registry.view<TransformComponent>();
 
-	view.each([&deltaTime](auto& trans, auto& shaders) {
+	view.each([&deltaTime](auto& trans) {
 
 	});
 

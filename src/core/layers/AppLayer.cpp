@@ -63,7 +63,7 @@ void AppLayer::OnUpdate()
 
 void AppLayer::OnGuiUpdate()
 {
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	if (ImGui::Begin("control")) {
 
 		ImGui::End();
@@ -86,7 +86,7 @@ void AppLayer::OnGuiUpdate()
 		ImGui::EndChild();
 		ImGui::End();
 	}
-	ImGui::PopStyleVar();
+	//ImGui::PopStyleVar();
 }
 
 void AppLayer::OnEvent(Event& event)
