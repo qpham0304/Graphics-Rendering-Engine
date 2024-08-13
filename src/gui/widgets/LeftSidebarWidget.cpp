@@ -367,13 +367,13 @@ void LeftSidebarWidget::EntityTab() {
             ImGui::PushID(uuid.c_str());
             const char* name = entity.getComponent<NameComponent>().name.c_str();
             std::string addModelTex = "Add Model";
-            if (ImGui::TreeNodeEx(name, node_flags)) {  
-                if (entity.hasComponent<ModelComponent>()) {
-                    addModelTex = "Change Model";
-                    std::string modelPath = "Path: " + entity.getComponent<ModelComponent>().path;
-                    ImGui::Text(modelPath.c_str());
-                }
 
+
+            if (selectedEntity == &entity) {
+                node_flags |= ImGuiTreeNodeFlags_Selected;
+            }
+            
+            if (ImGui::TreeNodeEx(name, node_flags)) {
                 if (ImGui::BeginPopupContextItem("Add Component")) {
                     if (ImGui::MenuItem(addModelTex.c_str())) {
 
@@ -394,27 +394,50 @@ void LeftSidebarWidget::EntityTab() {
 
                     ImGui::EndPopup();
                 }
+                if (entity.hasComponent<ModelComponent>()) {
+                    addModelTex = "Change Model";
+                    std::string modelPath = "Path: " + entity.getComponent<ModelComponent>().path;
+                    ImGui::TextWrapped(modelPath.c_str());
+                }
 
                 ImGui::Text(std::string("id: " + uuid).c_str());
 
-                //ImGui::SameLine();
+                ImGui::SameLine();
                 if (ImGui::Button(addModelTex.c_str())) {
                     AddComponentDialog(entity);
                 }
 
                 TransformComponent& transform = entity.getComponent<TransformComponent>();
-                //displayMatrix(transform.modelMatrix);
+                glm::mat4 matrix = transform.getModelMatrix();
+                displayMatrix(matrix);
 
-                if (ImGui::SliderFloat3("Position", glm::value_ptr(transform.translate), -20.0f, 20.0f, 0)) {
-                    transform.modelMatrix = glm::translate(glm::mat4(1.0), transform.translate);
+                if (ImGui::DragFloat3("Position", glm::value_ptr(transform.translateVec), 0.2f, -20.0f, 20.0f)) {
+                    transform.updateTransform();
                 }
+
+                if (ImGui::DragFloat3("Scale", glm::value_ptr(transform.scaleVec), 0.2f, -20.0f, 20.0f)) {
+                    transform.updateTransform();
+                }
+
+                if (ImGui::DragFloat3("Rotation", glm::value_ptr(transform.rotateVec), 0.2f, -180.0f, 180.0f)) {
+                    transform.updateTransform();
+                }
+
                 ImGui::TreePop();
             }
+
+            if (ImGui::IsItemClicked()) {
+                selectedEntity = &entity;
+            }
+
+            if (ImGui::IsItemHovered()) {
+
+            }
+
             ImGui::PopID();
         }
     }
     ImGui::End();
-
 }
 
 LeftSidebarWidget::LeftSidebarWidget() {

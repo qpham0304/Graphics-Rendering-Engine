@@ -1,7 +1,7 @@
 ## Overview
 <p>A rendering engine where I experiment different rendering techniques I have learned so far</p>
 <p>Everyone is free to reference the project's implementation</p>
-<p>However some of the code, mostly shader algorithm and math code, is heavily referenced from other sources and papers so please be sure check out their licenses before using at your own risk</p>
+<p>However some of the code, mostly shader code, algorithm and math logic are heavily referenced from other sources and papers so please be sure check out their licenses before using at your own risk</p>
 
 
 ## Installation

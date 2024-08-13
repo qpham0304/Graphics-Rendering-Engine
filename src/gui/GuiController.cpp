@@ -74,7 +74,7 @@ void ImGuiController::start()
 	ImGui::NewFrame();
 
 	// Create a dock space
-	ImGui::DockSpaceOverViewport((ImGuiID)ImGui::GetMainViewport());
+	ImGui::DockSpaceOverViewport(0);
 }
 
 void ImGuiController::debugWindow(ImTextureID texture)
@@ -195,7 +195,7 @@ void ImGuiController::useDarkTheme()
 	colors[ImGuiCol_ScrollbarBg] = ImVec4(0.078f, 0.078f, 0.078f, 0.540f);
 	colors[ImGuiCol_Border] = ImVec4(0.212f, 0.212f, 0.212f, 1.000f);
 	colors[ImGuiCol_TitleBg] = ImVec4(0.137f, 0.137f, 0.137f, 1.000f);
-	colors[ImGuiCol_TitleBgActive] = ImVec4(1.000f, 0.682f, 0.000f, 0.100f);
+	//colors[ImGuiCol_TitleBgActive] = ImVec4(1.000f, 0.682f, 0.000f, 0.100f);
 	colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.137f, 0.137f, 0.137f, 1.000f);
 	colors[ImGuiCol_Button] = ImVec4(0.303f, 0.303f, 0.303f, 0.540f);
 	colors[ImGuiCol_ButtonHovered] = ImVec4(0.379f, 0.379f, 0.379f, 0.540f);

@@ -203,7 +203,7 @@ void DeferredIBLDemo::OnAttach()
     event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
     EventManager::getInstance().Publish(event);
     transform = &scene.entities[helmetID].getComponent<TransformComponent>();
-    transform->modelMatrix = glm::translate(transform->modelMatrix, glm::vec3(0.0, 0.0, -3.0));
+    transform->translate(glm::vec3(0.0, 3.0, 3.0));
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -256,7 +256,7 @@ void DeferredIBLDemo::OnUpdate()
             TransformComponent& transform = entity.getComponent<TransformComponent>();
             std::shared_ptr<Model> model = modelComponent.model.lock();
             if (model != nullptr) {
-                pbrShader->setMat4("matrix", transform.modelMatrix);
+                pbrShader->setMat4("matrix", transform.getModelMatrix());
                 model->Draw(*pbrShader);
             }
         }
