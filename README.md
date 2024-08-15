@@ -9,11 +9,15 @@
 <p>Cmake is currently not supported but there is plan to support it in the future</P>
 <p>For now you can clone the repository using the command:</p>
 
-```git clone https://github.com/qpham0304/Graphics-Rendering-Engine ```
+```
+git clone https://github.com/qpham0304/Graphics-Rendering-Engine
+ ```
 
 <p>Then call submodule recursively:</p>
 
-```git submodule update --init --recursive ```
+```
+git submodule update --init --recursive
+ ```
 
 
 ## Dependencies
