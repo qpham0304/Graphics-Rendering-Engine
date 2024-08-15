@@ -1,4 +1,4 @@
-#include "./headers/Utils.h"
+#include "./Utils.h"
 #include <glm/gtc/epsilon.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glad/glad.h>
@@ -78,7 +78,8 @@ namespace Utils::Math {
 	}
 }
 
-namespace Utils::uuid {
+//https://stackoverflow.com/questions/24365331/how-can-i-generate-uuid-in-c-without-using-boost-library
+namespace Utils::uuid {		//NOTE: random enough for now but not secure
 	std::string get_uuid() {
 		std::stringstream ss;
 		int i;
@@ -104,20 +105,6 @@ namespace Utils::uuid {
 			ss << dis(gen);
 		};
 		return ss.str();
-	}
-}
-
-namespace Console{
-	void print(const std::string& msg) {
-		std::cout << msg;
-	}
-
-	void error(const std::string& msg) {
-		std::cerr << msg;
-	}
-
-	void println(const std::string& msg) {
-		std::cout << msg << std::endl;
 	}
 }
 

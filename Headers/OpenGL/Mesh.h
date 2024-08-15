@@ -8,7 +8,6 @@
 #include <vector>
 #include "Shader.h"
 #include "Texture.h"
-#include "camera.h"
 
 #define MAX_BONE_INFLUENCE 4
 
@@ -39,7 +38,8 @@ public:
 
 	int getNumVertices();
 	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
-
+	~Mesh();
+	void Delete();
 	void Draw(Shader& shader);
 
 };

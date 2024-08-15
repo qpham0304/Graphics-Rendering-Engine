@@ -11,11 +11,9 @@
 #include "../ray-tracing/BasicRayTracing.h"
 #include "../particle-demo/ParticleDemo.h"
 #include "../../core/Application.h"
-#include <iostream>
 
 int main()
 {
-
 	try {
 		auto demo0 = DemoPBR::run;
 		auto demo1 = AreaLightDemo::run;
@@ -47,7 +45,7 @@ int main()
 	#define USE_EDITOR
 
 	#ifdef USE_EDITOR
-		Application app;
+		Application& app = Application::getInstance();
 		app.run();
 	#else
 		AppWindow::init(PLATFORM_OPENGL);
@@ -60,5 +58,4 @@ int main()
 	catch (const std::runtime_error& e) {
 		std::cerr << "Exception: " << e.what() << std::endl;
 	}
-
 }

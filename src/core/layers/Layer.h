@@ -2,7 +2,6 @@
 
 #include <string>
 #include "../../events/Event.h"
-#include "../../core/scene/SceneManager.h"
 
 class Layer
 {

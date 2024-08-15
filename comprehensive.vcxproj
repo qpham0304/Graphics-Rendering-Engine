@@ -80,7 +80,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(SolutionDir)Libraries\include\FileWatch;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -96,7 +96,7 @@
     <CopyLocalProjectReference>true</CopyLocalProjectReference>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Libraries/include/imgui;$(SolutionDir)Libraries/include/imgui/backends;$(SolutionDir)Libraries/include/ImGuizmo;$(SolutionDir)Libraries/include;$(SolutionDir)Headers/OpenGL;$(SolutionDir)Headers;$(SolutionDir)Libraries\include\entt;$(SolutionDir)Libraries\include\FileWatch;$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)Libraries/lib;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)bin\$(ProjectName)\$(Configuration)-$(Platform)</OutDir>
     <IntDir>$(SolutionDir)bin\$(ProjectName)\Intermediates\$(Configuration)-$(Platform)</IntDir>
@@ -148,7 +148,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3dll.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <NoEntryPoint>false</NoEntryPoint>
     </Link>
     <PostBuildEvent>
@@ -171,18 +171,23 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>glfw3.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3dll.lib;opengl32.lib;assimp-vc143-mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(projectDir)dll\*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\components\CameraComponent.cpp" />
+    <ClCompile Include="src\core\components\MComponent.cpp" />
+    <ClCompile Include="src\core\entities\Entity.cpp" />
+    <ClCompile Include="src\core\layers\BloomLayer.cpp" />
     <ClCompile Include="Headers\Input.h" />
+    <ClCompile Include="src\core\features\Profiler.cpp" />
+    <ClCompile Include="src\core\scene\Scene.cpp" />
     <ClCompile Include="src\core\layers\AppLayer.cpp" />
     <ClCompile Include="src\core\layers\LayerManager.cpp" />
     <ClCompile Include="src\core\layers\EditorLayer.cpp" />
-    <ClCompile Include="src\core\layers\RenderLayer.cpp" />
     <ClCompile Include="src\core\scene\SceneManager.cpp" />
     <ClCompile Include="src\events\EventManager.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
@@ -251,10 +256,18 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
+    <ClCompile Include="src\core\layers\SSAOLayer.cpp" />
+    <ClCompile Include="src\core\layers\SSRLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="src\core\components\CameraComponent.h" />
+    <ClInclude Include="src\core\components\MComponent.h" />
+    <ClInclude Include="src\core\entities\Entity.h" />
+    <ClInclude Include="src\core\layers\BloomLayer.h" />
     <ClInclude Include="Libraries\include\entt\entt.hpp" />
+    <ClInclude Include="src\core\features\Profiler.h" />
+    <ClInclude Include="src\core\scene\Scene.h" />
     <ClInclude Include="src\core\components\Component.h" />
     <ClInclude Include="src\core\components\GridComponent.h" />
     <ClInclude Include="src\core\components\LightComponent.h" />
@@ -263,7 +276,6 @@
     <ClInclude Include="src\core\layers\AppLayer.h" />
     <ClInclude Include="src\core\layers\LayerManager.h" />
     <ClInclude Include="src\core\layers\EditorLayer.h" />
-    <ClInclude Include="src\core\layers\RenderLayer.h" />
     <ClInclude Include="src\core\layers\Layer.h" />
     <ClInclude Include="src\core\scene\SceneManager.h" />
     <ClInclude Include="src\events\EventListener.h" />
@@ -297,8 +309,8 @@
     <ClInclude Include="src\apps\deferred-rendering\deferred_render_demo.h" />
     <ClInclude Include="src\apps\image-based-rendering\pbr_demo.h" />
     <ClInclude Include="src\core\components\headers\LightComponent.h" />
-    <ClInclude Include="src\graphics\utils\headers\ltc_matrix.h" />
-    <ClInclude Include="src\graphics\utils\headers\Utils.h" />
+    <ClInclude Include="src\graphics\utils\ltc_matrix.h" />
+    <ClInclude Include="src\graphics\utils\Utils.h" />
     <ClInclude Include="src\core\features\AppWindow.h" />
     <ClInclude Include="src\gui\headers\EntityControlWidget.h" />
     <ClInclude Include="Headers\OpenGL\Axis.h" />
@@ -334,6 +346,8 @@
     <ClInclude Include="src\apps\volumetric-light\VolumetricLightDemo.h" />
     <ClInclude Include="src\apps\SSAO-demo\SSAO_demo.h" />
     <ClInclude Include="src\apps\SSR-demo\SSR_demo.h" />
+    <ClInclude Include="src\core\layers\SSAOLayer.h" />
+    <ClInclude Include="src\core\layers\SSRLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="comprehensive.rc" />

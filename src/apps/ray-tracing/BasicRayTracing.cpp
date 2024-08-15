@@ -47,11 +47,6 @@ int BasicRayTracing::show_demo()
     FrameBuffer colorSceneFBO(width, height);
     FrameBuffer finalSceneFBO(width, height);
 
-    std::vector<Component*> components;
-    for (const auto& pair : SceneManager::components) {
-        components.push_back(pair.second.get());
-    }
-
     std::vector<Light> lights;
     lights.push_back(Light(glm::vec3(2.0, 0.5, -30.0), glm::vec4(1000.0f, 1000.0f, 3000.0f, 1.0f)));
     lights.push_back(Light(glm::vec3(-2.0, 0.5, 2.0), glm::vec4(200.0f, 100.0f, 100.0f, 1.0f)));

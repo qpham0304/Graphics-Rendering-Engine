@@ -1,21 +1,28 @@
 #pragma once
 
-#include <functional>
-#include <camera.h>
 #include "layers/LayerManager.h"
+#include "scene/SceneManager.h"
+#include "../../src/events/EventManager.h"
+#include "layers/EditorLayer.h"
+#include "../gui/GuiController.h"
 
 class Application
 {
 private:
 	bool isRunning;
-	LayerManager layerManager;
+	Application();
 
 public:
-	Application();
+	SceneManager& sceneManager = SceneManager::getInstance();
+	EventManager& eventManager = EventManager::getInstance();
+	ImGuiController guiController;
+	EditorLayer editorLayer;
+
 	~Application() = default;
 
+	static Application& getInstance();
+
 	void run();
-	bool running();
-	void close();
+	void onClose();
 };
 

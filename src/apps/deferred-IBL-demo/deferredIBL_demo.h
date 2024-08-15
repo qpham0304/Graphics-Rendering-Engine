@@ -2,6 +2,7 @@
 
 #include "../../core/layers/AppLayer.h"
 #include "ParticleGeometry.h"
+#include "../src/graphics/renderer/ImageBasedRenderer.h"
 
 class DeferredIBLDemo : public AppLayer
 {
@@ -12,10 +13,9 @@ private:
 	unsigned int cubeVAO = 0;
 	unsigned int cubeVBO = 0;
 	unsigned int sphereVAO = 0;
-	unsigned int indexCount;
+	unsigned int indexCount = 0;
 
-
-	float speed = 0.001;
+	float speed = 0.001f;
 	bool pause = true;
 	bool reset = false;
 	bool isPopulating = false;
@@ -23,7 +23,7 @@ private:
 	glm::vec3 direction = glm::vec3(0.0, 0.0, 0.0);
 	unsigned int numInstances = 100000;
 	int numRender = numInstances;
-	int heightLimit = 100.0;
+	float heightLimit = 100.0f;
 	glm::vec2 randomRange = glm::vec2(-5.0, 5.0);
 
 	glm::vec3 particleSize = glm::vec3(0.1, 0.1, 0.1);
@@ -33,24 +33,10 @@ private:
 	ParticleGeometry particleRenderer;
 
 	std::unique_ptr<Shader> pbrShader;
-	std::unique_ptr<Shader> equirectangularToCubemapShader;
-	std::unique_ptr<Shader> irradianceShader;
-	std::unique_ptr<Shader> backgroundShader;
-	std::unique_ptr<Shader> prefilterShader;
-	std::unique_ptr<Shader> brdfShader;
-	std::unique_ptr<Shader> modelShader;
 
-	std::vector<Component*> components;
 	std::vector<Light> lights;
 
-	unsigned int captureFBO, captureRBO;
-	unsigned int envCubemapTexture;
-	unsigned int hdrTexture;
-	std::string texRes = Utils::OpenGL::loadHDRTexture("Textures/hdr/industrial_sunset_02_puresky_1k.hdr", hdrTexture);
-
-	unsigned int prefilterMap;
-	unsigned int irradianceMap;
-	unsigned int brdfLUTTexture;
+	ImageBasedRenderer imageBasedRenderer;
 
 public:
 	DeferredIBLDemo(const std::string& name);

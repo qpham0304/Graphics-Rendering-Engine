@@ -1,4 +1,5 @@
 #include "../headers/ConsoleLogWidget.h"
+#include "../../core/features/Profiler.h"
 
 ConsoleLogWidget::ConsoleLogWidget()
 {
@@ -21,17 +22,19 @@ bool ButtonCenteredOnLine(const char* label, float alignment = 0.5f)
 
 void ConsoleLogWidget::render()
 {
+	ImGui::BeginGroup();
 	//ImGui::SetNextItemAllowOverlap();
 	//ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
+	Profiler::getInstance().display();
 
 	ImGui::Begin("Assets");
 	ImGui::Text("assets placeholder");
 	ImGui::End();
 
 	ImGui::Begin("console");
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::ShowDebugLogWindow();
 	ImGui::End();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
+	ImGui::EndGroup();
 }

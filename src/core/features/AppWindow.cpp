@@ -2,6 +2,8 @@
 #include "Timer.h"
 #include "../../events/Event.h"
 #include "../../events/EventManager.h"
+#include <camera.h>
+#include "../../core/scene/SceneManager.h"
 
 unsigned int AppWindow::width = DEFAULT_WIDTH;
 unsigned int AppWindow::height = DEFAULT_HEIGHT;
@@ -16,6 +18,7 @@ glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 glm::vec4 bgColor(38/255.0f, 43/255.0f, 42/255.0f, 1.0f);
 
 GLFWwindow* AppWindow::window = nullptr;
+GLFWwindow* AppWindow::sharedWindow = nullptr;
 ImGuiController AppWindow::guiController(true);
 
 bool show_debug_window = true;
@@ -93,8 +96,8 @@ int AppWindow::init(Platform platform) {
 	}
 
 	if (AppWindow::platform == PLATFORM_OPENGL) {
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		// Initialize GLFW
@@ -125,19 +128,39 @@ int AppWindow::init(Platform platform) {
 }
 
 int AppWindow::start(const char* title) {
-	if(platform == PLATFORM_UNDEFINED)
+	if (platform == PLATFORM_UNDEFINED) {
 		throw std::runtime_error("Platform not specified have you called init() with supported platform yet?");
+	}
+
 	else if (platform == PLATFORM_OPENGL) {
 		window = glfwCreateWindow(width, height, title, NULL, NULL);
 
-		if (window == NULL)
-		{
+		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window" << std::endl;
 			glfwTerminate();
 			return -1;
 		}
 		glfwMakeContextCurrent(window);
-		gladLoadGL();
+
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+			std::cerr << "Failed to initialize GLAD for main context" << std::endl;
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			return -1;
+		}
+
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);	// Set Invisible for second context
+		sharedWindow = glfwCreateWindow(width, height, "", NULL, window);
+
+		if (sharedWindow == NULL) {
+			std::cerr << "Failed to create shared GLFW window" << std::endl;
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			return -1;
+		}
+		glfwMakeContextCurrent(sharedWindow);
+
+		glfwMakeContextCurrent(window);
 	}
 	setEventCallback();
 	return 0;
@@ -149,7 +172,9 @@ int AppWindow::end() {
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 
+		glfwMakeContextCurrent(nullptr);
 		glfwDestroyWindow(window);
+		glfwDestroyWindow(sharedWindow);
 		glfwTerminate();
 	}
 	return 0;
@@ -158,36 +183,54 @@ int AppWindow::end() {
 void AppWindow::setEventCallback()
 {
 	glfwSetCursorPosCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		Timer timer("cursor event");
-		MouseMoveEvent cursorMoveEvent(window, x, y);
-		EventManager::getInstance().Publish(cursorMoveEvent);
-	});
+		{
+			Timer("cursor event", true);
+			MouseMoveEvent cursorMoveEvent(window, x, y);
+			EventManager::getInstance().Publish(cursorMoveEvent);
+		});
 
 	glfwSetScrollCallback(window, [](GLFWwindow* window, double x, double y)
-	{
-		Timer timer("scroll event");
-		MouseScrollEvent scrollEvent(window, x, y);
-		EventManager::getInstance().Publish(scrollEvent);
-		//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
-	});
+		{
+			Timer("scroll event", true);
+			MouseScrollEvent scrollEvent(window, x, y);
+			EventManager::getInstance().Publish(scrollEvent);
+			//EventManager::getInstance().Publish("mouseScrollEvent", x, y);
+		});
 
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-	{
-		//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
-		switch (action) {
-			case GLFW_PRESS: {
-				Console::println("key");
+		{
+			//Application* application = static_cast<Application*>(glfwGetWindowUserPointer(window));
+			switch (action) {
+				case GLFW_PRESS: {
+					if (key == KEY_ESCAPE) {
+						WindowCloseEvent windowCloseEvent;
+						EventManager::getInstance().Publish(windowCloseEvent);
+					}
+					else {
+						KeyPressedEvent keyPressEvent(key);
+						EventManager::getInstance().Publish(keyPressEvent);
+					}
+				}
+				case GLFW_RELEASE: {
+					//Console::println("released");
+				}
+				case GLFW_REPEAT: {
+					//Console::println("key repeat");
+				}
 			}
-			case GLFW_RELEASE: {
-				Console::println("released");
-			}
-			case GLFW_REPEAT: {
-				Console::println("key repeat");
-				//application->camera.processKeyboard(window);
-			}
-		}
-	});
+		});
+
+	glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height)
+		{
+			WindowResizeEvent resizeEvent(window, width, height);
+			EventManager::getInstance().Publish(resizeEvent);
+		});
+
+	glfwSetWindowCloseCallback(window, [](GLFWwindow* window)
+		{
+			WindowCloseEvent closeEvent;
+			EventManager::getInstance().Publish(closeEvent);
+		});
 }
 
 void AppWindow::pollEvents()

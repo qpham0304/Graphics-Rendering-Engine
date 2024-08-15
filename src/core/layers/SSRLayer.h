@@ -1,5 +1,5 @@
 #pragma once
-class RenderLayer
+class SSRLayer
 {
 };
 

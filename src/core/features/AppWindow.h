@@ -1,19 +1,17 @@
 #pragma once
 
+#include "camera.h" // lots of dependencies here
 #include <Animation.h>
-#include <Animator.h>
 #include <FrameBuffer.h>
 #include <DepthMap.h>
 #include <DepthCubeMap.h>
 #include <imgui_internal.h>
-#include <camera.h>
 #include <set>
 #include <future>
 #include <mutex>
 #include <thread>
 #include "../../gui/GuiController.h"
-#include "../../core/scene/SceneManager.h"
-#include "../../graphics/utils/headers/utils.h"
+#include "../../graphics/utils/Utils.h"
 #include "../../core/components/SkyboxComponent.h"
 #include "../../core/components/GridComponent.h"
 #include "../../core/components/LightComponent.h"
@@ -37,9 +35,11 @@ public:
 	static Platform platform;
 	static const std::set<Platform> supportPlatform;
 	static ImGuizmo::OPERATION GuizmoType;
-
-	static ImGuiController guiController;
 	static GLFWwindow* window;
+	static GLFWwindow* sharedWindow;
+
+	// currently bind with an app inside window, remove after done refactoring
+	static ImGuiController guiController;
 
 	static int init(Platform platform);		// set up and init the graphics api depending on the platform
 	static int start(const char* title);	// start creating windows and context
@@ -47,6 +47,7 @@ public:
 	static void pollEvents();
 	static void swapBuffer();
 	
+	// legacy demo within the window, might to a separate project
 	static void renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, Light& light);
 	static void renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap, std::vector<Light> lights, unsigned int depthMapPoint);
 	static int renderScene();

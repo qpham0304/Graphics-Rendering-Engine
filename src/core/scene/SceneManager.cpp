@@ -1,14 +1,155 @@
 #include "SceneManager.h"
 
-std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
 std::unordered_map<std::string, std::unique_ptr<Shader>> SceneManager::shaders = {};
+std::unordered_map<std::string, std::unique_ptr<Component>> SceneManager::components = {};
 Camera* SceneManager::cameraController = nullptr;
 std::string SceneManager::selectedID = "";
 std::unordered_map<std::string, std::unique_ptr<LightComponent>> SceneManager::lights = {};
+std::mutex SceneManager::mtx;
 
 
 bool SceneManager::gammaCorrection = true;
 
+SceneManager::SceneManager() {
+	
+}
+
+SceneManager::~SceneManager()
+{
+
+}
+
+SceneManager& SceneManager::getInstance()
+{
+	static SceneManager instance;
+	return instance;
+}
+
+bool SceneManager::addScene(const std::string& name)
+{
+	if (scenes.find(name) == scenes.end()) {
+		scenes[name].reset(new Scene(name));
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+bool SceneManager::addScene(std::unique_ptr<Scene> scene)
+{
+	if (scenes.find(scene->getName()) == scenes.end()) {
+		scenes[scene->getName()] = std::move(scene);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+Scene* SceneManager::getScene(const std::string& name)
+{
+	if (scenes.find(name) != scenes.end()) {
+		return scenes[name].get();
+	}
+	return nullptr;
+}
+
+bool SceneManager::removeScene(const std::string& name)
+{
+	if (scenes.find(name) != scenes.end()) {
+		scenes[name].reset();
+		scenes.erase(name);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void SceneManager::onUpdate(const float&& deltaTime)
+{
+	for (auto& [name, scene] : scenes) {
+		if(!scene->isEnabled) {
+			continue;
+		}
+		scene->onUpdate(deltaTime);
+	}
+}
+
+void SceneManager::onGuiUpdate(const float&& deltaTime)
+{
+	for (auto& [name, scene] : scenes) {
+		scene->onGuiUpdate(deltaTime);
+	}
+}
+
+bool SceneManager::addModel(const std::string& path)
+{
+	try {
+		std::scoped_lock<std::mutex> lock(modelsLock);
+		if (models.find(path) == models.end()) {
+			models[path] = std::make_shared<Model>(path.c_str());
+		}
+		//TODO: might want to manual increase reference counter for instanced drawing
+		return true;
+	}
+	catch (std::runtime_error) {
+		return false;
+	}
+}
+
+bool SceneManager::removeModel(const std::string& path)
+{
+	std::scoped_lock<std::mutex> lock(modelsLock);
+	if (models.find(path) != models.end()) {
+		models.erase(path);
+		return true;
+	}
+	return false;
+}
+
+//bool SceneManager::addAnimation(const std::string& path)
+//{
+//	std::scoped_lock<std::mutex> lock(animationsLock);
+//	if (animations.find(path) == animations.end()) {
+//		animations[path] = std::make_shared<Animation>(path);
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool SceneManager::removeAnimation(const std::string& path)
+//{
+//	std::scoped_lock<std::mutex> lock(animationsLock);
+//	if (animations.find(path) != animations.end()) {
+//		animations.erase(path);
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool SceneManager::addAnimator(const std::string& path)
+//{
+//	std::scoped_lock<std::mutex> lock(animatorsLock);
+//	if (animators.find(path) == animators.end()) {
+//		animators[path] = std::make_shared<Animator>(path);
+//		return true;
+//	}
+//	return false;
+//}
+//
+//bool SceneManager::removeAnimator(const std::string& path)
+//{
+//	std::scoped_lock<std::mutex> lock(animatorsLock);
+//	if (animators.find(path) != animators.end()) {
+//		animators.erase(path);
+//		return true;
+//	}
+//	return false;
+//}
+
+// old implementation
 void SceneManager::renderPBR(Light& light, UniformProperties& uniforms)
 {
 	//TODO: horrendous solution for now, find a better one
@@ -72,6 +213,7 @@ Component* SceneManager::getSelectedComponent()
 
 std::string SceneManager::addComponent(Component& component)
 {
+	std::scoped_lock<std::mutex> lock(mtx);	
 	std::string id = component.getID();
 	if (components.find(id) == components.end()) {
 		components[id] = std::make_unique<Component>(std::move(component));
@@ -83,6 +225,7 @@ std::string SceneManager::addComponent(Component& component)
 
 std::string SceneManager::addComponent(const char* path)
 {
+	std::scoped_lock<std::mutex> lock(mtx);
 	try {
 		std::unique_ptr<Component> component = std::make_unique<Component>(path);
 		std::string id = component->getID();

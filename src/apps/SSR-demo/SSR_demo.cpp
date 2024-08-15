@@ -1,5 +1,6 @@
 #include "SSR_demo.h"
 #include "../../graphics/core/OpenGL/deferredRenderer.h"
+#include "../../core/scene/SceneManager.h"
 
 int SSR_demo::show_demo()
 {

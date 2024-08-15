@@ -1,4 +1,5 @@
 #include "../../core/features/AppWindow.h"
+#include "camera.h"
 
 #pragma once
 class DemoPBR

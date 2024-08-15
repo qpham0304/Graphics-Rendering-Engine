@@ -1,5 +1,5 @@
 #include "EventManager.h"
-#include "../graphics/utils/headers/Utils.h"
+#include "../graphics/utils/Utils.h"
 
 EventManager& EventManager::getInstance()
 {
@@ -29,12 +29,39 @@ void EventManager::Publish(Event& event)
 	}
 }
 
-void EventManager::Queue(EventType eventType, EventCallback callback)
+void EventManager::PublishAsync(EventListener& eventListener)
 {
-//	eventQueue.push(event);
+	std::scoped_lock<std::mutex> lock(queueMutex);
+	eventListener.onEvent();
 }
 
-void EventManager:: Subscribe(const std::string& event, EventListener& listener) {
+void EventManager::CleanUpThread()
+{
+	int counter = 0;
+
+	for (auto& [thread, status] : threads) {
+		if (status != nullptr) {
+			if (*status) {
+				counter++;
+				Console::println("...threads joined...");
+				thread.join();
+			}
+		}
+	}
+	if (!threads.empty() && counter == threads.size()) {
+		threads.clear();
+		Console::println("All threads cleaned up");
+	}
+}
+
+void EventManager::Queue(AsyncEvent event, AsyncCallback callback)
+{
+	std::scoped_lock<std::mutex> lock(queueMutex);
+	eventQueue.push(std::make_pair(std::move(event), std::move(callback)));
+	runningTasks++;
+}
+
+void EventManager::Subscribe(const std::string& event, EventListener& listener) {
 	if (listeners.find(event) != listeners.end()) {
 		listeners[event].emplace_back(std::move(listener));
 	}
@@ -43,12 +70,30 @@ void EventManager:: Subscribe(const std::string& event, EventListener& listener)
 	}
 }
 
+//TODO: use semaphore instead for running tasks instead of manual primitive
+//intead of joining threads per completed task, just keep them alive then clean all up on close
+//tldr: just use async instead
 void EventManager::OnUpdate()
 {
-	//while (!eventQueue.empty()) {
-		//EventType event = eventQueue.front();
-		//PublishAsync(event);
-		//Publish(event);
-		//eventQueue.pop();
-	//}
+	Timer timer("thread queue", true);
+
+	while (!eventQueue.empty()) {
+		auto& [event, callback] = eventQueue.front();
+		
+		Console::println("num Tasks: ", runningTasks);
+		if (runningTasks <= 5) {
+			AsyncEvent mutableEvent(event);
+			std::thread thread = std::thread([this, &event, callback, mutableEvent]() mutable {
+				callback(mutableEvent);
+				event.isCompleted = true;
+				runningTasks--;
+			});
+			threads.push_back(std::make_pair(std::move(thread), &event.isCompleted));
+			eventQueue.pop();
+		}
+	}
+
+	if (eventQueue.empty()) {
+		CleanUpThread();
+	}
 }

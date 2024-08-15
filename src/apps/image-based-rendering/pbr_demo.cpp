@@ -82,7 +82,6 @@ int DemoPBR::show_demo() {
     Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
     Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
 
-    Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
     Model helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
     Model backpackModel("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
 

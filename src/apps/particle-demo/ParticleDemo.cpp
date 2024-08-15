@@ -1,26 +1,31 @@
 #include "ParticleDemo.h"
 #include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
+#include "../../core/scene/SceneManager.h"
 
-void HandleMouseMoveEvent2(Event& event) {
-    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-    SceneManager::cameraController->processMouse(mouseEvent.window);
-    std::cout << "moving... 2" << mouseEvent.GetName() << std::endl;
-}
+Scene* scene;
 
 ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
+    scene = SceneManager::getInstance().getScene("default");
 }
 
 void ParticleDemo::OnAttach()
 {
     AppLayer::OnAttach();
-    SceneManager::cameraController = &camera;
-    camera = *SceneManager::cameraController;
-    EventManager& eventManager = EventManager::getInstance();
-    eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent2);
-    LayerManager::addFrameBuffer("first pass", applicationFBO);
+    //SceneManager::cameraController = &camera;
+    //camera = *SceneManager::cameraController;
+    //EventManager& eventManager = EventManager::getInstance();
+
+    LayerManager::addFrameBuffer("ParticleDemo", applicationFBO);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+	EventManager& eventManager = EventManager::getInstance();
 }
 
 void ParticleDemo::OnDetach()
@@ -30,6 +35,8 @@ void ParticleDemo::OnDetach()
 
 void ParticleDemo::OnUpdate()
 {
+    glEnable(GL_DEPTH_TEST);
+    AppLayer::OnUpdate();
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
     Shader renderScene("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
@@ -39,7 +46,7 @@ void ParticleDemo::OnUpdate()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     particleRenderer.render(particleShader, camera, numRender, speed, pause);
-    skybox->render(camera);
+    //skybox->render(camera);
     applicationFBO.Unbind();
 }
 
@@ -52,7 +59,6 @@ void ParticleDemo::OnGuiUpdate()
         ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
         ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances / 100.0, 0, particleControl.numInstances, 0, true);
         if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
-            Timer timer;
             particleRenderer.clear();
             particleRenderer.init(particleControl);
             //if (isPopulating) {
@@ -72,12 +78,12 @@ void ParticleDemo::OnGuiUpdate()
 
 void ParticleDemo::OnEvent(Event& event)
 {
-
+    AppLayer::OnEvent(event);
 }
 
 int ParticleDemo::show_demo()
 {
-    ParticleDemo* demo = new ParticleDemo("Particle demo");
+    ParticleDemo* demo = new ParticleDemo("ParticlDemo");
 
     int width = AppWindow::width;
     int height = AppWindow::height;
@@ -102,10 +108,6 @@ int ParticleDemo::show_demo()
     SkyboxComponent skybox;
     FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
-    std::vector<Component*> components;
-    for (const auto& pair : SceneManager::components) {
-        components.push_back(pair.second.get());
-    }
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
@@ -136,7 +138,9 @@ int ParticleDemo::show_demo()
         glViewport(0.0, 0.0, width, height);
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         demo->particleRenderer.render(particleShader, camera, demo->numRender, demo->speed, demo->pause);
+
         skybox.render(camera);
 
         applicationFBO.Unbind();
@@ -150,7 +154,6 @@ int ParticleDemo::show_demo()
                 ImGui::DragFloat("Falling speed", &demo->speed, 0.01, -10.0, 10.0);
                 ImGui::DragInt("Num Instances", &demo->numRender, demo->particleControl.numInstances/100.0, 0, demo->particleControl.numInstances, 0, true);
                 if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(demo->particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
-                    Timer timer;
                     demo->particleRenderer.clear();
                     demo->particleRenderer.init(demo->particleControl);
                     //if (isPopulating) {

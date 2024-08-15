@@ -1,214 +1,38 @@
 #include "deferredIBL_demo.h"
 #include "ParticleGeometry.h"
-
-void HandleMouseMoveEvent3(Event& event) {
-    MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
-    SceneManager::cameraController->processMouse(mouseEvent.window);
-    std::cout << "moving... 3" << mouseEvent.GetName() << std::endl;
-}
+#include "../../core/scene/SceneManager.h"
+#include "../../core/components/MComponent.h"
 
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
+    imageBasedRenderer.init("Textures/hdr/industrial_sunset_02_puresky_1k.hdr");
     particleRenderer.init(particleControl);
-    lights.push_back(Light(glm::vec3(2.0, 0.5, -30.0), glm::vec4(1000.0f, 1000.0f, 3000.0f, 1.0f)));
-    lights.push_back(Light(glm::vec3(-2.0, 0.5, 2.0), glm::vec4(200.0f, 100.0f, 100.0f, 1.0f)));
-
     pbrShader.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
-    equirectangularToCubemapShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/equireRectToCubemap.frag"));
-    irradianceShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/irradianceConvolution.frag"));
-    backgroundShader.reset(new Shader("Shaders/background.vert", "Shaders/background.frag"));
-    prefilterShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag"));
-    brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
-    modelShader.reset(new Shader("Shaders/model.vert", "Shaders/model.frag"));
-
-
-    Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-    //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
-    Component terrain("Models/death-valley-terrain/scene.gltf");
-    Texture tex("Textures/squish.png", "colorScene");
-
-    SceneManager::addComponent(helmetModel);
-    SceneManager::addComponent(terrain);
-    for (const auto& [id, component_ptr] : SceneManager::components) {
-        components.push_back(component_ptr.get());
-    }
-
-
-    glGenFramebuffers(1, &captureFBO);
-    glGenRenderbuffers(1, &captureRBO);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
-
-    //---------------envcubemap set up---------------//
-    glGenTextures(1, &envCubemapTexture);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        // note that we store each face with 16 bit floating point values
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 512, 512, 0, GL_RGB, GL_FLOAT, nullptr);
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
-    glm::mat4 captureViews[] =
-    {
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-       glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
-    };
-
-    //// convert HDR equirectangular environment map to cubemap equivalent
-    equirectangularToCubemapShader->Activate();
-    equirectangularToCubemapShader->setInt("equirectangularMap", 0);
-    equirectangularToCubemapShader->setMat4("projection", captureProjection);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, hdrTexture);
-
-    glViewport(0, 0, 512, 512); // don't forget to configure the viewport to the capture dimensions.
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        equirectangularToCubemapShader->setMat4("view", captureViews[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envCubemapTexture, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO); // renders a 1x1 cube
-    }
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //------------------------------------------------------------//
-
-    // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-    //---------------irradiance map set up---------------//
-    glGenTextures(1, &irradianceMap);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 32, 32, 0,
-            GL_RGB, GL_FLOAT, nullptr);
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-    irradianceShader->Activate();
-    irradianceShader->setInt("environmentMap", 0);
-    irradianceShader->setMat4("projection", captureProjection);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-
-    glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        irradianceShader->setMat4("view", captureViews[i]);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //------------------------------------------------------------//
-
-    //-----------------prefilter map---------------------//
-    glGenTextures(1, &prefilterMap);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-    for (unsigned int i = 0; i < 6; ++i)
-    {
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, 128, 128, 0, GL_RGB, GL_FLOAT, nullptr);
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
-
-    prefilterShader->Activate();
-    prefilterShader->setInt("environmentMap", 0);
-    prefilterShader->setMat4("projection", captureProjection);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    unsigned int maxMipLevels = 5;
-    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
-    {
-        // reisze framebuffer according to mip-level size.
-        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
-        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-        glViewport(0, 0, mipWidth, mipHeight);
-
-        float roughness = (float)mip / (float)(maxMipLevels - 1);
-        prefilterShader->setFloat("roughness", roughness);
-        for (unsigned int i = 0; i < 6; ++i)
-        {
-            prefilterShader->setMat4("view", captureViews[i]);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
-
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            Utils::OpenGL::Draw::drawCube(cubeVAO, cubeVBO);
-        }
-    }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    //-----------------------------------------------------------//
-
-    //-----------------------TLU map-----------------------------//
-    glGenTextures(1, &brdfLUTTexture);
-
-    // pre-allocate enough memory for the LUT texture.
-    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, 512, 512, 0, GL_RG, GL_FLOAT, 0);
-    // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
-    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
-
-    glViewport(0, 0, 512, 512);
-    brdfShader->Activate();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Utils::OpenGL::Draw::drawQuad();
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void DeferredIBLDemo::OnAttach()
 {
     AppLayer::OnAttach();
     SceneManager::cameraController = &camera;
-    camera = *SceneManager::cameraController;
-    EventManager& eventManager = EventManager::getInstance();
-    eventManager.Subscribe(EventType::MouseMoved, HandleMouseMoveEvent3);
-    LayerManager::addFrameBuffer("first pass", applicationFBO);
+    LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
+    Scene& scene = *SceneManager::getInstance().getScene("default");
+    TransformComponent* transform;
+    ModelLoadEvent event;
+
+    uint32_t helmetID = scene.addEntity("helmet");
+    event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
+    EventManager::getInstance().Publish(event);
+    transform = &scene.entities[helmetID].getComponent<TransformComponent>();
+    transform->translate(glm::vec3(0.0, 3.0, 3.0));
+
+    uint32_t terrainID = scene.addEntity("terrain");
+    event = ModelLoadEvent("Models/death-valley-terrain/scene.gltf", scene.entities[terrainID]);
+    EventManager::getInstance().Publish(event);
+    transform = &scene.entities[terrainID].getComponent<TransformComponent>();
+    transform->translate(glm::vec3(0.0, -10.0, 0.0));
+    transform->rotate(glm::radians(glm::vec3(180.0, 0.0, 0.0)));
+    transform->scale(glm::vec3(50.0));
+
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -218,6 +42,9 @@ void DeferredIBLDemo::OnDetach()
 
 void DeferredIBLDemo::OnUpdate()
 {
+    glEnable(GL_DEPTH_TEST);
+    AppLayer::OnUpdate();
+
     pbrShader->Activate();
     pbrShader->setInt("albedoMap", 0);
     pbrShader->setInt("normalMap", 1);
@@ -228,9 +55,6 @@ void DeferredIBLDemo::OnUpdate()
     pbrShader->setInt("irradianceMap", 6);
     pbrShader->setInt("prefilterMap", 7);
     pbrShader->setInt("brdfLUT", 8);
-
-    backgroundShader->Activate();
-    backgroundShader->setInt("environmentMap", 0);
 
     applicationFBO.Bind();
     glViewport(0, 0, AppWindow::width, AppWindow::height);
@@ -245,41 +69,54 @@ void DeferredIBLDemo::OnUpdate()
 
     // bind pre-computed IBL data
     glActiveTexture(GL_TEXTURE0 + 6);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, imageBasedRenderer.irradianceMap);
     glActiveTexture(GL_TEXTURE0 + 7);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, imageBasedRenderer.prefilterMap);
     glActiveTexture(GL_TEXTURE0 + 8);
-    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glBindTexture(GL_TEXTURE_2D, imageBasedRenderer.brdfLUTTexture);
 
-    pbrShader->setMat4("matrix", components[0]->getModelMatrix());
-    pbrShader->setBool("hasAnimation", false);
-    pbrShader->setBool("hasEmission", true);
-    pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(components[0]->getModelMatrix()))));
-    components[0]->model_ptr->Draw(*pbrShader);
+    Scene& scene = *SceneManager::getInstance().getScene("default");
+    int index = 0;
+    for (auto& [id, entity] : scene.entities) {
+        if (index % 2 == 0) {
+            pbrShader->setBool("hasAnimation", false);
+            pbrShader->setBool("hasEmission", true);
+        }
+        else {
+            pbrShader->setBool("hasAnimation", false);
+            pbrShader->setBool("hasEmission", false);
+        }
+        if (entity.hasComponent<ModelComponent>()) {
+            ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
+            TransformComponent& transform = entity.getComponent<TransformComponent>();
+            const glm::mat4& normalMatrix = transform.getModelMatrix();
+            std::shared_ptr<Model> model = modelComponent.model.lock();
 
-    pbrShader->setBool("hasAnimation", false);
-    pbrShader->setBool("hasEmission", false);
-    components[1]->translate(glm::vec3(0.0f, -10.0f, -15.0f));
-    components[1]->scale(glm::vec3(10.0f));
-    glm::mat4 terrainModelMatrix = glm::rotate(components[1]->getModelMatrix(), glm::radians(180.0f), glm::vec3(1.0, 0.0, 0.0));
-    pbrShader->setMat4("matrix", terrainModelMatrix);
-    pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(terrainModelMatrix))));
-    components[1]->model_ptr->Draw(*pbrShader);
+            if (model != nullptr) {
+                pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(normalMatrix))));
+                pbrShader->setMat4("matrix", normalMatrix);
+                model->Draw(*pbrShader);
+            }
+            else {
+                modelComponent.reset();
+            }
+        }
 
-    for (unsigned int i = 0; i < lights.size(); ++i)
-    {
-        pbrShader->setVec3("lightPositions[" + std::to_string(i) + "]", lights[i].position);
-        pbrShader->setVec3("lightColors[" + std::to_string(i) + "]", lights[i].color);
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, lights[i].position);
-        model = glm::scale(model, glm::vec3(0.5f));
-        pbrShader->setMat4("matrix", model);
-        pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
+        if (entity.hasComponent<MLightComponent>()) {
+            MLightComponent& light = entity.getComponent<MLightComponent>();
+            pbrShader->setVec3("lightPositions[" + std::to_string(index) + "]", light.position);
+            pbrShader->setVec3("lightColors[" + std::to_string(index) + "]", light.color);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, light.position);
+            model = glm::scale(model, glm::vec3(0.5f));
+            pbrShader->setMat4("matrix", model);
+            pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+            Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
+        }
+        index++;
     }
-    //particleRenderer.render(*lightShader, camera, numRender, speed, pause);
 
-    skybox->updateTexture(envCubemapTexture);
+    skybox->updateTexture(imageBasedRenderer.envCubemapTexture);
     skybox->render(camera);
 
     applicationFBO.Unbind();
@@ -292,7 +129,7 @@ void DeferredIBLDemo::OnGuiUpdate()
 
 void DeferredIBLDemo::OnEvent(Event& event)
 {
-
+    AppLayer::OnEvent(event);
 }
 
 int DeferredIBLDemo::show_demo()
@@ -344,7 +181,7 @@ int DeferredIBLDemo::show_demo()
     //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
     Component terrain("Models/death-valley-terrain/scene.gltf");
 
-    Texture tex("Textures/squish.png", "colorScene");
+    //Texture tex("Textures/squish.png", "colorScene");
 
     SceneManager::addComponent(helmetModel);
     SceneManager::addComponent(terrain);
@@ -363,7 +200,6 @@ int DeferredIBLDemo::show_demo()
     Shader backgroundShader("Shaders/background.vert", "Shaders/background.frag");
     Shader prefilterShader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
     Shader brdfShader("Shaders/brdf.vert", "Shaders/brdf.frag");
-    Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
 
     pbrShader.Activate();
     pbrShader.setInt("albedoMap", 0);

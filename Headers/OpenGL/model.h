@@ -8,11 +8,9 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp_glm_helpers.h>
-
 #include "mesh.h"
 #include "shader.h"
 #include "texture.h"
-
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -34,28 +32,31 @@ struct BoneInfo
 
 class Model
 {
-    struct MaterialPBR {
-        const char* materialMap;
-        const unsigned int materialType;
-    };
-
 public:
     Model(const char* path);
+    Model(const Model& other);
+    Model& operator=(const Model& other);
+    ~Model();
+
     void Draw(Shader& shader);
     void Draw(Shader& shader, unsigned int numInstances);
 
     std::map<std::string, BoneInfo> GetBoneInfoMap();
     int& GetBoneCount();
     int getNumVertices();
+    std::string getPath();
+    std::string getDirectory();
+    std::string getFileName();
+    std::string getExtension();
     std::map<std::string, BoneInfo> m_BoneInfoMap;
+    std::unordered_map<std::string, Texture> loaded_textures;
 
 private:
-    // model data
     std::vector<Mesh> meshes;
-    std::string directory;
-    std::unordered_map<std::string, Texture> loaded_textures;
     int m_BoneCounter = 0;
     std::string path;
+    std::string directory;
+    std::string fileName;
     std::string extension;
 
     void loadModel(std::string path);

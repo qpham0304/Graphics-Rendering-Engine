@@ -17,10 +17,47 @@ Model::Model(const char* path)
     loadModel(path);
 }
 
+Model::Model(const Model& other)
+{
+    int m_BoneCounter = 0;
+    std::string path = "";
+    std::string directory = "";
+    std::string fileName = "";
+    std::string extension = "";
+
+    for (auto& mesh : other.meshes) {
+        this->meshes.push_back(mesh);
+    }
+
+}
+
+Model& Model::operator=(const Model& other)
+{
+    int m_BoneCounter = other.m_BoneCounter;
+    std::string path = other.path;
+    std::string directory = other.directory;
+    std::string fileName = other.fileName;
+    std::string extension = other.extension;
+
+    for (auto& mesh : other.meshes) {
+        this->meshes.push_back(mesh);
+    }
+
+}
+
+Model::~Model() {
+    for (auto& mesh : meshes) {
+        mesh.Delete();
+    }
+    for (auto& [path, texture] : loaded_textures) {
+        texture.Delete();
+    }
+}
+
 void Model::Draw(Shader& shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].Draw(shader);
+        meshes[i].Draw(shader);
     }
 }
 
@@ -39,13 +76,34 @@ int Model::getNumVertices()
     return numVertices;
 }
 
+std::string Model::getPath()
+{
+    return path;
+}
+
+std::string Model::getDirectory()
+{
+    return directory;
+}
+
+std::string Model::getFileName()
+{
+    return fileName;
+}
+
+std::string Model::getExtension()
+{
+    return extension;
+}
+
+
 void Model::loadModel(std::string path)
 {
     auto start = std::chrono::high_resolution_clock::now();
     Assimp::Importer import;
     unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_GlobalScale
         | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_SplitByBoneCount;
-    const aiScene *scene = import.ReadFile(path, flags);
+    const aiScene * scene = import.ReadFile(path, flags);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         std::string error = import.GetErrorString();
@@ -54,6 +112,7 @@ void Model::loadModel(std::string path)
         std::cerr << message << std::endl;
     }
     directory = path.substr(0, path.find_last_of('/'));
+    fileName = path.substr(path.find_last_of('/') + 1);
 
     processNode(scene->mRootNode, scene);
     auto end = std::chrono::high_resolution_clock::now();
@@ -121,7 +180,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
     }
-    
+
     // process material
     if (mesh->mMaterialIndex >= 0)
     {
@@ -137,19 +196,19 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         if (this->extension == ".gltf") {
             albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "albedoMap"); //aiTextureType_BASE_COLOR
             textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
-            
+
             normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normalMap");
             textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-            
+
             metalnessMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metallicMap");
             textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
-            
+
             roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughnessMap");
             textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
             aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "aoMap");
             textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-            
+
             emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissiveMap");
             textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
         }
