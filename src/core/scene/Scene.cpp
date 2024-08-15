@@ -90,7 +90,7 @@ void Scene::onGuiUpdate(const float& deltaTime)
 		layer->OnGuiUpdate();
 	}
 	for (auto& layer : layerManager) {
-		if (ImGui::Begin("right side bar")) {
+		if (ImGui::Begin("Layers")) {
 			ImGui::Checkbox(layer->GetName().c_str(), &layer->m_Enabled);
 			ImGui::End();
 		}

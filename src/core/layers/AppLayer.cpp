@@ -48,6 +48,7 @@ void AppLayer::OnAttach()
 	eventManager.Subscribe(EventType::WindowResize, [this](Event& event) {
 		WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
 		camera.updateViewResize(windowResizeEvent.m_width, windowResizeEvent.m_height);
+		Console::println("resizing");
 	});
 }
 
@@ -76,6 +77,10 @@ void AppLayer::OnGuiUpdate()
 		int wHeight = static_cast<int>(ImGui::GetWindowHeight());
 		ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
 		//(ImGui::IsItemHovered() && ImGui::IsWindowFocused()) ? isActive = true : false;
+		if (camera.getViewWidth() != wWidth || camera.getViewHeight() != wHeight) {
+			camera.updateViewResize(wWidth, wHeight);
+		}
+		
 		if (ImGui::IsItemHovered() && ImGui::IsWindowFocused()) {
 			camera.processKeyboard(AppWindow::window);
 			isActive = true;

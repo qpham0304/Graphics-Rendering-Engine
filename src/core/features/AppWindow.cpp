@@ -18,6 +18,7 @@ glm::vec3 lightPos = glm::vec3(0.5f, 4.5f, 5.5f);
 glm::vec4 bgColor(38/255.0f, 43/255.0f, 42/255.0f, 1.0f);
 
 GLFWwindow* AppWindow::window = nullptr;
+GLFWwindow* AppWindow::sharedWindow = nullptr;
 ImGuiController AppWindow::guiController(true);
 
 bool show_debug_window = true;
@@ -95,8 +96,8 @@ int AppWindow::init(Platform platform) {
 	}
 
 	if (AppWindow::platform == PLATFORM_OPENGL) {
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 		// Initialize GLFW
@@ -127,19 +128,39 @@ int AppWindow::init(Platform platform) {
 }
 
 int AppWindow::start(const char* title) {
-	if(platform == PLATFORM_UNDEFINED)
+	if (platform == PLATFORM_UNDEFINED) {
 		throw std::runtime_error("Platform not specified have you called init() with supported platform yet?");
+	}
+
 	else if (platform == PLATFORM_OPENGL) {
 		window = glfwCreateWindow(width, height, title, NULL, NULL);
 
-		if (window == NULL)
-		{
+		if (window == NULL) {
 			std::cerr << "Failed to create GLFW window" << std::endl;
 			glfwTerminate();
 			return -1;
 		}
 		glfwMakeContextCurrent(window);
-		gladLoadGL();
+
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+			std::cerr << "Failed to initialize GLAD for main context" << std::endl;
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			return -1;
+		}
+
+		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);	// Set Invisible for second context
+		sharedWindow = glfwCreateWindow(width, height, "", NULL, window);
+
+		if (sharedWindow == NULL) {
+			std::cerr << "Failed to create shared GLFW window" << std::endl;
+			glfwDestroyWindow(window);
+			glfwTerminate();
+			return -1;
+		}
+		glfwMakeContextCurrent(sharedWindow);
+
+		glfwMakeContextCurrent(window);
 	}
 	setEventCallback();
 	return 0;
@@ -151,7 +172,9 @@ int AppWindow::end() {
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
 
+		glfwMakeContextCurrent(nullptr);
 		glfwDestroyWindow(window);
+		glfwDestroyWindow(sharedWindow);
 		glfwTerminate();
 	}
 	return 0;

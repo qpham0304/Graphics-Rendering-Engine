@@ -38,7 +38,8 @@ public:
 
 	int getNumVertices();
 	Mesh(std::vector<Vertex> vertices, std::vector<GLuint> indices, std::vector<Texture> textures);
-
+	~Mesh();
+	void Delete();
 	void Draw(Shader& shader);
 
 };

@@ -11,6 +11,7 @@
 #include "../layers/AppLayer.h"
 #include "../layers/BloomLayer.h"
 #include "../components/MComponent.h"
+#include "../components/cameracomponent.h"
 
 void EditorLayer::mockThreadTasks()
 {
@@ -52,15 +53,13 @@ void EditorLayer::renderGuizmo()
 	if (!selectedEntities.empty()) {
 		TransformComponent& transformComponent = selectedEntities[0].getComponent<TransformComponent>();
 
-		glm::mat4 transform = transformComponent.getModelMatrix();
-		glm::vec3 originRotation = transformComponent.rotateVec;
+		glm::mat4& transform = transformComponent.getModelMatrix();
 
 		ImGuizmo::SetOrthographic(false);
 		ImGuizmo::SetDrawlist();
 		float wd = (float)ImGui::GetWindowWidth();
 		float wh = (float)ImGui::GetWindowHeight();
 
-		glm::mat4 modelMat = transformComponent.getModelMatrix();
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, wd, wh);
 		glm::mat4 identity(1.0f);
 
@@ -76,12 +75,12 @@ void EditorLayer::renderGuizmo()
 			GuizmoActive = true;
 			glm::vec3 translation, rotation, scale;
 			Utils::Math::DecomposeTransform(transform, translation, rotation, scale);
-			glm::vec3 deltaRotation = rotation - originRotation;
+			glm::vec3 deltaRotation = rotation - transformComponent.rotateVec;
 
 			transformComponent.translateVec = translation;
 			transformComponent.rotateVec += deltaRotation;
 			transformComponent.scaleVec = scale;
-			transformComponent.updateTransform();
+			//transformComponent.updateTransform();
 		}
 		else {
 			GuizmoActive = false;
@@ -156,6 +155,9 @@ void EditorLayer::onUpdate()
 void EditorLayer::onGuiUpdate()
 {
 	guiController->render();
+	//if(ImGui::Button("addmock data")){
+	//	mockThreadTasks();
+	//}
 
 	if (ImGui::Begin("Application window")) {
 		ImGui::BeginChild("Child");
@@ -166,7 +168,7 @@ void EditorLayer::onGuiUpdate()
 	}
 
 	std::string id;
-	if (ImGui::Begin("right side bar")) {
+	if (ImGui::Begin("Layers")) {
 		Scene* scene = sceneManager.getScene("default");
 		if (ImGui::Button("add demo layer")) {
 			id = "demo " + std::to_string(scene->layerManager.size());
@@ -191,8 +193,6 @@ void EditorLayer::onEvent(Event& event)
 
 void EditorLayer::handleKeyPressed(int keycode)
 {
-	Console::println("key: ", keycode);
-	//glfwGetKey(window, GLFW_KEY_F5) == GLFW_PRESS ? debug = true : debug = false;
 	if (keycode == KEY_T) {
 		GuizmoType = ImGuizmo::OPERATION::TRANSLATE;
 	}

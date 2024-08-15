@@ -22,6 +22,7 @@ bool ButtonCenteredOnLine(const char* label, float alignment = 0.5f)
 
 void ConsoleLogWidget::render()
 {
+	ImGui::BeginGroup();
 	//ImGui::SetNextItemAllowOverlap();
 	//ImGui::SetCursorPos(ImGui::GetWindowContentRegionMin());
 	Profiler::getInstance().display();
@@ -34,5 +35,6 @@ void ConsoleLogWidget::render()
 	ImGui::ShowDebugLogWindow();
 	ImGui::End();
 
-	ImGui::ShowDemoWindow();
+	//ImGui::ShowDemoWindow();
+	ImGui::EndGroup();
 }

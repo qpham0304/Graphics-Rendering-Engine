@@ -21,21 +21,14 @@ public:
 		
 	};
 
-	glm::mat4 updateTransform() {
-		glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rotateVec.x, glm::vec3(1.0, 0.0, 0.0))
-			* glm::rotate(glm::mat4(1.0f), rotateVec.y, glm::vec3(0.0, 1.0, 0.0))
-			* glm::rotate(glm::mat4(1.0f), rotateVec.z, glm::vec3(0.0, 0.0, 1.0));
+	void updateTransform() {
+		//glm::mat4 rotationMat = glm::rotate(glm::mat4(1.0f), rotateVec.x, glm::vec3(1.0, 0.0, 0.0))
+		//						* glm::rotate(glm::mat4(1.0f), rotateVec.y, glm::vec3(0.0, 1.0, 0.0))
+		//						* glm::rotate(glm::mat4(1.0f), rotateVec.z, glm::vec3(0.0, 0.0, 1.0));
+		glm::mat4 rotationMat = glm::toMat4(glm::quat(rotateVec));
 		glm::mat4 translateMat = glm::translate(glm::mat4(1.0), translateVec);
 		glm::mat4 scaleMat = glm::scale(glm::mat4(1.0), scaleVec);
 		modelMatrix = translateMat * rotationMat * scaleMat;
-		return modelMatrix;
-	}
-
-	void rotateGuizMo(glm::vec3 deltaRotation) {
-		modelMatrix = glm::translate(glm::mat4(1.0f), translateVec);
-		glm::mat4 rot = glm::toMat4(glm::quat(rotateVec));
-		modelMatrix *= rot;
-		modelMatrix = glm::scale(modelMatrix, scaleVec);
 	}
 
 	void translate(const glm::vec3& translate) {
@@ -68,7 +61,7 @@ public:
 		updateTransform();
 	}
 
-	const glm::mat4& getModelMatrix() {
+	glm::mat4& getModelMatrix() {
 		return modelMatrix;
 	}
 };
@@ -96,8 +89,8 @@ public:
 	std::string path = "None";
 	std::weak_ptr<Model> model;
 	ModelComponent() = default;
-	ModelComponent(const std::string&& path, std::shared_ptr<Model> model) : path(path), model(model) {};
-	ModelComponent(const std::string&& path) : path(path) {};
+	ModelComponent(std::string&& path, std::shared_ptr<Model> model) : path(path), model(model) {};
+	ModelComponent(std::string&& path) : path(path) {};
 
 	void reset() {
 		path = "None";
@@ -110,7 +103,7 @@ public:
 	std::string path;
 	std::weak_ptr<Animation> animation;
 	AnimationComponent() = default;
-	AnimationComponent(const std::string&& path) : path(path) {};
+	AnimationComponent(std::string&& path) : path(path) {};
 };
 
 struct AnimatorComponent {
@@ -118,11 +111,17 @@ public:
 	std::string path;
 	std::weak_ptr<Animator> animation;
 	AnimatorComponent() = default;
-	AnimatorComponent(const std::string&& path) : path(path) {};
+	AnimatorComponent(std::string&& path) : path(path) {};
 };
 
-struct MeshComponent {
+struct MLightComponent {
 public:
-	MeshComponent() = default;
-};
+	glm::vec3 color;
+	glm::vec3 position;
+	float radius;
+	
 
+	MLightComponent() = default;
+	MLightComponent(glm::vec3&& color, glm::vec3&& position) : color(color), position(position) {};
+	MLightComponent(const glm::vec3& color, const glm::vec3& position) : color(color), position(position) {};
+};

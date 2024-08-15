@@ -5,14 +5,59 @@ Model::Model(const char* path)
     this->path = path;
     size_t dotPosition = this->path.find_last_of('.');
     extension = this->path.substr(dotPosition);
-    std::cout << "----------------" << path << "\n";
+
+    loaded_textures["Textures/default/albedo.png"] = Texture("Textures/default/albedo.png", "albedoMap");
+    loaded_textures["Textures/default/normal.png"] = Texture("Textures/default/normal.png", "normalMap");
+    loaded_textures["Textures/default/metallic.png"] = Texture("Textures/default/metallic.png", "metallicMap");
+    loaded_textures["Textures/default/roughness.png"] = Texture("Textures/default/roughness.png", "roughnessMap");
+    loaded_textures["Textures/default/ao.png"] = Texture("Textures/default/ao.png", "aoMap");
+    loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
+    loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
+
     loadModel(path);
+}
+
+Model::Model(const Model& other)
+{
+    int m_BoneCounter = 0;
+    std::string path = "";
+    std::string directory = "";
+    std::string fileName = "";
+    std::string extension = "";
+
+    for (auto& mesh : other.meshes) {
+        this->meshes.push_back(mesh);
+    }
+
+}
+
+Model& Model::operator=(const Model& other)
+{
+    int m_BoneCounter = other.m_BoneCounter;
+    std::string path = other.path;
+    std::string directory = other.directory;
+    std::string fileName = other.fileName;
+    std::string extension = other.extension;
+
+    for (auto& mesh : other.meshes) {
+        this->meshes.push_back(mesh);
+    }
+
+}
+
+Model::~Model() {
+    for (auto& mesh : meshes) {
+        mesh.Delete();
+    }
+    for (auto& [path, texture] : loaded_textures) {
+        texture.Delete();
+    }
 }
 
 void Model::Draw(Shader& shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].Draw(shader);
+        meshes[i].Draw(shader);
     }
 }
 
@@ -26,11 +71,31 @@ void Model::Draw(Shader& shader, unsigned int numInstances)
 int Model::getNumVertices()
 {
     int numVertices = 0;
-    for (auto& mesh : meshes) {
+    for (auto& mesh : meshes)
         numVertices += mesh.getNumVertices();
-    }
     return numVertices;
 }
+
+std::string Model::getPath()
+{
+    return path;
+}
+
+std::string Model::getDirectory()
+{
+    return directory;
+}
+
+std::string Model::getFileName()
+{
+    return fileName;
+}
+
+std::string Model::getExtension()
+{
+    return extension;
+}
+
 
 void Model::loadModel(std::string path)
 {
@@ -38,14 +103,16 @@ void Model::loadModel(std::string path)
     Assimp::Importer import;
     unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_GlobalScale
         | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_SplitByBoneCount;
-    const aiScene *scene = import.ReadFile(path, flags);
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+    const aiScene * scene = import.ReadFile(path, flags);
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
         std::string error = import.GetErrorString();
         std::string message = "Model Loading failed: ERROR::ASSIMP::" + error;
         throw std::runtime_error(message);
         std::cerr << message << std::endl;
     }
     directory = path.substr(0, path.find_last_of('/'));
+    fileName = path.substr(path.find_last_of('/') + 1);
 
     processNode(scene->mRootNode, scene);
     auto end = std::chrono::high_resolution_clock::now();
@@ -56,12 +123,14 @@ void Model::loadModel(std::string path)
 void Model::processNode(aiNode* node, const aiScene* scene)
 {
     // process all the node's meshes (if any)
-    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
+    for (unsigned int i = 0; i < node->mNumMeshes; i++)
+    {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         meshes.push_back(processMesh(mesh, scene));
     }
     // then do the same for each of its children
-    for (unsigned int i = 0; i < node->mNumChildren; i++) {
+    for (unsigned int i = 0; i < node->mNumChildren; i++)
+    {
         processNode(node->mChildren[i], scene);
     }
 }
@@ -82,7 +151,9 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         vertex.positions = AssimpGLMHelpers::GetGLMVec(mesh->mVertices[i]);
         vertex.normal = AssimpGLMHelpers::GetGLMVec(mesh->mNormals[i]);
 
-        if (mesh->mTextureCoords[0]) {
+
+        if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+        {
             glm::vec2 vec;
             // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
             // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
@@ -98,20 +169,18 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vector.z = mesh->mBitangents[i].z;
             vertex.bitangent = vector;
         }
-        else {
+        else
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
-        }
         vertices.push_back(vertex);
     }
     // process indices
     for (unsigned int i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; j++) {
+        for (unsigned int j = 0; j < face.mNumIndices; j++)
             indices.push_back(face.mIndices[j]);
-        }
     }
-    
+
     // process material
     if (mesh->mMaterialIndex >= 0)
     {
@@ -127,19 +196,19 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
         if (this->extension == ".gltf") {
             albedoMaps = loadMaterialTextures(material, aiTextureType_BASE_COLOR, "albedoMap"); //aiTextureType_BASE_COLOR
             textures.insert(textures.end(), albedoMaps.begin(), albedoMaps.end());
-            
+
             normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "normalMap");
             textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-            
+
             metalnessMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "metallicMap");
             textures.insert(textures.end(), metalnessMaps.begin(), metalnessMaps.end());
-            
+
             roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "roughnessMap");
             textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
 
             aoMaps = loadMaterialTextures(material, aiTextureType_LIGHTMAP, "aoMap");
             textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-            
+
             emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "emissiveMap");
             textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
         }
@@ -169,6 +238,8 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 
     ExtractBoneWeightForVertices(vertices, mesh, scene);
 
+
+
     return Mesh(vertices, indices, textures);
 }
 
@@ -176,9 +247,11 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene)
 std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName)
 {
     std::vector<Texture> textures = {};
-    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+    {
         aiString str;
         mat->GetTexture(type, i, &str);
+
 
         std::string path = directory + '/' + std::string(str.C_Str());
 
@@ -193,30 +266,21 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         textures.push_back(texture);
         loaded_textures[path.data()] = texture;
     }
-
     if (textures.empty()) {
-        if (typeName == "albedoMap") {
-            textures.push_back(Texture("Textures/default/albedo.png", "albedoMap"));
-        }
-        else if (typeName == "normalMap") {
-            textures.push_back(Texture("Textures/default/normal.png", "normalMap"));
-        }
-        else if (typeName == "metallicMap") {
-            textures.push_back(Texture("Textures/default/metallic.png", "metallicMap"));
-        }
+        if (typeName == "albedoMap")
+            textures.push_back(loaded_textures["Textures/default/albedo.png"]);
+        else if (typeName == "normalMap")
+            textures.push_back(loaded_textures["Textures/default/normal.png"]);
+        else if (typeName == "metallicMap")
+            textures.push_back(loaded_textures["Textures/default/metallic.png"]);
         else if (typeName == "roughnessMap") {
-            textures.push_back(Texture("Textures/default/roughness.png", "roughnessMap"));
+            textures.push_back(loaded_textures["Textures/default/roughness.png"]);
             textures[textures.size() - 1].type = "roughnesMap";
         }
-        else if (typeName == "aoMap") {
-            textures.push_back(Texture("Textures/default/ao.png", "aoMap"));
-        }
-        else if (typeName == "emissiveMap") {
-            textures.push_back(Texture("Textures/default/emissive.png", "emissiveMap"));
-        }
-        else if (typeName == "heightMap") {    // for future height map support
-            //Texture("Textures/default/height.png", "heightMap");
-        }
+        else if (typeName == "aoMap")
+            textures.push_back(loaded_textures["Textures/default/ao.png"]);
+        else if (typeName == "emissiveMap")
+            textures.push_back(loaded_textures["Textures/default/emissive.png"]);
     }
     return textures;
 }

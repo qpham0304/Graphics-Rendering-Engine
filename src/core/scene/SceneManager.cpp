@@ -91,7 +91,7 @@ bool SceneManager::addModel(const std::string& path)
 		if (models.find(path) == models.end()) {
 			models[path] = std::make_shared<Model>(path.c_str());
 		}
-		//TODO: might want to manual increase reference counter
+		//TODO: might want to manual increase reference counter for instanced drawing
 		return true;
 	}
 	catch (std::runtime_error) {

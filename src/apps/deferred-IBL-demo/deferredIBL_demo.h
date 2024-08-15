@@ -2,6 +2,7 @@
 
 #include "../../core/layers/AppLayer.h"
 #include "ParticleGeometry.h"
+#include "../src/graphics/renderer/ImageBasedRenderer.h"
 
 class DeferredIBLDemo : public AppLayer
 {
@@ -13,7 +14,6 @@ private:
 	unsigned int cubeVBO = 0;
 	unsigned int sphereVAO = 0;
 	unsigned int indexCount = 0;
-
 
 	float speed = 0.001f;
 	bool pause = true;
@@ -33,23 +33,10 @@ private:
 	ParticleGeometry particleRenderer;
 
 	std::unique_ptr<Shader> pbrShader;
-	std::unique_ptr<Shader> equirectangularToCubemapShader;
-	std::unique_ptr<Shader> irradianceShader;
-	std::unique_ptr<Shader> backgroundShader;
-	std::unique_ptr<Shader> prefilterShader;
-	std::unique_ptr<Shader> brdfShader;
-	std::unique_ptr<Shader> modelShader;
 
 	std::vector<Light> lights;
 
-	unsigned int captureFBO, captureRBO;
-	unsigned int envCubemapTexture;
-	unsigned int hdrTexture;
-	std::string texRes;
-
-	unsigned int prefilterMap;
-	unsigned int irradianceMap;
-	unsigned int brdfLUTTexture;
+	ImageBasedRenderer imageBasedRenderer;
 
 public:
 	DeferredIBLDemo(const std::string& name);

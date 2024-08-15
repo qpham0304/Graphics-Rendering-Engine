@@ -34,20 +34,29 @@ class Model
 {
 public:
     Model(const char* path);
+    Model(const Model& other);
+    Model& operator=(const Model& other);
+    ~Model();
+
     void Draw(Shader& shader);
     void Draw(Shader& shader, unsigned int numInstances);
 
     std::map<std::string, BoneInfo> GetBoneInfoMap();
     int& GetBoneCount();
     int getNumVertices();
+    std::string getPath();
+    std::string getDirectory();
+    std::string getFileName();
+    std::string getExtension();
     std::map<std::string, BoneInfo> m_BoneInfoMap;
     std::unordered_map<std::string, Texture> loaded_textures;
 
 private:
     std::vector<Mesh> meshes;
-    std::string directory;
     int m_BoneCounter = 0;
     std::string path;
+    std::string directory;
+    std::string fileName;
     std::string extension;
 
     void loadModel(std::string path);

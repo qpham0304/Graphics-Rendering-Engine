@@ -36,6 +36,7 @@ public:
 	static const std::set<Platform> supportPlatform;
 	static ImGuizmo::OPERATION GuizmoType;
 	static GLFWwindow* window;
+	static GLFWwindow* sharedWindow;
 
 	// currently bind with an app inside window, remove after done refactoring
 	static ImGuiController guiController;
