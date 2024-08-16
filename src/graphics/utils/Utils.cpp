@@ -562,3 +562,16 @@ glm::mat4 Utils::Random::createRandomTransform(glm::vec3 ranges, glm::vec3 scale
 
     return transformMatrix;
 }
+
+glm::mat4 Utils::ViewTransform::faceCameraBillboard(const glm::mat4& model, const glm::mat4& cameraView) {
+	glm::mat4 viewMatrix = cameraView;
+	glm::vec3 camRight = glm::vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+	glm::vec3 camUp = glm::vec3(viewMatrix[0][1], viewMatrix[1][1], viewMatrix[2][1]);
+
+	glm::mat4 billboardMatrix;
+	billboardMatrix[0] = glm::vec4(camRight, 0.0f);
+	billboardMatrix[1] = glm::vec4(camUp, 0.0f);
+	billboardMatrix[2] = glm::vec4(-glm::normalize(glm::cross(camRight, camUp)), 0.0f); // Forward vector
+	billboardMatrix[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	return model * billboardMatrix;
+}

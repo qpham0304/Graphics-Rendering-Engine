@@ -16,8 +16,10 @@ void RightSidebarWidget::TextureModal(const ImTextureID& id) {
     ImGuiStyle& style = ImGui::GetStyle();
     style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.0, 0.0, 0.0, 0.5);
     if (ImGui::BeginPopupModal("Image View", &popupOpen, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImVec2 availableSize = ImGui::GetContentRegionAvail();
-        float aspectRatio = 1.0;
+        //ImVec2 availableSize = ImGui::GetContentRegionAvail();
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImVec2 availableSize = ImVec2(viewport->Size.y * 0.75, viewport->Size.y * 0.75);
+        float aspectRatio = 1.0 / 1.0;
 
         ImVec2 displaySize;
         if (availableSize.x / availableSize.y > aspectRatio) {
@@ -35,15 +37,10 @@ void RightSidebarWidget::TextureModal(const ImTextureID& id) {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PopStyleVar();
 
-        ImGui::SetCursorPosX(ImGui::GetWindowWidth() - ImGui::GetWindowContentRegionMax().x / 2);
-        if (ImGui::Button("OK", ImVec2(120, 0))) {
+        if (ImGui::IsMouseClicked(0) && !ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) {
             ImGui::CloseCurrentPopup();
         }
-        ImGui::SetItemDefaultFocus();
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel", ImVec2(120, 0))) {
-            ImGui::CloseCurrentPopup();
-        }
+
         ImGui::EndPopup();
     }
 }
@@ -60,7 +57,7 @@ void RightSidebarWidget::textureView()
     ImGui::Begin("Texture View");
     TextureModal((ImTextureID)selectedTexture);
 
-    Scene* scene = SceneManager::getInstance().getScene(ACTIVE_SCENE);
+    Scene* scene = SceneManager::getInstance().getActiveScene();
     auto selectedEntities = scene->getSelectedEntities();
     for (auto& entity : selectedEntities) {
         ImVec2 wsize = ImGui::GetWindowSize();
@@ -81,14 +78,16 @@ void RightSidebarWidget::textureView()
                     //ImGui::ImageButton("Button Label", (ImTextureID)texture.ID, size, uv0, uv1, bg_col, tint_col);
                     ImGui::Separator();
                     ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
-                    ImGui::SameLine();
-                    ImGui::TextWrapped(path.c_str());
                     ImGui::PopID();
+                    
                     if (ImGui::IsItemClicked()) {
                         selectedTexture = texture.ID;
                         ImGui::OpenPopup("Image View");
                         popupOpen = true;
                     }
+                    
+                    ImGui::SameLine();
+                    ImGui::TextWrapped(path.c_str());
                 }
             }
         }

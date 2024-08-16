@@ -1,6 +1,7 @@
 
 #include "deferred_render_demo.h"
-#include "../../graphics/core/OpenGL/deferredRenderer.h"
+#include "../../graphics/renderer/deferredRenderer.h"
+#include "../../graphics/renderer/BloomRenderer.h"
 #include "../../core/scene/SceneManager.h"
 
 int DeferredRender::show_demo() {

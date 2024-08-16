@@ -1,5 +1,5 @@
-#include "ImageBasedRenderer.h"
-#include "../utils/Utils.h"
+#include "../../renderer/ImageBasedRenderer.h"
+#include "../../utils/Utils.h"
 
 ImageBasedRenderer::ImageBasedRenderer()
 {
@@ -8,8 +8,6 @@ ImageBasedRenderer::ImageBasedRenderer()
     backgroundShader.reset(new Shader("Shaders/background.vert", "Shaders/background.frag"));
     prefilterShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag"));
     brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
-
-
 }
 
 void ImageBasedRenderer::init(const std::string& path) {
@@ -186,5 +184,6 @@ void ImageBasedRenderer::init(const std::string& path) {
 
 void ImageBasedRenderer::onTextureReload(const std::string& path)
 {
+    texturePath = path;
 
 }

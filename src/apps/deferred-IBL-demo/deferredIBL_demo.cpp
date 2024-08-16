@@ -2,6 +2,7 @@
 #include "ParticleGeometry.h"
 #include "../../core/scene/SceneManager.h"
 #include "../../core/components/MComponent.h"
+#include "../../core/components/CameraComponent.h"
 
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
@@ -15,7 +16,7 @@ void DeferredIBLDemo::OnAttach()
     AppLayer::OnAttach();
     SceneManager::cameraController = &camera;
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
-    Scene& scene = *SceneManager::getInstance().getScene("default");
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
     TransformComponent* transform;
     ModelLoadEvent event;
 
@@ -32,7 +33,6 @@ void DeferredIBLDemo::OnAttach()
     transform->translate(glm::vec3(0.0, -10.0, 0.0));
     transform->rotate(glm::radians(glm::vec3(180.0, 0.0, 0.0)));
     transform->scale(glm::vec3(50.0));
-
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -75,7 +75,7 @@ void DeferredIBLDemo::OnUpdate()
     glActiveTexture(GL_TEXTURE0 + 8);
     glBindTexture(GL_TEXTURE_2D, imageBasedRenderer.brdfLUTTexture);
 
-    Scene& scene = *SceneManager::getInstance().getScene("default");
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
     int index = 0;
     for (auto& [id, entity] : scene.entities) {
         if (index % 2 == 0) {
@@ -86,6 +86,11 @@ void DeferredIBLDemo::OnUpdate()
             pbrShader->setBool("hasAnimation", false);
             pbrShader->setBool("hasEmission", false);
         }
+
+        if (entity.hasComponent<CameraComponent>()) {
+            continue;
+        }
+
         if (entity.hasComponent<ModelComponent>()) {
             ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
             TransformComponent& transform = entity.getComponent<TransformComponent>();
@@ -176,12 +181,9 @@ int DeferredIBLDemo::show_demo()
     ParticleControl particleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
     particleRenderer.init(particleControl);
 
-
     Component helmetModel("Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
     //Component terrain("Models/mountain_asset_canadian_rockies_modular/scene.gltf");
     Component terrain("Models/death-valley-terrain/scene.gltf");
-
-    //Texture tex("Textures/squish.png", "colorScene");
 
     SceneManager::addComponent(helmetModel);
     SceneManager::addComponent(terrain);

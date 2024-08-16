@@ -169,6 +169,11 @@ namespace Utils::OpenGL {
     unsigned int loadMTexture(const float* ltc);
 }
 
+namespace Utils::ViewTransform {
+	glm::mat4 faceCameraBillboard(const glm::mat4& model, const glm::mat4& cameraView);
+
+}
+
 namespace Utils::Window {
     std::string WindowFileDialog();
 

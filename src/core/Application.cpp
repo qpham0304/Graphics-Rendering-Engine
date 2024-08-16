@@ -48,12 +48,12 @@ void Application::run() {
 	//glfwSwapInterval(1);
 	while (isRunning) {
 		eventManager.OnUpdate();
-		editorLayer.onUpdate();
 		sceneManager.onUpdate(glfwGetTime());
+		editorLayer.onUpdate();		// render editor as overlay
 
 		guiController.start();
 		sceneManager.onGuiUpdate(glfwGetTime());
-		editorLayer.onGuiUpdate();	// render after app ui to show overlay
+		editorLayer.onGuiUpdate();	// also render ui after to show overlay
 		guiController.end();
 
 		AppWindow::pollEvents();

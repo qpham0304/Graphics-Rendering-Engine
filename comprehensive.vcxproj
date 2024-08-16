@@ -181,13 +181,13 @@
     <ClCompile Include="src\core\components\CameraComponent.cpp" />
     <ClCompile Include="src\core\components\MComponent.cpp" />
     <ClCompile Include="src\core\entities\Entity.cpp" />
-    <ClCompile Include="src\core\layers\BloomLayer.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\BloomLayer.cpp" />
     <ClCompile Include="Headers\Input.h" />
     <ClCompile Include="src\core\features\Profiler.cpp" />
     <ClCompile Include="src\core\scene\Scene.cpp" />
-    <ClCompile Include="src\core\layers\AppLayer.cpp" />
-    <ClCompile Include="src\core\layers\LayerManager.cpp" />
-    <ClCompile Include="src\core\layers\EditorLayer.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\AppLayer.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\LayerManager.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\EditorLayer.cpp" />
     <ClCompile Include="src\core\scene\SceneManager.cpp" />
     <ClCompile Include="src\events\EventManager.cpp" />
     <ClCompile Include="src\core\Application.cpp" />
@@ -195,14 +195,14 @@
     <ClCompile Include="src\graphics\core\OpenGL\ParticleGeometry.cpp" />
     <ClCompile Include="src\apps\particle-demo\ParticleDemo.cpp" />
     <ClCompile Include="src\apps\ray-tracing\BasicRayTracing.cpp" />
-    <ClCompile Include="src\graphics\renderer\AtmosphereRenderer.cpp" />
-    <ClCompile Include="src\graphics\renderer\Renderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\AtmosphereRenderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\Renderer.cpp" />
     <ClCompile Include="src\core\components\ModelComponent.cpp" />
     <ClCompile Include="src\apps\deferred-IBL-demo\deferredIBL_demo.cpp" />
     <ClCompile Include="src\apps\SSR-view-demo\SSR_view_demo.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\ShadowMapRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\DeferredRenderer.cpp" />
-    <ClCompile Include="src\graphics\renderer\ImageBasedRenderer.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\ImageBasedRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\BloomFBO.cpp" />
     <ClCompile Include="src\apps\deferred-rendering\deferred_render_demo.cpp" />
@@ -256,8 +256,8 @@
     <ClCompile Include="src\apps\volumetric-light\VolumetricLightDemo.cpp" />
     <ClCompile Include="src\apps\SSAO-demo\SSAO_demo.cpp" />
     <ClCompile Include="src\apps\SSR-demo\SSR_demo.cpp" />
-    <ClCompile Include="src\core\layers\SSAOLayer.cpp" />
-    <ClCompile Include="src\core\layers\SSRLayer.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\SSAOLayer.cpp" />
+    <ClCompile Include="src\core\layers\OpenGL\SSRLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
@@ -292,12 +292,12 @@
     <ClInclude Include="src\core\components\headers\ModelComponent.h" />
     <ClInclude Include="src\apps\deferred-IBL-demo\deferredIBL_demo.h" />
     <ClInclude Include="src\apps\SSR-view-demo\SSR_view_demo.h" />
-    <ClInclude Include="src\graphics\core\OpenGL\DeferredRenderer.h" />
-    <ClInclude Include="src\graphics\core\OpenGL\BloomRenderer.h" />
+    <ClInclude Include="src\graphics\renderer\DeferredRenderer.h" />
+    <ClInclude Include="src\graphics\renderer\BloomRenderer.h" />
     <ClInclude Include="Headers\OpenGL\BloomFBO.h" />
     <ClInclude Include="Headers\OpenGL\DepthCubeMap.h" />
     <ClInclude Include="src\graphics\renderer\ImageBasedRenderer.h" />
-    <ClInclude Include="src\graphics\core\OpenGL\ShadowMapRenderer.h" />
+    <ClInclude Include="src\graphics\renderer\ShadowMapRenderer.h" />
     <ClInclude Include="src\apps\area-light\area_light_demo.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\GraphEditor.h" />
     <ClInclude Include="Libraries\include\ImGuizmo\ImCurveEdit.h" />

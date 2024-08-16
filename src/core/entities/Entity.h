@@ -54,5 +54,7 @@ public:
 	}
 
 	const uint32_t& getID() const;
+
+	void onCameraComponentAdded();
 };
 

@@ -14,7 +14,6 @@ class AppLayer : public Layer
 protected:
 	FrameBuffer applicationFBO;
 	Camera camera;
-	std::unique_ptr<Camera> layerCamera;
 	std::unique_ptr<SkyboxComponent> skybox;
 	unsigned int VAO, VBO;
 	bool isActive;

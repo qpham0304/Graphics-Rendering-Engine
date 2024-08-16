@@ -35,6 +35,7 @@ class Model
 public:
     Model(const char* path);
     Model(const Model& other);
+    Model(std::vector<Mesh> meshes, std::string path = "untitled");
     Model& operator=(const Model& other);
     ~Model();
 
@@ -59,6 +60,7 @@ private:
     std::string fileName;
     std::string extension;
 
+    void loadDefaultTexture(const std::string& path, const std::string& type);
     void loadModel(std::string path);
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);

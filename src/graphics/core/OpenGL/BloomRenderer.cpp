@@ -1,4 +1,4 @@
-#include "BloomRenderer.h"
+#include "../../renderer/BloomRenderer.h"
 #include "../../utils/Utils.h"
 
 BloomRenderer::BloomRenderer() : mInit(false) {}

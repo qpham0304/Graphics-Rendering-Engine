@@ -15,6 +15,8 @@ private:
 	bool GuizmoActive = false;
 	bool drawGrid = false;
 	bool editorActive = true;
+	bool flipUV = true;
+	bool faceCamera = false;
 	ImGuizmo::OPERATION GuizmoType = ImGuizmo::OPERATION::TRANSLATE;
 
 	void mockThreadTasks();

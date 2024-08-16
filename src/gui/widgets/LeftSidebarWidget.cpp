@@ -6,6 +6,7 @@
 #include <shobjidl.h> 
 #include "../../graphics/utils/Utils.h"
 #include "../../core/components/MComponent.h"
+#include "../../core/components/CameraComponent.h"
 #include "Texture.h"
 #include "../../core/scene/SceneManager.h"
 #include "../../core/features/AppWindow.h"
@@ -123,8 +124,8 @@ void LeftSidebarWidget::AddComponentDialog(Entity& entity) {
             }
             ModelComponent& component = entity.getComponent<ModelComponent>();
             component.path = "Loading...";
-            SceneManager::getInstance().addModel(event.id.c_str());     // add model to the manager
-            if (component.path != event.id) {
+            std::string uuid = SceneManager::getInstance().addModel(event.id.c_str());     // add model to the manager
+            if (component.path != event.id) {   //NOTE: event id is being used as Path
                 component.model = SceneManager::getInstance().models[event.id];     
             }
 
@@ -194,21 +195,23 @@ void displayMatrix(glm::mat4& matrix) {
 
 void LeftSidebarWidget::AddItemButton(const std::string&& label) {
     if (ImGui::Button(label.c_str(), ImVec2(-1, 0))) {
-        SceneManager::getInstance().getScene(ACTIVE_SCENE)->addEntity();
+        SceneManager::getInstance().getActiveScene()->addEntity();
     }
 }
 
-void LeftSidebarWidget::LightTab(Entity& entity)
+void LeftSidebarWidget::LightTab()
 {
-    if (entity.hasComponent<MLightComponent>()) {
-        MLightComponent& light = entity.getComponent<MLightComponent>();
-        TransformComponent& transform = entity.getComponent<TransformComponent>();
-        if (ImGui::TreeNodeEx(std::to_string(entity.getID()).c_str())) {
+    ImGui::Begin("Properties");
+    if (selectedEntity && selectedEntity->hasComponent<MLightComponent>()) {
+        MLightComponent& light = selectedEntity->getComponent<MLightComponent>();
+        TransformComponent& transform = selectedEntity->getComponent<TransformComponent>();
+        if (ImGui::TreeNodeEx(std::to_string(selectedEntity->getID()).c_str())) {
             light.position = transform.translateVec;
             ImGui::DragFloat3("Color", glm::value_ptr(light.color), 0.1f, 1000.0f, 0);
             ImGui::TreePop();
         }
     }
+    ImGui::End();
 }
 
 void LeftSidebarWidget::EntityTab() {
@@ -348,7 +351,7 @@ void LeftSidebarWidget::EntityTab() {
 
     ImGui::End();
     SceneManager& sceneManager = sceneManager.getInstance();
-    Scene* scene = sceneManager.getScene(ACTIVE_SCENE);
+    Scene* scene = sceneManager.getActiveScene();
 
     if (ImGui::Begin("Scenes")) {
         AddItemButton("+ Add Entity");
@@ -407,19 +410,37 @@ void LeftSidebarWidget::EntityTab() {
                     showTextInput = true;
                 }
 
-                if (ImGui::MenuItem(addModelTex.c_str())) {
-                    AddComponentDialog(entity);
-                }
-
                 if (ImGui::MenuItem("Load Model blocking")) {
                     //auto& modelComponent = entity.getComponent<ModelComponent>();
                     std::string path = Utils::Window::WindowFileDialog();
-                    ModelLoadEvent event(path, entity);
-                    EventManager::getInstance().Publish(event);
+                    if (!path.empty()) {
+                        ModelLoadEvent event(path, entity);
+                        EventManager::getInstance().Publish(event);
+                    }
                 }
+
+                ImGui::BeginDisabled(true);
+                if (ImGui::MenuItem(addModelTex.c_str())) {
+                    AddComponentDialog(entity);
+                }
+                ImGui::EndDisabled();
 
                 if (ImGui::MenuItem("Add Light")) {
                     entity.addComponent<MLightComponent>();
+                }
+
+                if (ImGui::MenuItem("Add Camera")) {
+                    //light.position = transform.translateVec;
+                    TransformComponent& transform = entity.getComponent<TransformComponent>();
+                    NameComponent& name = entity.getComponent<NameComponent>();
+                    name.name = "camera";
+                    entity.addComponent<CameraComponent>(
+                        AppWindow::width, 
+                        AppWindow::height, 
+                        glm::vec3(transform.translateVec),
+                        glm::vec3(0.5, -0.2, -1.0f)
+                    );
+                    entity.onCameraComponentAdded();    // have entity subscribe to a component added event
                 }
 
                 if (ImGui::MenuItem("Add Animation")) {
@@ -466,12 +487,10 @@ void LeftSidebarWidget::EntityTab() {
                 if (ImGui::DragFloat3("Rotation", glm::value_ptr(transform.rotateVec), 0.2f, -180.0f, 180.0f)) {
                     transform.updateTransform();
                 }
-
                 ImGui::TreePop();
             }
 
 
-            LightTab(entity);
 
             if (ImGui::IsItemHovered() && !showPopup) {
                 if (ImGui::IsAnyItemHovered()) {
@@ -498,30 +517,31 @@ void LeftSidebarWidget::ModelsTab()
     SceneManager& sceneManager = sceneManager.getInstance();
 
     if (ImGui::Begin("Models Browser")) {
-        for (auto [path, model] : sceneManager.models) {
-            ImGui::PushID(path.c_str());
+        for (auto [uuid, model] : sceneManager.models) {
+            ImGui::PushID(uuid.c_str());
             ImGuiTreeNodeFlags node_flags = base_flags;
 
-            if (selectedModel == path) {
+            if (selectedModel == uuid) {
                 node_flags |= ImGuiTreeNodeFlags_Selected;
             }
 
-            bool open = (ImGui::TreeNodeEx(path.c_str(), node_flags));
+            std::string displayPath = (model->getPath().empty() ? uuid : model->getPath());
+            bool open = (ImGui::TreeNodeEx(displayPath.c_str(), node_flags));
             bool showPopup = ImGui::BeginPopupContextItem("Add Component");
             if (showPopup) {
                 if (ImGui::MenuItem("Copy Path")) {
-                    ImGui::SetClipboardText(path.c_str());
+                    ImGui::SetClipboardText(model->getPath().c_str());
                 }
 
                 if (ImGui::MenuItem("Load Model")) {
-                    std::string path = Utils::Window::WindowFileDialog();
-                    if (!path.empty()) {
-                        sceneManager.addModel(path);
+                    std::string uuid = Utils::Window::WindowFileDialog();
+                    if (!uuid.empty()) {
+                        sceneManager.addModel(uuid);
                     }
                 }
 
                 if (ImGui::MenuItem("Delete Model")) {
-                    sceneManager.removeModel(path);
+                    sceneManager.removeModel(uuid);
                 }
 
                 ImGui::EndPopup();
@@ -534,13 +554,13 @@ void LeftSidebarWidget::ModelsTab()
             if (ImGui::IsItemHovered() && !showPopup) {
                 if (ImGui::IsAnyItemHovered()) {
                     ImGui::BeginTooltip();
-                    ImGui::Text(path.c_str());
+                    ImGui::Text(uuid.c_str());
                     ImGui::EndTooltip();
                 }
             }
 
             if (ImGui::IsItemClicked()) {
-                selectedModel = path;
+                selectedModel = uuid;
             }
         }
         ImGui::PopID();
@@ -560,6 +580,7 @@ void LeftSidebarWidget::render()
     ImGui::BeginGroup();
     ErrorModal("Error loading Model");
     EntityTab();
+    LightTab();
     ModelsTab();
     ImGui::EndGroup();
 }

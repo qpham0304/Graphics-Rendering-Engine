@@ -1,5 +1,4 @@
 #include "ParticleDemo.h"
-#include "../../graphics/core/OpenGL/BloomRenderer.h"
 #include "../../core/features/Timer.h"
 #include "../../core/scene/SceneManager.h"
 
@@ -8,7 +7,7 @@ Scene* scene;
 ParticleDemo::ParticleDemo(const std::string& name) : AppLayer(name)
 {
     particleRenderer.init(particleControl);
-    scene = SceneManager::getInstance().getScene("default");
+    scene = SceneManager::getInstance().getActiveScene();
 }
 
 void ParticleDemo::OnAttach()

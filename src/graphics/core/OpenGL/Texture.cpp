@@ -8,20 +8,21 @@ void Texture::loadTexture(const char* path, bool flip)
 	stbi_set_flip_vertically_on_load(flip);
 	//TODO: stb loading task can be done in a separate thread, create the texture and populate later
 	unsigned char* data = stbi_load(path, &width, &height, &nrComponents, 0);
-	if (!data)
-	{
+	if (!data) {
 		std::cout << "Texture load failed: " << path << std::endl;
 		stbi_image_free(data);
 	}
-	else
-	{
+	else {
 		GLenum format = 0;
-		if (nrComponents == 1)
+		if (nrComponents == 1) {
 			format = GL_RED;
-		else if (nrComponents == 3)
+		}
+		else if (nrComponents == 3) {
 			format = GL_RGB;
-		else if (nrComponents == 4)
+		}
+		else if (nrComponents == 4) {
 			format = GL_RGBA;
+		}
 
 		if (format != 0) {
 			glBindTexture(GL_TEXTURE_2D, ID);
@@ -59,6 +60,14 @@ Texture::Texture(const char* fileName, const char* texType, const std::string& d
 }
 
 Texture::~Texture() = default;
+
+void Texture::Init(const char* path, const char* texType, bool flipUV)
+{
+	this->type = texType;
+	this->path = path;
+
+	loadTexture(path, flipUV);
+}
 
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit)
 {

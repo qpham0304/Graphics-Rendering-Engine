@@ -1,17 +1,17 @@
-#include "EditorLayer.h"
+#include "../EditorLayer.h"
 
-#include "../../core/features/AppWindow.h"
+#include "../../../core/features/AppWindow.h"
 #include "camera.h"
-#include "../features/Timer.h"
-#include "../../graphics/utils/Utils.h"
+#include "../../features/Timer.h"
+#include "../../../graphics/utils/Utils.h"
 #include "../../src/apps/particle-demo/ParticleDemo.h"
 #include "../../src/apps/deferred-IBL-demo/deferredIBL_demo.h"
 #include "../../src/apps/volumetric-light/VolumetricLightDemo.h"
 #include "../../src/events/EventManager.h"
-#include "../layers/AppLayer.h"
-#include "../layers/BloomLayer.h"
-#include "../components/MComponent.h"
-#include "../components/cameracomponent.h"
+#include "../../layers/AppLayer.h"
+#include "../../layers/BloomLayer.h"
+#include "../../components/MComponent.h"
+#include "../../components/cameracomponent.h"
 
 void EditorLayer::mockThreadTasks()
 {
@@ -47,11 +47,11 @@ void EditorLayer::renderGuizmo()
 
 	auto v = &SceneManager::cameraController->getViewMatrix()[0][0];
 	auto p = glm::value_ptr(SceneManager::cameraController->getProjectionMatrix());
-	Scene* scene = SceneManager::getInstance().getScene("default");
+	Scene* scene = SceneManager::getInstance().getActiveScene();
 	std::vector<Entity> selectedEntities = scene->getSelectedEntities();
 
 	if (!selectedEntities.empty()) {
-		TransformComponent& transformComponent = selectedEntities[0].getComponent<TransformComponent>();
+		auto& transformComponent = selectedEntities[0].getComponent<TransformComponent>();
 
 		glm::mat4& transform = transformComponent.getModelMatrix();
 
@@ -66,10 +66,21 @@ void EditorLayer::renderGuizmo()
 		if (drawGrid)
 			ImGuizmo::DrawGrid(v, p, glm::value_ptr(identity), 100.f);
 
-		bool res = ImGuizmo::Manipulate(v, p, (ImGuizmo::OPERATION)GuizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform));
+		bool res = ImGuizmo::Manipulate(
+			v, 
+			p, 
+			(ImGuizmo::OPERATION)GuizmoType, 
+			ImGuizmo::LOCAL, 
+			glm::value_ptr(transform)
+		);
 		viewManipulateRight = ImGui::GetWindowPos().x + wd;
 		viewManipulateTop = ImGui::GetWindowPos().y;
-		ImGuizmo::ViewManipulate(v, 5.0f, ImVec2(viewManipulateRight - 128, viewManipulateTop), ImVec2(128, 128), 0x10101010);
+		ImGuizmo::ViewManipulate(
+			v, 
+			5.0f, 
+			ImVec2(viewManipulateRight - 128, viewManipulateTop), 
+			ImVec2(128, 128), 0x10101010
+		);
 
 		if (ImGuizmo::IsUsing()) {
 			GuizmoActive = true;
@@ -80,7 +91,6 @@ void EditorLayer::renderGuizmo()
 			transformComponent.translateVec = translation;
 			transformComponent.rotateVec += deltaRotation;
 			transformComponent.scaleVec = scale;
-			//transformComponent.updateTransform();
 		}
 		else {
 			GuizmoActive = false;
@@ -97,7 +107,7 @@ void EditorLayer::init(ImGuiController& controller)
 {
 	guiController = &controller;
 	guiController->useDarkTheme();
-	editorCamera.Init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
+	editorCamera.init(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0));
 	sceneManager.addScene("default");
 	//sceneManager.getScene("default")->addLayer(new ParticleDemo("demo"));
 	//sceneManager.getScene("default")->addLayer(new AppLayer("app"));
@@ -113,9 +123,9 @@ void EditorLayer::onAttach()
 		}
 		ModelComponent& component = e.entity.getComponent<ModelComponent>();
 		component.path = "Loading...";
-		bool canAdd = SceneManager::getInstance().addModel(e.path.c_str());
-		if (component.path != e.path && canAdd) {
-			component.model = SceneManager::getInstance().models[e.path];
+		std::string uuid = SceneManager::getInstance().addModel(e.path.c_str());
+		if (component.path != e.path && !uuid.empty()) {
+			component.model = SceneManager::getInstance().models[uuid];
 			component.path = e.path;
 		}
 		else {
@@ -150,6 +160,55 @@ void EditorLayer::onDetach()
 void EditorLayer::onUpdate()
 {
 	editorCamera.onUpdate();
+	auto framebuffer = LayerManager::getFrameBuffer("DeferredIBLDemo");
+	
+	Scene& scene = *SceneManager::getInstance().getActiveScene();
+
+	Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
+	modelShader.Activate();
+	modelShader.setInt("diffuse", 0);
+
+
+	if (framebuffer) {
+		framebuffer->Bind();
+
+		for (auto& [id, entity] : scene.entities) {
+			if (entity.hasComponent<CameraComponent>()) {
+				CameraComponent& cameraComponent = entity.getComponent<CameraComponent>();
+				cameraComponent.camera.translate(entity.getComponent<TransformComponent>().translateVec);
+
+				ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
+				TransformComponent& transform = entity.getComponent<TransformComponent>();
+				glm::mat4 viewMatrix = SceneManager::cameraController->getViewMatrix();
+				const glm::mat4& modelMatrix = transform.getModelMatrix();
+				std::shared_ptr<Model> model = modelComponent.model.lock();
+
+				if (model != nullptr) {
+					modelShader.Activate();
+					if (SceneManager::cameraController) {
+						modelShader.setMat4("mvp", SceneManager::cameraController->getMVP());
+					}
+
+					if (faceCamera) {
+						modelShader.setMat4(
+							"matrix", 
+							Utils::ViewTransform::faceCameraBillboard(modelMatrix, viewMatrix)
+						);
+					}
+					else {
+						modelShader.setMat4("matrix", modelMatrix);
+					}
+					modelShader.setBool("flipUV", flipUV);
+					model->Draw(modelShader);
+				}
+				else {
+					modelComponent.reset();
+				}
+			}
+		}
+
+		framebuffer->Unbind();
+	}
 }
 
 void EditorLayer::onGuiUpdate()
@@ -169,7 +228,7 @@ void EditorLayer::onGuiUpdate()
 
 	std::string id;
 	if (ImGui::Begin("Layers")) {
-		Scene* scene = sceneManager.getScene("default");
+		Scene* scene = sceneManager.getActiveScene();
 		if (ImGui::Button("add demo layer")) {
 			id = "demo " + std::to_string(scene->layerManager.size());
 			scene->addLayer(new ParticleDemo(id.c_str()));
@@ -203,7 +262,7 @@ void EditorLayer::handleKeyPressed(int keycode)
 		GuizmoType = ImGuizmo::OPERATION::SCALE;
 	}
 	if (keycode == KEY_DELETE) {
-		Scene* scene = SceneManager::getInstance().getScene("default");
+		Scene* scene = SceneManager::getInstance().getActiveScene();
 		std::vector<Entity> selectedEntities = scene->getSelectedEntities();
 		if (!selectedEntities.empty()) {
 			scene->removeEntity(selectedEntities[0].getID());

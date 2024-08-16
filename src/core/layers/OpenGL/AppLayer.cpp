@@ -1,10 +1,8 @@
-#include "AppLayer.h"
-#include "../scene/SceneManager.h"
+#include "../AppLayer.h"
+#include "../../scene/SceneManager.h"
 
 AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(0), VBO(0)
 {
-	//applicationFBO.reset(new FrameBuffer(AppWindow::width, AppWindow::height));
-	//camera.reset(new Camera(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0)));
 	applicationFBO.Init(
 		AppWindow::width,
 		AppWindow::height,
@@ -13,8 +11,7 @@ AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(
 		GL_FLOAT,
 		nullptr
 	);
-	layerCamera.reset(new Camera(AppWindow::width, AppWindow::height, glm::vec3(1.0, 0.0, 0.0), glm::vec3(1.0)));
-	camera.Init(
+	camera.init(
 		AppWindow::width, 
 		AppWindow::height, 
 		glm::vec3(-6.5f, 3.5f, 8.5f), 
@@ -48,7 +45,6 @@ void AppLayer::OnAttach()
 	eventManager.Subscribe(EventType::WindowResize, [this](Event& event) {
 		WindowResizeEvent& windowResizeEvent = static_cast<WindowResizeEvent&>(event);
 		camera.updateViewResize(windowResizeEvent.m_width, windowResizeEvent.m_height);
-		Console::println("resizing");
 	});
 }
 

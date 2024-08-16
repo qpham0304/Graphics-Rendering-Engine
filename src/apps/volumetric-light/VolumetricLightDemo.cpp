@@ -1,5 +1,5 @@
 #include "VolumetricLightDemo.h"
-#include "../../graphics/core/OpenGL/ShadowMapRenderer.h"
+#include "../../graphics/renderer/ShadowMapRenderer.h"
 
 int VolumetricLightDemo::show_demo() {
     float width = AppWindow::width;

@@ -22,7 +22,7 @@ Camera::Camera(unsigned int width, unsigned int height, glm::vec3 position)
 	Setup(width, height, position);
 }
 
-void Camera::Init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
+void Camera::init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation)
 {
 	Setup(width, height, position);
 	SetupOrientation(orientation);
@@ -178,6 +178,11 @@ void Camera::resetCamera()
 void Camera::setCameraSpeed(int speedMultiplier)
 {
 	this->speedMultiplier = speedMultiplier;
+}
+
+void Camera::translate(const glm::vec3& position)
+{
+	this->position = position;
 }
 
 

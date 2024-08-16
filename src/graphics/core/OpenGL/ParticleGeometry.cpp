@@ -132,7 +132,7 @@ void ParticleGeometry::render(Shader& shader, Camera& camera, int& numRender, fl
         billboardMatrix[0] = glm::vec4(camRight, 0.0f);
         billboardMatrix[1] = glm::vec4(camUp, 0.0f);
         billboardMatrix[2] = glm::vec4(-glm::normalize(glm::cross(camRight, camUp)), 0.0f); // Forward vector
-        billboardMatrix[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); // No translation
+        billboardMatrix[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);                             // No translation
 
         //if (numRender >= numInstances) {
         //    Console::println("Cannot render more than the number of instances")

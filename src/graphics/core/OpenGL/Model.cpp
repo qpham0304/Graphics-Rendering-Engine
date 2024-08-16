@@ -6,13 +6,13 @@ Model::Model(const char* path)
     size_t dotPosition = this->path.find_last_of('.');
     extension = this->path.substr(dotPosition);
 
-    loaded_textures["Textures/default/albedo.png"] = Texture("Textures/default/albedo.png", "albedoMap");
-    loaded_textures["Textures/default/normal.png"] = Texture("Textures/default/normal.png", "normalMap");
-    loaded_textures["Textures/default/metallic.png"] = Texture("Textures/default/metallic.png", "metallicMap");
-    loaded_textures["Textures/default/roughness.png"] = Texture("Textures/default/roughness.png", "roughnessMap");
-    loaded_textures["Textures/default/ao.png"] = Texture("Textures/default/ao.png", "aoMap");
-    loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
-    loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
+    //loaded_textures["Textures/default/albedo.png"] = Texture("Textures/default/albedo.png", "albedoMap");
+    //loaded_textures["Textures/default/normal.png"] = Texture("Textures/default/normal.png", "normalMap");
+    //loaded_textures["Textures/default/metallic.png"] = Texture("Textures/default/metallic.png", "metallicMap");
+    //loaded_textures["Textures/default/roughness.png"] = Texture("Textures/default/roughness.png", "roughnessMap");
+    //loaded_textures["Textures/default/ao.png"] = Texture("Textures/default/ao.png", "aoMap");
+    //loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
+    //loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
 
     loadModel(path);
 }
@@ -20,15 +20,26 @@ Model::Model(const char* path)
 Model::Model(const Model& other)
 {
     int m_BoneCounter = 0;
-    std::string path = "";
-    std::string directory = "";
-    std::string fileName = "";
-    std::string extension = "";
+    std::string path = other.path;
+    std::string directory = other.path;
+    std::string fileName = other.path;
+    std::string extension = other.path;
 
     for (auto& mesh : other.meshes) {
         this->meshes.push_back(mesh);
     }
 
+}
+
+Model::Model(std::vector<Mesh> meshes, std::string path)
+{
+    this->meshes = std::move(meshes);
+
+    for (auto& mesh : this->meshes) {
+        for (auto& texture : mesh.textures) {
+            loaded_textures[texture.path] = texture;
+        }
+    }
 }
 
 Model& Model::operator=(const Model& other)
@@ -96,6 +107,13 @@ std::string Model::getExtension()
     return extension;
 }
 
+
+void Model::loadDefaultTexture(const std::string& path, const std::string& type)
+{
+    if (loaded_textures.find(path) == loaded_textures.end()) {
+        loaded_textures[path] = Texture(path.c_str(), type.c_str());
+    }
+}
 
 void Model::loadModel(std::string path)
 {
@@ -267,20 +285,31 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
         loaded_textures[path.data()] = texture;
     }
     if (textures.empty()) {
-        if (typeName == "albedoMap")
-            textures.push_back(loaded_textures["Textures/default/albedo.png"]);
-        else if (typeName == "normalMap")
-            textures.push_back(loaded_textures["Textures/default/normal.png"]);
-        else if (typeName == "metallicMap")
-            textures.push_back(loaded_textures["Textures/default/metallic.png"]);
+        if (typeName == "albedoMap"){
+            loadDefaultTexture("Textures/default/32x32/albedo.png", "albedoMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/albedo.png"]);
+        }
+        else if (typeName == "normalMap") {
+            loadDefaultTexture("Textures/default/32x32/normal.png", "normalMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/normal.png"]);
+        }
+        else if (typeName == "metallicMap") {
+            loadDefaultTexture("Textures/default/32x32/metallic.png", "metallicMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/metallic.png"]);
+        }
         else if (typeName == "roughnessMap") {
-            textures.push_back(loaded_textures["Textures/default/roughness.png"]);
+            loadDefaultTexture("Textures/default/32x32/roughness.png", "roughnessMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/roughness.png"]);
             textures[textures.size() - 1].type = "roughnesMap";
         }
-        else if (typeName == "aoMap")
-            textures.push_back(loaded_textures["Textures/default/ao.png"]);
-        else if (typeName == "emissiveMap")
-            textures.push_back(loaded_textures["Textures/default/emissive.png"]);
+        else if (typeName == "aoMap") {
+            loadDefaultTexture("Textures/default/32x32/ao.png", "aoMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/ao.png"]);
+        }
+        else if (typeName == "emissiveMap") {
+            loadDefaultTexture("Textures/default/32x32/emissive.png", "emissiveMap");
+            textures.push_back(loaded_textures["Textures/default/32x32/emissive.png"]);
+        }
     }
     return textures;
 }

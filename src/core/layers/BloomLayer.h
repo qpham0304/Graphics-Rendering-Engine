@@ -2,7 +2,7 @@
 
 #include "Layer.h"
 #include "Shader.h"
-#include "../../graphics/core/OpenGL/BloomRenderer.h"
+#include "../../graphics/renderer/BloomRenderer.h"
 
 class BloomLayer : public Layer
 {

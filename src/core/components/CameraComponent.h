@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <glm/glm.hpp>
+#include "camera.h"
 
 class Camera;
 
@@ -9,7 +10,7 @@ class CameraComponent
 private:
 
 public:
-	std::shared_ptr<Camera> camera;
+	Camera camera;
 
 	CameraComponent(int width, int height, glm::vec3 position, glm::vec3 orientation);
 	glm::mat4 projection();

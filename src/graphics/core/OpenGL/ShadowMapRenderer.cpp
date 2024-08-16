@@ -1,4 +1,4 @@
-#include "ShadowMapRenderer.h"
+#include "../../renderer/ShadowMapRenderer.h"
 
 ShadowMapRenderer::ShadowMapRenderer(const unsigned int width, const unsigned int height)
 {

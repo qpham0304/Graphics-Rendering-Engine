@@ -29,6 +29,7 @@ bool SceneManager::addScene(const std::string& name)
 {
 	if (scenes.find(name) == scenes.end()) {
 		scenes[name].reset(new Scene(name));
+		activeScene = name;
 		return true;
 	}
 	else {
@@ -51,6 +52,14 @@ Scene* SceneManager::getScene(const std::string& name)
 {
 	if (scenes.find(name) != scenes.end()) {
 		return scenes[name].get();
+	}
+	return nullptr;
+}
+
+Scene* SceneManager::getActiveScene()
+{
+	if (scenes.find(activeScene) != scenes.end()) {
+		return scenes[activeScene].get();
 	}
 	return nullptr;
 }
@@ -84,18 +93,35 @@ void SceneManager::onGuiUpdate(const float&& deltaTime)
 	}
 }
 
-bool SceneManager::addModel(const std::string& path)
+std::string SceneManager::addModel(const std::string& path)
 {
 	try {
+		std::string uuid = Utils::uuid::get_uuid();
 		std::scoped_lock<std::mutex> lock(modelsLock);
-		if (models.find(path) == models.end()) {
-			models[path] = std::make_shared<Model>(path.c_str());
+		if (models.find(uuid) == models.end()) {
+			models[uuid] = std::make_shared<Model>(path.c_str());
 		}
 		//TODO: might want to manual increase reference counter for instanced drawing
-		return true;
+		return uuid;
 	}
 	catch (std::runtime_error) {
-		return false;
+		return "";
+	}
+}
+
+std::string SceneManager::addModelFromMeshes(std::vector<Mesh>& meshes)
+{
+	try {
+		std::string uuid = Utils::uuid::get_uuid();
+		std::scoped_lock<std::mutex> lock(modelsLock);
+		if (models.find(uuid) == models.end()) {
+			models[uuid] = std::make_shared<Model>(meshes, uuid);
+		}
+		//TODO: might want to manual increase reference counter for instanced drawing
+		return uuid;
+	}
+	catch (std::runtime_error) {
+		return "";
 	}
 }
 

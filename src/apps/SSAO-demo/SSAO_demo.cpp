@@ -1,5 +1,5 @@
 #include "SSAO_demo.h"
-#include "../../graphics/core/OpenGL/deferredRenderer.h"
+#include "../../graphics/renderer/deferredRenderer.h"
 #include "../../core/scene/SceneManager.h"
 
 float customLerp(float a, float b, float f)

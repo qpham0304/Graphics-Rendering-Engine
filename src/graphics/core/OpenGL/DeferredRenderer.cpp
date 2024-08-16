@@ -1,4 +1,4 @@
-#include "DeferredRenderer.h"
+#include "../../renderer/DeferredRenderer.h"
 
 DeferredRenderer::DeferredRenderer(const int width, const int height)
 {

@@ -79,7 +79,7 @@ public:
 	bool isMoving();
 	float getDeltaTime();
 	
-	void Init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
+	void init(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);
 	void onUpdate();
 	void updateViewResize(int width, int height);
 	void processInput(GLFWwindow* window);
@@ -87,6 +87,7 @@ public:
 	bool processMouse(GLFWwindow* window);		//same here
 	void resetCamera();
 	void setCameraSpeed(int speedMultiplier);
+	void translate(const glm::vec3& position);
 
 	//TODO: refactor by moving these to global
 	// create a singleton camera that control and manage the view
