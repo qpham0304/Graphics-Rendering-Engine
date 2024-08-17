@@ -13,7 +13,7 @@
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
 #include<unordered_map>
-#include <cstring>
+#include<cstring>
 
 struct UniformData {
 	std::string type;

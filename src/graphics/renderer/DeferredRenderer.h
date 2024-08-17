@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <Shader.h>
-#include "../../src/core/components/Component.h"
+#include "../../src/core/components/legacy/component.h"
 
 class DeferredRenderer
 {

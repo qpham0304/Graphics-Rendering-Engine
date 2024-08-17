@@ -69,13 +69,6 @@ void RightSidebarWidget::textureView()
             if (modelPtr) {
                 for (auto [path, texture] : modelPtr->loaded_textures) {
                     ImGui::PushID(path.c_str());
-                    /*ImGui::ImageButton(path.c_str(), (ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));*/
-                    //ImVec2 size = wsize;
-                    //ImVec2 uv0 = ImVec2(0.0f, 1.0f);                           // UV coordinates
-                    //ImVec2 uv1 = ImVec2(1.0f, 0.0f);                           // UV coordinates
-                    //ImVec4 bg_col = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);           
-                    //ImVec4 tint_col = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);         
-                    //ImGui::ImageButton("Button Label", (ImTextureID)texture.ID, size, uv0, uv1, bg_col, tint_col);
                     ImGui::Separator();
                     ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
                     ImGui::PopID();

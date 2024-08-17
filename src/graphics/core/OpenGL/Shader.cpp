@@ -32,6 +32,14 @@ Shader::Shader() : ID(0)
 	type = "";
 }
 
+//Shader::Shader(Shader&& other) noexcept
+//{
+//}
+//
+//Shader& Shader::operator=(Shader&& other) noexcept
+//{
+//}
+
 Shader::~Shader()
 {
 	Delete();

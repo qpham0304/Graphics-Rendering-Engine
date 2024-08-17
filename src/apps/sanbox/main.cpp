@@ -50,7 +50,7 @@ int main()
 	#else
 		AppWindow::init(PLATFORM_OPENGL);
 		AppWindow::start("Rendering  Engine");
-		AppWindow::renderScene(list[7]);
+		AppWindow::renderScene(list[8]);
 		AppWindow::end();
 	#endif
 

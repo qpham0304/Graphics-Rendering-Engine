@@ -8,8 +8,11 @@
 class Skybox
 {
 public:
+	Skybox() = default;
 	Skybox(std::vector<std::string> faces);
 	~Skybox();
+
+	void init(std::vector<std::string> faces);
 	void updateTexture(const unsigned int& id);
 	unsigned int textureID();
 

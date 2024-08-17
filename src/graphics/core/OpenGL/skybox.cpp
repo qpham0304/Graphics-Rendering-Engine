@@ -40,6 +40,11 @@ unsigned int Skybox::loadCubeMap(std::vector<std::string> faces)
     return textureID;
 }
 
+void Skybox::init(std::vector<std::string> faces)
+{
+    ID = loadCubeMap(faces);
+}
+
 void Skybox::updateTexture(const unsigned int& id)
 {
     ID = id;

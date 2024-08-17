@@ -67,7 +67,8 @@ void BloomLayer::OnUpdate()
     quadShader.setInt("scene", 0);
     quadShader.setInt("effect", 1);
 
-	auto fbo = LayerManager::getFrameBuffer("ParticleDemo");
+	//auto fbo = LayerManager::getFrameBuffer("ParticleDemo");
+	auto fbo = LayerManager::getFrameBuffer("DeferredIBLDemo");
 	if (fbo) {
         glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

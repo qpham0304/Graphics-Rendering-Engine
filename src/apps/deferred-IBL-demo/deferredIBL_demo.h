@@ -2,7 +2,6 @@
 
 #include "../../core/layers/AppLayer.h"
 #include "ParticleGeometry.h"
-#include "../src/graphics/renderer/ImageBasedRenderer.h"
 
 class DeferredIBLDemo : public AppLayer
 {
@@ -24,19 +23,17 @@ private:
 	unsigned int numInstances = 100000;
 	int numRender = numInstances;
 	float heightLimit = 100.0f;
-	glm::vec2 randomRange = glm::vec2(-5.0, 5.0);
+	glm::vec2 randomRange = glm::vec2(2.0, 5.0);
 
 	glm::vec3 particleSize = glm::vec3(0.1, 0.1, 0.1);
 	std::vector<glm::mat4> matrixModels;
 
 	ParticleControl particleControl = ParticleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
 	ParticleGeometry particleRenderer;
+	
+	Shader lightShader;
 
 	std::unique_ptr<Shader> pbrShader;
-
-	std::vector<Light> lights;
-
-	ImageBasedRenderer imageBasedRenderer;
 
 public:
 	DeferredIBLDemo(const std::string& name);

@@ -7,20 +7,39 @@ EventManager& EventManager::getInstance()
 	return instance;
 }
 
-void EventManager::Subscribe(EventType eventType, EventCallback callback)
+uint32_t EventManager::Subscribe(EventType eventType, EventCallback callback)
 {
 	if (callbacks.find(eventType) != callbacks.end()) {
-		callbacks[eventType].emplace_back(std::move(callback));
+		callbacks[eventType].emplace_back(std::make_pair(callbackID, std::move(callback)));
 	}
+
 	else {
-		callbacks[eventType] = { std::move(callback) };
+		callbacks[eventType] = { std::make_pair(callbackID, std::move(callback)) };
+	}
+
+	return callbackID++;
+}
+
+void EventManager::Unsubscribe(EventType eventType, uint32_t cbID)
+{
+	auto& vector = callbacks[eventType];
+	int index = 0;
+	for (auto& [id, callback] : vector) {
+		if (id == cbID) {
+			vector.erase(vector.begin() + index);
+		}
+		index++;
+	}
+
+	if (vector.empty()) {
+		callbacks.erase(eventType);
 	}
 }
 
 void EventManager::Publish(Event& event)
 {
 	if (callbacks.find(event.GetEventType()) != callbacks.end()) {
-		for (const auto& callback : callbacks[event.GetEventType()]) {
+		for (const auto& [id, callback] : callbacks[event.GetEventType()]) {
 			callback(event);
 			if (event.Handled) {
 				break;
@@ -40,12 +59,10 @@ void EventManager::CleanUpThread()
 	int counter = 0;
 
 	for (auto& [thread, status] : threads) {
-		if (status != nullptr) {
-			if (*status) {
-				counter++;
-				Console::println("...threads joined...");
-				thread.join();
-			}
+		if (status != nullptr && *status) {
+			counter++;
+			Console::println("...threads joined...");
+			thread.join();
 		}
 	}
 	if (!threads.empty() && counter == threads.size()) {

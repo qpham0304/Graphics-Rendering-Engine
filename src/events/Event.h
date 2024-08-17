@@ -1,10 +1,9 @@
 #pragma once
-#define BIND_EVENT_FN(fn) [this](auto&&... args) -> decltype(auto) { return this->fn(std::forward<decltype(args)>(args)...); }
 
 #include <string>
 #include<glad/glad.h>
 #include<GLFW/glfw3.h>
-#include "../core/components/Component.h"
+#include "../core/components/legacy/component.h"
 #include "../core/entities/Entity.h"
 
 enum class EventType

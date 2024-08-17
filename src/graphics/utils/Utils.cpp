@@ -3,6 +3,7 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glad/glad.h>
 #include <iostream>
+#include <GLFW/glfw3.h>
 
 namespace Utils::Math {
 
@@ -404,8 +405,17 @@ namespace Utils::OpenGL::Draw {
 	}
 }
 
-namespace Utils::Window {
-	std::string WindowFileDialog() {
+namespace Utils {
+#if defined(_WIN32)
+
+#elif defined(__APPLE__) && defined(__MACH__)
+	// macOS specific code
+#elif defined(__linux__)
+	// Linux specific code
+#else
+	// Unknown or unsupported platform
+#endif
+	std::string fileDialog() {
 		std::string filePath;
 		HWND hwnd = ::GetActiveWindow();
 
@@ -451,13 +461,26 @@ namespace Utils::Window {
 	}
 }
 
+void Utils::OpenGL::vramUsage()
+{
+	if (glfwExtensionSupported("GL_NVX_gpu_memory_info")) {
+		GLint total_memory = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &total_memory);
+
+		GLint current_memory = 0;
+		glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &current_memory);
+
+		std::cout << "Total GPU Memory: " << total_memory / 1024 << " MB\n";
+		std::cout << "Current GPU Memory: " << (total_memory - current_memory) / 1024 << " MB\n";
+	}
+}
+
 std::string Utils::OpenGL::loadHDRTexture(const char* path, unsigned int& hdrTexture)
 {
 	stbi_set_flip_vertically_on_load(true);
 	int width, height, nrComponents;
 	float* data = stbi_loadf(path, &width, &height, &nrComponents, 0);
-	if (data)
-	{
+	if (data) {
 		glGenTextures(1, &hdrTexture);
 		glBindTexture(GL_TEXTURE_2D, hdrTexture);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data);
@@ -470,8 +493,7 @@ std::string Utils::OpenGL::loadHDRTexture(const char* path, unsigned int& hdrTex
 		stbi_image_free(data);
 		return "Load HDR image success";
 	}
-	else
-	{
+	else {
 		return "Load HDR image failed";
 	}
 }
@@ -538,7 +560,9 @@ float Utils::Random::randomFloat(float min, float max) {
     return static_cast<float>(dis(gen));
 }
 
-glm::mat4 Utils::Random::createRandomTransform(glm::vec3 ranges, glm::vec3 scale) {
+// a quick way to create a random transform matrix
+// NOTE: This thing is extremely slow due to so many matrix calculation
+glm::mat4 Utils::Random::createRandomTransform(glm::vec3 ranges, glm::vec3 scale) {	
     glm::vec3 translation(
         randomFloat(-ranges.x, ranges.x),
         randomFloat(ranges.y, ranges.y),    // all spawn at the same height

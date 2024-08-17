@@ -23,9 +23,9 @@ public:
 		return component;
 	}
 
-	template<typename T>
+	template<typename... T>
 	bool hasComponent() {
-		return registry->all_of<T>(entity);
+		return registry->all_of<T...>(entity);
 	}
 
 	template<typename T>

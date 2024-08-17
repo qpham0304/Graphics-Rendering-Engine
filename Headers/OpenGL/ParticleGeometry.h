@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../../src/core/components/Component.h"
+#include "Camera.h"
+#include "Shader.h"
 
 #include <memory>
 #include <Shader.h>

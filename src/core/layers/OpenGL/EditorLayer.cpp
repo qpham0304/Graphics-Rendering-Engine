@@ -1,7 +1,6 @@
 #include "../EditorLayer.h"
 
 #include "../../../core/features/AppWindow.h"
-#include "camera.h"
 #include "../../features/Timer.h"
 #include "../../../graphics/utils/Utils.h"
 #include "../../src/apps/particle-demo/ParticleDemo.h"
@@ -12,6 +11,8 @@
 #include "../../layers/BloomLayer.h"
 #include "../../components/MComponent.h"
 #include "../../components/cameracomponent.h"
+#include "camera.h"
+
 
 void EditorLayer::mockThreadTasks()
 {
@@ -63,8 +64,9 @@ void EditorLayer::renderGuizmo()
 		ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, wd, wh);
 		glm::mat4 identity(1.0f);
 
-		if (drawGrid)
+		if (drawGrid) {
 			ImGuizmo::DrawGrid(v, p, glm::value_ptr(identity), 100.f);
+		}
 
 		bool res = ImGuizmo::Manipulate(
 			v, 
@@ -112,6 +114,7 @@ void EditorLayer::init(ImGuiController& controller)
 	//sceneManager.getScene("default")->addLayer(new ParticleDemo("demo"));
 	//sceneManager.getScene("default")->addLayer(new AppLayer("app"));
 	sceneManager.getScene("default")->addLayer(new DeferredIBLDemo("demo"));
+	modelShader.Init("Shaders/model.vert", "Shaders/model.frag");
 }
 
 void EditorLayer::onAttach()
@@ -132,22 +135,22 @@ void EditorLayer::onAttach()
 			ImGui::OpenPopup("Failed to load file, please check the format");
 			component.reset();
 		}
-		});
+	});
 
 	EventManager::getInstance().Subscribe(EventType::MouseMoved, [&](Event& event) {
 		MouseMoveEvent& mouseEvent = static_cast<MouseMoveEvent&>(event);
 		if (GuizmoActive && editorActive) {
 			mouseEvent.Handled = true;	// block mouse event from other layers
 		}
-		});
+	});
 
-	EventManager::getInstance().Subscribe(EventType::KeyPressed, [&](Event& event) {
+	keyEventID = EventManager::getInstance().Subscribe(EventType::KeyPressed, [&](Event& event) {
 		KeyPressedEvent& keyPressedEvent = static_cast<KeyPressedEvent&>(event);
 		if (GuizmoActive || editorActive) {
 			handleKeyPressed(keyPressedEvent.keyCode);
 			keyPressedEvent.Handled = true;	// block keyboard event from other layers
 		}
-		});
+	});
 
 
 }
@@ -164,7 +167,6 @@ void EditorLayer::onUpdate()
 	
 	Scene& scene = *SceneManager::getInstance().getActiveScene();
 
-	Shader modelShader("Shaders/model.vert", "Shaders/model.frag");
 	modelShader.Activate();
 	modelShader.setInt("diffuse", 0);
 
@@ -184,7 +186,6 @@ void EditorLayer::onUpdate()
 				std::shared_ptr<Model> model = modelComponent.model.lock();
 
 				if (model != nullptr) {
-					modelShader.Activate();
 					if (SceneManager::cameraController) {
 						modelShader.setMat4("mvp", SceneManager::cameraController->getMVP());
 					}
@@ -232,7 +233,6 @@ void EditorLayer::onGuiUpdate()
 		if (ImGui::Button("add demo layer")) {
 			id = "demo " + std::to_string(scene->layerManager.size());
 			scene->addLayer(new ParticleDemo(id.c_str()));
-			//layerManager.AddLayer(new DeferredIBLDemo("Deferred IBL Demo"));
 		}
 		if (ImGui::Button("add bloom layer")) {
 			id = "bloom " + std::to_string(scene->layerManager.size());
@@ -268,7 +268,8 @@ void EditorLayer::handleKeyPressed(int keycode)
 			scene->removeEntity(selectedEntities[0].getID());
 		}
 	}
+	if (keycode == KEY_G) {
+		Console::println("receiving key event");
+		EventManager::getInstance().Unsubscribe(EventType::KeyPressed, keyEventID);
+	}
 }
-
-
-

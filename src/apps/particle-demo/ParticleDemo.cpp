@@ -44,7 +44,7 @@ void ParticleDemo::OnUpdate()
     glViewport(0.0, 0.0, AppWindow::width, AppWindow::height);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // RGBA
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    particleRenderer.render(particleShader, camera, numRender, speed, pause);
+    particleRenderer.render(particleShader, *SceneManager::cameraController, numRender, speed, pause);
     //skybox->render(camera);
     applicationFBO.Unbind();
 }

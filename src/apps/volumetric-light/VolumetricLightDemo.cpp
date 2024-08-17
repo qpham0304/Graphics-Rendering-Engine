@@ -14,7 +14,6 @@ int VolumetricLightDemo::show_demo() {
         guiController.init(AppWindow::window, width, height);
 
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
-    //Shader pbrShader("src/apps/volumetric-light/shaders/pbr.vert", "src/apps/volumetric-light/shaders/pbr.frag");
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader shadowMapShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
 
@@ -26,8 +25,6 @@ int VolumetricLightDemo::show_demo() {
     unsigned int cubeVBO = 0;
 
     ShadowMapRenderer shadowMapRenderer(2048, 2048);
-
-
 
     glm::vec4 lightColor(1.0, 1.0, 1.0, 1.0);
     glm::vec3 lightPosition(5.0, 5.0, 5.0);

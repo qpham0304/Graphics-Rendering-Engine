@@ -5,7 +5,6 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexcoord;
 layout (location = 3) in mat4 aInstanceMatrix;
 
-uniform mat4 matrix;
 uniform mat4 mvp;
 
 void main() {

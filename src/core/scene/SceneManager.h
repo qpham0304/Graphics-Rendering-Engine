@@ -9,9 +9,9 @@
 #include <future>
 #include <mutex>
 #include <thread>
-#include "../components/Component.h"
-#include "../components/SkyboxComponent.h"
-#include "../components/LightComponent.h"
+#include "../components/legacy/Component.h"
+#include "../components/legacy/SkyboxComponent.h"
+#include "../components/legacy/LightComponent.h"
 #include "Scene.h"
 
 class SceneManager {

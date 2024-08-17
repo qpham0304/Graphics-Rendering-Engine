@@ -42,15 +42,17 @@ public:
 		}
 	}
 
-	void Subscribe(EventType eventType, EventCallback callback);
+	uint32_t Subscribe(EventType eventType, EventCallback callback);
+	void Unsubscribe(EventType eventType, uint32_t cbID);
 	void Publish(Event& event);
 	void Queue(AsyncEvent event, AsyncCallback callback);
 	void OnUpdate();
 	std::vector<std::pair<std::thread, bool*>> threads;
 
 private:
+	uint32_t callbackID;
 	std::unordered_map<std::string, std::vector<EventListener>> listeners;
-	std::unordered_map<EventType, std::vector<EventCallback>> callbacks;
+	std::unordered_map<EventType, std::vector<std::pair<uint32_t, EventCallback>>> callbacks;
 
 	std::queue<std::pair<AsyncEvent, AsyncCallback>> eventQueue;
 	std::mutex queueMutex;

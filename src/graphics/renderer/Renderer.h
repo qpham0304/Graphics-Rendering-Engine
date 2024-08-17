@@ -2,19 +2,19 @@
 
 #include <memory>
 #include <Shader.h>
-#include "../../src/core/components/Component.h"
+#include "../../src/core/components/legacy/component.h"
 
 class Renderer
 {
 private:
-	std::unique_ptr<Shader> shader;
+	
 
 public:
 	Renderer();
+	~Renderer();
 
-	void RegisterShader();
-	void Render(std::vector<Component> components);
-	void Init();
-	void Delete();
+	//void registerShader();
+	virtual void render() = 0;
+	virtual void init() = 0;
 };
 

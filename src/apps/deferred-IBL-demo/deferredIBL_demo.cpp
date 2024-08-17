@@ -4,9 +4,22 @@
 #include "../../core/components/MComponent.h"
 #include "../../core/components/CameraComponent.h"
 
+static glm::vec3 lightPositions[] = {
+    glm::vec3(-10.0f,  -5.0f, 10.0f),
+    glm::vec3(10.0f,  -5.0f, 10.0f),
+    glm::vec3(-5.0f, -5.0f, 5.0f),
+    glm::vec3(5.0f, -5.0f, 5.0f),
+};
+static glm::vec4 lightColors[] = {
+    glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
+    glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
+    glm::vec4(100.0f, 300.0f, 700.0f, 1.0f),
+    glm::vec4(3000.0f, 3000.0f, 1000.0f, 1.0f)
+};
+
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
-    imageBasedRenderer.init("Textures/hdr/industrial_sunset_02_puresky_1k.hdr");
+    lightShader.Init("Shaders/light.vert", "Shaders/light.frag");
     particleRenderer.init(particleControl);
     pbrShader.reset(new Shader("Shaders/default-2.vert", "Shaders/default-2.frag"));
 }
@@ -17,22 +30,57 @@ void DeferredIBLDemo::OnAttach()
     SceneManager::cameraController = &camera;
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
     Scene& scene = *SceneManager::getInstance().getActiveScene();
+
     TransformComponent* transform;
     ModelLoadEvent event;
 
-    uint32_t helmetID = scene.addEntity("helmet");
-    event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
-    EventManager::getInstance().Publish(event);
-    transform = &scene.entities[helmetID].getComponent<TransformComponent>();
-    transform->translate(glm::vec3(0.0, 3.0, 3.0));
+    try {
+        uint32_t helmetID = scene.addEntity("helmet");
+        event = ModelLoadEvent("Models/DamagedHelmet/gltf/DamagedHelmet.gltf", scene.entities[helmetID]);
+        EventManager::getInstance().Publish(event);
+        transform = &scene.entities[helmetID].getComponent<TransformComponent>();
+        transform->translate(glm::vec3(0.0, 3.0, 3.0));
 
-    uint32_t terrainID = scene.addEntity("terrain");
-    event = ModelLoadEvent("Models/death-valley-terrain/scene.gltf", scene.entities[terrainID]);
-    EventManager::getInstance().Publish(event);
-    transform = &scene.entities[terrainID].getComponent<TransformComponent>();
-    transform->translate(glm::vec3(0.0, -10.0, 0.0));
-    transform->rotate(glm::radians(glm::vec3(180.0, 0.0, 0.0)));
-    transform->scale(glm::vec3(50.0));
+        uint32_t terrainID = scene.addEntity("terrain");
+        event = ModelLoadEvent("Models/death-valley-terrain/scene.gltf", scene.entities[terrainID]);
+        EventManager::getInstance().Publish(event);
+        transform = &scene.entities[terrainID].getComponent<TransformComponent>();
+        transform->translate(glm::vec3(0.0, -10.0, 0.0));
+        transform->rotate(glm::radians(glm::vec3(180.0, 0.0, 0.0)));
+        transform->scale(glm::vec3(50.0));
+
+        uint32_t cameraEntityID = scene.addEntity("camera");
+        Entity& cameraEntity = scene.entities[cameraEntityID];
+        TransformComponent& cameraTransform = cameraEntity.getComponent<TransformComponent>();
+        cameraTransform.translate(glm::vec3(-6.5f, 3.5f, 8.5f));
+        cameraEntity.addComponent<CameraComponent>(
+            AppWindow::width,
+            AppWindow::height,
+            cameraTransform.translateVec,
+            glm::vec3(0.5, -0.2, -1.0f)
+        );
+        auto pos = cameraEntity.getComponent<CameraComponent>().camera.getPosition();
+        //Console::println(pos.x, " ", pos.y, " ", pos.z);
+        cameraEntity.onCameraComponentAdded();
+        cameraTransform.translate(glm::vec3(-6.5f, 3.5f, 8.5f));
+
+        uint32_t lightID = scene.addEntity("light 1");
+        Entity lightEntity = scene.getEntity(lightID);
+        auto& lightComponent = lightEntity.addComponent<MLightComponent>();
+        lightComponent.position = lightEntity.getComponent<TransformComponent>().translateVec;
+        lightEntity.getComponent<TransformComponent>().translate(glm::vec3(2.0));
+
+        uint32_t lightID2 = scene.addEntity("light 2");
+        Entity lightEntity2 = scene.getEntity(lightID2);
+        auto& lightComponent2 = lightEntity2.addComponent<MLightComponent>();
+        lightComponent2.position = lightEntity2.getComponent<TransformComponent>().translateVec;
+        lightEntity2.getComponent<TransformComponent>().translate(glm::vec3(-2.0));
+
+
+    }
+    catch (std::runtime_error e) {
+        Console::error(e.what());
+    }
 }
 
 void DeferredIBLDemo::OnDetach()
@@ -42,8 +90,11 @@ void DeferredIBLDemo::OnDetach()
 
 void DeferredIBLDemo::OnUpdate()
 {
-    glEnable(GL_DEPTH_TEST);
+    Shader particleShader("Shaders/particle.vert", "Shaders/particle.frag");
+    //Utils::OpenGL::vramUsage();
     AppLayer::OnUpdate();
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
+    scene.addShader("lightShader", lightShader);
 
     pbrShader->Activate();
     pbrShader->setInt("albedoMap", 0);
@@ -60,6 +111,7 @@ void DeferredIBLDemo::OnUpdate()
     glViewport(0, 0, AppWindow::width, AppWindow::height);
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
 
     pbrShader->Activate();
     pbrShader->setMat4("matrix", glm::mat4(1.0f));
@@ -68,60 +120,66 @@ void DeferredIBLDemo::OnUpdate()
     pbrShader->setBool("gamma", true);
 
     // bind pre-computed IBL data
-    glActiveTexture(GL_TEXTURE0 + 6);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, imageBasedRenderer.irradianceMap);
-    glActiveTexture(GL_TEXTURE0 + 7);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, imageBasedRenderer.prefilterMap);
-    glActiveTexture(GL_TEXTURE0 + 8);
-    glBindTexture(GL_TEXTURE_2D, imageBasedRenderer.brdfLUTTexture);
+    scene.imageBasedRenderer.bindIrradianceMap();
+    scene.imageBasedRenderer.bindPrefilterMap();
+    scene.imageBasedRenderer.bindLUT();
 
-    Scene& scene = *SceneManager::getInstance().getActiveScene();
-    int index = 0;
-    for (auto& [id, entity] : scene.entities) {
-        if (index % 2 == 0) {
+    auto models = scene.getEnttEntities<ModelComponent, TransformComponent>();
+
+    for (auto entity : models) {
+        ModelComponent& modelComponent = models.get<ModelComponent>(entity);
+        TransformComponent& transform = models.get<TransformComponent>(entity);
+        const glm::mat4& normalMatrix = transform.getModelMatrix();
+        std::shared_ptr<Model> model = modelComponent.model.lock();
+
+        if (scene.hasComponent<CameraComponent>(entity)) {
+            continue;
+        }
+
+        if (model != nullptr) {
             pbrShader->setBool("hasAnimation", false);
             pbrShader->setBool("hasEmission", true);
+            pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(normalMatrix))));
+            pbrShader->setMat4("matrix", normalMatrix);
+            model->Draw(*pbrShader);
         }
         else {
-            pbrShader->setBool("hasAnimation", false);
-            pbrShader->setBool("hasEmission", false);
+            modelComponent.reset();
         }
+    }
 
+    //auto lights = scene.getEntitiesHas<MLightComponent, TransformComponent>();
+    std::vector<Entity> lights = scene.getEntitiesWith<MLightComponent, TransformComponent>();
+    int index = 0;
+    for (auto& entity : lights) {
         if (entity.hasComponent<CameraComponent>()) {
             continue;
         }
 
-        if (entity.hasComponent<ModelComponent>()) {
-            ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
-            TransformComponent& transform = entity.getComponent<TransformComponent>();
-            const glm::mat4& normalMatrix = transform.getModelMatrix();
-            std::shared_ptr<Model> model = modelComponent.model.lock();
-
-            if (model != nullptr) {
-                pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(normalMatrix))));
-                pbrShader->setMat4("matrix", normalMatrix);
-                model->Draw(*pbrShader);
-            }
-            else {
-                modelComponent.reset();
-            }
+        //BUG: old light stay when removed until new one is added
+        //index increment won't work for light added but not removed
+        MLightComponent& light = entity.getComponent<MLightComponent>();
+        TransformComponent& transform = entity.getComponent<TransformComponent>();
+        pbrShader->Activate();
+        pbrShader->setVec3("lightPositions[" + std::to_string(index) + "]", light.position);
+        pbrShader->setVec3("lightColors[" + std::to_string(index) + "]", light.color);
+        //pbrShader->setMat4("matrix", model);
+        //pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        glm::mat4& model = transform.getModelMatrix();
+        light.position = transform.translateVec;
+        if (scene.getShader("lightShader")) {
+            scene.getShader("lightShader")->Activate();
+            scene.getShader("lightShader")->setMat4("matrix", model);
+            scene.getShader("lightShader")->setVec3("lightColor", glm::normalize(light.color));
+            scene.getShader("lightShader")->setMat4("mvp", camera.getMVP());
         }
-
-        if (entity.hasComponent<MLightComponent>()) {
-            MLightComponent& light = entity.getComponent<MLightComponent>();
-            pbrShader->setVec3("lightPositions[" + std::to_string(index) + "]", light.position);
-            pbrShader->setVec3("lightColors[" + std::to_string(index) + "]", light.color);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, light.position);
-            model = glm::scale(model, glm::vec3(0.5f));
-            pbrShader->setMat4("matrix", model);
-            pbrShader->setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-            Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
-        }
+        Utils::OpenGL::Draw::drawSphere(sphereVAO, indexCount);
         index++;
     }
 
-    skybox->updateTexture(imageBasedRenderer.envCubemapTexture);
+    particleRenderer.render(particleShader, *SceneManager::cameraController, numRender, speed, pause);
+
+    skybox->updateTexture(scene.imageBasedRenderer.envCubemapTexture);
     skybox->render(camera);
 
     applicationFBO.Unbind();
@@ -130,6 +188,58 @@ void DeferredIBLDemo::OnUpdate()
 void DeferredIBLDemo::OnGuiUpdate()
 {
     AppLayer::OnGuiUpdate();
+
+    if (ImGui::Begin("control")) {
+        ImGui::BeginChild("gBuffers textures");
+        ImVec2 wsize = ImGui::GetWindowSize();
+        ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
+        ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances / 100.0, 0, particleControl.numInstances, 0, true);
+        if (ImGui::DragFloat3("Spawn Area", glm::value_ptr(particleControl.spawnArea), 0.1, 0, 1000.0, 0, true)) {
+            particleRenderer.clear();
+            particleRenderer.init(particleControl);
+            //if (isPopulating) {
+            //    Console::println("populate");
+            //    particleRenderer.matrixModels = matrixModels;
+            //}
+        }
+        ImGui::Checkbox("Pause", &pause);
+        ImGui::SameLine();
+        if (ImGui::Button("Reset")) {
+            particleRenderer.reset();
+        }
+        ImGui::EndChild();
+        ImGui::End();
+    }
+
+    ImGui::Begin("control");
+    if (ImGui::Button("Change Cubemap Texture")) {
+        std::string path;
+        path = Utils::fileDialog();
+        if (!path.empty()) {
+            Scene* scene = SceneManager::getInstance().getActiveScene();
+
+//#define USE_THREAD
+#ifdef USE_THREAD
+            AsyncEvent event;
+            auto function = [this, scene, path](AsyncEvent& event) mutable {
+                glfwMakeContextCurrent(AppWindow::sharedWindow);            //EXPERIMENTATION
+                if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+                    std::cerr << "Failed to initialize GLAD for shared context" << std::endl;
+                    return;
+                }
+                scene->imageBasedRenderer.onTextureReload(path);
+                glfwMakeContextCurrent(AppWindow::window);
+            };
+            EventManager::getInstance().Queue(event, function);
+#else
+            scene->imageBasedRenderer.onTextureReload(path);
+#endif
+
+
+
+        }
+    }
+    ImGui::End();
 }
 
 void DeferredIBLDemo::OnEvent(Event& event)
@@ -139,6 +249,7 @@ void DeferredIBLDemo::OnEvent(Event& event)
 
 int DeferredIBLDemo::show_demo()
 {
+/*
     int width = AppWindow::width;
     int height = AppWindow::height;
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
@@ -605,6 +716,7 @@ int DeferredIBLDemo::show_demo()
         glfwPollEvents();
         glfwSwapBuffers(AppWindow::window);
     }
+*/
 
 	return 0;
 }

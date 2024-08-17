@@ -6,14 +6,6 @@ Model::Model(const char* path)
     size_t dotPosition = this->path.find_last_of('.');
     extension = this->path.substr(dotPosition);
 
-    //loaded_textures["Textures/default/albedo.png"] = Texture("Textures/default/albedo.png", "albedoMap");
-    //loaded_textures["Textures/default/normal.png"] = Texture("Textures/default/normal.png", "normalMap");
-    //loaded_textures["Textures/default/metallic.png"] = Texture("Textures/default/metallic.png", "metallicMap");
-    //loaded_textures["Textures/default/roughness.png"] = Texture("Textures/default/roughness.png", "roughnessMap");
-    //loaded_textures["Textures/default/ao.png"] = Texture("Textures/default/ao.png", "aoMap");
-    //loaded_textures["Textures/default/emissive.png"] = Texture("Textures/default/emissive.png", "emissiveMap");
-    //loaded_textures["Textures/default/height.png"] = Texture("Textures/default/height.png", "heightMap");
-
     loadModel(path);
 }
 

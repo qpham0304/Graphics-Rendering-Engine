@@ -6,6 +6,7 @@
 
 Scene::Scene(const std::string name) : sceneName(name), isEnabled(true)
 {
+	imageBasedRenderer.init("Textures/hdr/industrial_sunset_02_puresky_1k.hdr");
 }
 
 bool Scene::addLayer(Layer* layer)
@@ -63,6 +64,32 @@ void Scene::selectEntities(std::vector<Entity> entities)
 const std::vector<Entity>& Scene::getSelectedEntities()
 {
 	return selectedEntities;
+}
+
+bool Scene::addShader(const std::string& name, Shader& shader)
+{
+	if (shaders.find(name) == shaders.end()) {
+		shaders[name] = std::make_shared<Shader>(std::move(shader));
+		return true;
+	}
+	return false;
+}
+
+bool Scene::addShader(const std::string& name, const std::string& vertPath, const std::string& fragPath)
+{
+	if (shaders.find(name) == shaders.end()) {
+		shaders[name] = std::make_shared<Shader>(vertPath.c_str(), fragPath.c_str());
+		return true;
+	}
+	return false;
+}
+
+std::shared_ptr<Shader> Scene::getShader(const std::string& name)
+{
+	if (shaders.find(name) != shaders.end()) {
+		return shaders[name];
+	}
+	return nullptr;
 }
 
 void Scene::onUpdate(const float& deltaTime)

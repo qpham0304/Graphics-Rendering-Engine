@@ -18,6 +18,8 @@ private:
 	bool flipUV = true;
 	bool faceCamera = false;
 	ImGuizmo::OPERATION GuizmoType = ImGuizmo::OPERATION::TRANSLATE;
+	Shader modelShader;
+	uint32_t keyEventID;
 
 	void mockThreadTasks();
 	void renderGuizmo();

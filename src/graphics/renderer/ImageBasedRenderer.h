@@ -7,12 +7,10 @@
 class ImageBasedRenderer
 {
 private:
-
-public:
-	ImageBasedRenderer();
-
-	void init(const std::string& path);
-	void onTextureReload(const std::string& path);
+	unsigned int cubeVAO = 0;
+	unsigned int cubeVBO = 0;
+	unsigned int captureFBO, captureRBO;
+	std::string texturePath;
 
 	std::unique_ptr<Shader> equirectangularToCubemapShader;
 	std::unique_ptr<Shader> irradianceShader;
@@ -20,10 +18,26 @@ public:
 	std::unique_ptr<Shader> prefilterShader;
 	std::unique_ptr<Shader> brdfShader;
 
-	unsigned int captureFBO, captureRBO;
+	void setupCubeMap();
+	void renderCubeMap();
+	void setupIrradianceMap();
+	void renderIrradianceMap();
+	void setupPrefilterMap();
+	void renderPrefilterMap();
+	void setupBRDF();
+	void renderBRDF();
+
+public:
+	ImageBasedRenderer();
+
+	void init(const std::string& path);
+	void bindIrradianceMap();
+	void bindPrefilterMap();
+	void bindLUT();
+	void onTextureReload(const std::string& path);
+
 	unsigned int envCubemapTexture;
 	unsigned int hdrTexture;
-	std::string texturePath;
 
 	unsigned int prefilterMap;
 	unsigned int irradianceMap;

@@ -116,8 +116,8 @@ public:
 
 struct MLightComponent {
 public:
-	glm::vec3 color;
-	glm::vec3 position;
+	glm::vec3 color = glm::vec3(1.0);
+	glm::vec3 position = glm::vec3(0.0);
 	float radius;
 	
 

@@ -20,6 +20,7 @@ Timer::~Timer() {
         std::string timeTaken = oss.str();
         Console::println(timeTaken);
     }
+
     else {
         Profiler::getInstance().addTracker({ label, ms });
     }

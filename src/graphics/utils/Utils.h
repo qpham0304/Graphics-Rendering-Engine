@@ -1,6 +1,10 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/rotate_vector.hpp>
+#include <glm/gtx/vector_angle.hpp>
 #include <string>
 #include <random>
 #include <iostream>
@@ -164,17 +168,19 @@ namespace Utils::OpenGL {
         void drawSkyDome();
     };
 
+	void vramUsage();
+
     std::string loadHDRTexture(const char* path, unsigned int& texture);
     unsigned int loadTexture(char const* path);
     unsigned int loadMTexture(const float* ltc);
 }
 
 namespace Utils::ViewTransform {
-	glm::mat4 faceCameraBillboard(const glm::mat4& model, const glm::mat4& cameraView);
+	glm::mat4 faceCameraBillboard(const glm::mat4& cameraView, const glm::mat4& model);
 
 }
 
-namespace Utils::Window {
-    std::string WindowFileDialog();
+namespace Utils {
+    std::string fileDialog();
 
 }

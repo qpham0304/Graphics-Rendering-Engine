@@ -11,19 +11,6 @@
 #include "../../core/scene/SceneManager.h"
 #include "../../core/features/AppWindow.h"
 
-glm::vec3 lightPositions[] = {
-    glm::vec3(-5.0f,  5.0f, 5.0f),
-    glm::vec3(5.0f,  5.0f, 5.0f),
-    glm::vec3(-5.0f, -5.0f, 5.0f),
-    glm::vec3(5.0f, -5.0f, 5.0f),
-};
-glm::vec4 lightColors[] = {
-    glm::vec4(300.0f, 300.0f, 300.0f, 1.0f),
-    glm::vec4(300.0f, 300.0f, 300.0f, 1.0f),
-    glm::vec4(300.0f, 300.0f, 300.0f, 1.0f),
-    glm::vec4(300.0f, 300.0f, 300.0f, 1.0f)
-};
-
 glm::vec3 translateVec(0.0);
 
 
@@ -101,7 +88,7 @@ static void DrawVec3Control(const std::string& label, glm::vec3& values, float r
 
 void LeftSidebarWidget::AddComponentDialog(Entity& entity) {
 #if defined(_WIN32)
-    std::string path = Utils::Window::WindowFileDialog();
+    std::string path = Utils::fileDialog();
 #elif defined(__APPLE__) && defined(__MACH__)
     // macOS specific code
 #elif defined(__linux__)
@@ -199,15 +186,15 @@ void LeftSidebarWidget::AddItemButton(const std::string&& label) {
     }
 }
 
-void LeftSidebarWidget::LightTab()
+void LeftSidebarWidget::LightTab()  //TODO: crash if selected light get removed from map due to null pointer
 {
     ImGui::Begin("Properties");
     if (selectedEntity && selectedEntity->hasComponent<MLightComponent>()) {
-        MLightComponent& light = selectedEntity->getComponent<MLightComponent>();
         TransformComponent& transform = selectedEntity->getComponent<TransformComponent>();
-        if (ImGui::TreeNodeEx(std::to_string(selectedEntity->getID()).c_str())) {
-            light.position = transform.translateVec;
-            ImGui::DragFloat3("Color", glm::value_ptr(light.color), 0.1f, 1000.0f, 0);
+        MLightComponent& light = selectedEntity->getComponent<MLightComponent>();
+        light.position = transform.translateVec;
+        if (ImGui::TreeNodeEx(std::to_string(selectedEntity->getID()).c_str(), base_flags)) {
+            ImGui::DragFloat3("Color", glm::value_ptr(light.color), 0.5f, 10000.0f, 0);
             ImGui::TreePop();
         }
     }
@@ -215,140 +202,6 @@ void LeftSidebarWidget::LightTab()
 }
 
 void LeftSidebarWidget::EntityTab() {
-    //if (ImGui::Begin("Entities")) {
-    //    ErrorModel("Unsupported file format, please use an appropriate one");
-
-    //    AddItemButton();
-
-    //    //static ImGuiTextFilter filter;
-    //    //filter.Filters;
-    //    //filter.Draw("Search");
-    //    int currentItem = 0;
-    //    static ImGuiTreeNodeFlags base_flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
-
-    //    //static const char* item_names[] = { "Item One", "Item Two", "Item Three", "Item Four", "Item Five" };
-    //    if (SceneManager::components.size() > 0) {
-    //        nodes = {};
-    //        for (auto& component : SceneManager::components) {
-    //            nodes.push_back(component.first);
-    //        }
-    //    }
-
-    //    size_t prevIndex;
-    //    for (int i = 0; i < nodes.size(); i++) {
-    //        ImGuiTreeNodeFlags node_flags = base_flags;
-    //        prevIndex = selectedIndex;
-    //        Component* component = SceneManager::getComponent(nodes[i]);
-    //        if (component != nullptr) {
-    //            if (selectedIndex == i) {
-    //                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.000f, 0.682f, 0.000f, 0.949f));
-    //                prevIndex = selectedIndex;
-    //                node_flags |= ImGuiTreeNodeFlags_Selected;
-    //            }
-
-    //            std::string id_str = "ID: " + component->getID();
-    //            std::string selectState = "Selected: " + std::string(component->isSelected() ? "true" : "false");
-    //            std::string name = "Name: " + component->getName();
-    //            std::string hasAnimation = "Has Animation: " + std::string(component->canAnimate() ? "true" : "false");
-    //            static const std::string item_names[] = { id_str, selectState, name, hasAnimation };
-    //            if (ImGui::TreeNodeEx(component->getName().c_str(), node_flags))
-    //            {
-    //                if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen())
-    //                    selectedIndex = i;
-    //                selectedIndex == i ? component->select() : component->unSelect();
-    //                //if(component->isSelected())
-    //                //    node_flags |= ImGuiTreeNodeFlags_Selected;
-    //                for (int n = 0; n < IM_ARRAYSIZE(item_names); n++)
-    //                {
-    //                    const char* item = item_names[n].c_str();
-    //                    ImGui::Selectable(item);
-    //                }
-    //                ImGui::TreePop();
-    //            }
-    //        }
-    //        if (prevIndex == i)
-    //            ImGui::PopStyleColor();
-    //    }
-
-    //    ImVec2 wsize = ImGui::GetWindowSize();
-    //    wsize.x /= 3;
-    //    wsize.y /= 3;
-    //    //for (auto& [path, model] : SceneManager::getInstance().models) {
-    //    //    ImGui::Text(path.c_str());
-    //    //    for (auto [path, texture] : model->loaded_textures) {
-    //    //        ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
-    //    //    }
-    //    //}
-    //    for (auto& [id, component] : SceneManager::components) {
-    //        //ImGui::Text(path.c_str());
-    //        //for (auto& mesh : model->meshes) {
-    //        //    for (auto texture : mesh.textures) {
-    //        //        ImGui::Image(ImTextureID(&texture.ID), wsize, ImVec2(0, 1), ImVec2(1, 0));
-    //        //    }
-    //        //}
-    //        Component* c = component.get();
-    //        for (auto [path, texture] : c->model_ptr->loaded_textures) {
-    //            //Texture tex(path.c_str(), "diffuse");
-    //            ImGui::Text(std::to_string(texture.ID).c_str());
-    //            ImGui::Image((ImTextureID)texture.ID, wsize, ImVec2(0, 1), ImVec2(1, 0));
-    //        }
-    //    }
-
-
-    //    if (ImGui::Begin("Properties")) {
-    //        if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
-    //            Component* component = SceneManager::getComponent(nodes[selectedIndex]);
-    //            if (component != nullptr) {
-    //                SceneManager::setSelectedID(nodes[selectedIndex]);
-    //                glm::vec3 translateVector(component->translateVector);
-    //                glm::vec3 scaleVector(component->scaleVector);
-    //                glm::vec3 rotationVector(component->rotationVector);
-
-    //                ImGui::Text(component->getName().c_str());
-    //                if (ImGui::SliderFloat3("Translate", &translateVector[0], -10.0f, 10.0f, 0))
-    //                    component->translate(translateVector);
-    //                ImGuiIO& io = ImGui::GetIO();
-    //                auto boldFont = io.Fonts->Fonts[0];
-    //                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-    //                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.9f, 0.2f, 0.2f, 1.0f });
-    //                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{ 0.8f, 0.1f, 0.15f, 1.0f });
-    //                ImGui::Button("X");
-    //                ImGui::PushFont(boldFont);
-    //                ImGui::PopFont();
-    //                ImGui::PopStyleColor(3);
-    //                ImGui::SameLine();
-    //                if (ImGui::DragFloat3("Scale", &scaleVector[0], 0.0f, 10.0f, 0))
-    //                    component->scale(scaleVector);
-
-    //                ImGui::Text("Material Properties");
-    //                ImGui::SliderFloat3("Albedo", glm::value_ptr(component->materialPBR.albedo), 0.0f, 1.0f, 0);
-    //                ImGui::SliderFloat("Metalic", &(component->materialPBR.metalic), 0.0f, 1.0f, 0);
-    //                ImGui::SliderFloat("Roughness", &(component->materialPBR.roughness), 0.0f, 1.0f, 0);
-    //                ImGui::SliderFloat("AO", &component->materialPBR.ao, 0.0f, 1.0f, 0);
-    //            }
-    //        }
-    //    }
-    //    ImGui::End();
-
-    //    if (ImGui::Begin("Animation")) {
-    //        if (nodes.size() > 0 && selectedIndex <= nodes.size()) {
-    //            Component* component = SceneManager::getComponent(nodes[selectedIndex]);
-    //            float time;
-    //            if (component != nullptr) {
-    //                if (!component->canAnimate())
-    //                    ImGui::BeginDisabled();
-    //                if (ImGui::DragFloat("deltatime", &time))
-    //                    component->updateAnimation(time);
-    //                if (!component->canAnimate())
-    //                    ImGui::EndDisabled();
-    //            }
-    //        }
-
-    //    }
-    //    ImGui::End();
-    //}
-    //ImGui::End();
-
     ImGui::End();
     SceneManager& sceneManager = sceneManager.getInstance();
     Scene* scene = sceneManager.getActiveScene();
@@ -356,7 +209,7 @@ void LeftSidebarWidget::EntityTab() {
     if (ImGui::Begin("Scenes")) {
         AddItemButton("+ Add Entity");
         
-        Timer("component event", true);
+        Timer timer("component event", true);
 
         for (auto& [uuid, entity] : scene->entities) {
             ImGuiTreeNodeFlags node_flags = base_flags;
@@ -411,8 +264,7 @@ void LeftSidebarWidget::EntityTab() {
                 }
 
                 if (ImGui::MenuItem("Load Model blocking")) {
-                    //auto& modelComponent = entity.getComponent<ModelComponent>();
-                    std::string path = Utils::Window::WindowFileDialog();
+                    std::string path = Utils::fileDialog();
                     if (!path.empty()) {
                         ModelLoadEvent event(path, entity);
                         EventManager::getInstance().Publish(event);
@@ -426,7 +278,10 @@ void LeftSidebarWidget::EntityTab() {
                 ImGui::EndDisabled();
 
                 if (ImGui::MenuItem("Add Light")) {
-                    entity.addComponent<MLightComponent>();
+                    auto& light = entity.addComponent<MLightComponent>();
+                    light.color = glm::vec3(500, 500, 400);
+                    light.position = entity.getComponent<TransformComponent>().translateVec;
+                    entity.getComponent<NameComponent>().name = "light";
                 }
 
                 if (ImGui::MenuItem("Add Camera")) {
@@ -467,10 +322,10 @@ void LeftSidebarWidget::EntityTab() {
 
                 ImGui::Text(std::string("id: " + std::to_string(uuid)).c_str());
 
-                ImGui::SameLine();
-                if (ImGui::Button(addModelTex.c_str())) {
-                    AddComponentDialog(entity);
-                }
+                //ImGui::SameLine();
+                //if (ImGui::Button(addModelTex.c_str())) {
+                //    AddComponentDialog(entity);
+                //}
 
                 TransformComponent& transform = entity.getComponent<TransformComponent>();
                 glm::mat4 matrix = transform.getModelMatrix();
@@ -534,7 +389,7 @@ void LeftSidebarWidget::ModelsTab()
                 }
 
                 if (ImGui::MenuItem("Load Model")) {
-                    std::string uuid = Utils::Window::WindowFileDialog();
+                    std::string uuid = Utils::fileDialog();
                     if (!uuid.empty()) {
                         sceneManager.addModel(uuid);
                     }

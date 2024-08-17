@@ -1,13 +1,14 @@
 #include "ParticleGeometry.h"
+#include "../src/graphics/utils/Utils.h"
+#include "../../../core/features/Timer.h"
 
+static const float g = 9.8f; // Gravity
+static const float rho = 1.225f; // Air density
+static const float Cd = 1.0f; // Drag coefficient
+static const float cross_sectional_area = 0.5f; // Cross-sectional area
+static const float dt = 0.016f; // Time step (assuming 60 FPS)
 
-const float g = 9.8f; // Gravity
-const float rho = 1.225f; // Air density
-const float Cd = 1.0f; // Drag coefficient
-const float cross_sectional_area = 0.5f; // Cross-sectional area
-const float dt = 0.016f; // Time step (assuming 60 FPS)
-
-glm::vec3 generateRandomDirection() {
+static glm::vec3 generateRandomDirection() {
     float theta = glm::radians(static_cast<float>(rand() % 360)); // Random angle in the xy-plane
     float phi = glm::radians(static_cast<float>(rand() % 180)); // Random angle for z-axis
     float x = sin(phi) * cos(theta);
@@ -16,7 +17,7 @@ glm::vec3 generateRandomDirection() {
     return glm::normalize(glm::vec3(x, y, z));
 }
 
-glm::vec3 generateRandomCircularDirection() {
+static glm::vec3 generateRandomCircularDirection() {
     float angle = glm::radians(static_cast<float>(rand() % 360)); // Random angle in the XY plane
     float x = cos(angle);
     float y = sin(angle);
@@ -64,6 +65,7 @@ ParticleGeometry::ParticleGeometry() {
 }
 
 void ParticleGeometry::init(const ParticleControl& control) {
+    Timer timer("particle reinit time", false);
     scale = control.size;
     upperBound = control.upperBound;
     lowerBound = control.lowerBound;

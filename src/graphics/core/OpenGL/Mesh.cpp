@@ -69,7 +69,7 @@ void Mesh::Delete()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    for (auto& texture : textures) {
+    for (Texture& texture : textures) {
         texture.Delete();
     }
 }
