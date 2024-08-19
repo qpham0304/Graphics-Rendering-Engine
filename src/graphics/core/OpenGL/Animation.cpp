@@ -18,10 +18,13 @@ Animation::Animation(const std::string& animationPath, Model* model)
     aiAnimation* animation = nullptr;
 
     unsigned int index = 6;
-    if (scene->mNumAnimations > index)
+    if (scene->mNumAnimations > index) {
         animation = scene->mAnimations[index];
-    else
+    }
+
+    else {
         animation = scene->mAnimations[0];
+    }
 
     m_Duration = animation->mDuration;
     m_TicksPerSecond = animation->mTicksPerSecond;
@@ -55,18 +58,15 @@ void Animation::ReadMissingBones(const aiAnimation* animation, Model& model)
     int& boneCount = model.GetBoneCount();      //getting the m_BoneCounter from Model class
 
     //reading channels(bones engaged in an animation and their keyframes)
-    for (int i = 0; i < size; i++)
-    {
+    for (int i = 0; i < size; i++) {
         auto channel = animation->mChannels[i];
         std::string boneName = channel->mNodeName.data;
 
-        if (boneInfoMap.find(boneName) == boneInfoMap.end())
-        {
+        if (boneInfoMap.find(boneName) == boneInfoMap.end()) {
             boneInfoMap[boneName].id = boneCount;
             boneCount++;
         }
-        m_Bones.push_back(Bone(channel->mNodeName.data,
-            boneInfoMap[channel->mNodeName.data].id, channel));
+        m_Bones.push_back(Bone(channel->mNodeName.data, boneInfoMap[channel->mNodeName.data].id, channel));
     }
 
     m_BoneInfoMap = boneInfoMap;
@@ -80,8 +80,7 @@ void Animation::ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
     dest.transformation = AssimpGLMHelpers::ConvertMatrixToGLMFormat(src->mTransformation);
     dest.childrenCount = src->mNumChildren;
 
-    for (unsigned int i = 0; i < src->mNumChildren; i++)
-    {
+    for (unsigned int i = 0; i < src->mNumChildren; i++) {
         AssimpNodeData newData;
         ReadHierarchyData(newData, src->mChildren[i]);
         dest.children.push_back(newData);

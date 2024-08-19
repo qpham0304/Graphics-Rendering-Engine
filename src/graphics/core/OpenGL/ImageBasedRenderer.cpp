@@ -36,9 +36,9 @@ void ImageBasedRenderer::setupCubeMap()
 void ImageBasedRenderer::renderCubeMap()
 {
     //// convert HDR equirectangular environment map to cubemap equivalent
-    equirectangularToCubemapShader->Activate();
-    equirectangularToCubemapShader->setInt("equirectangularMap", 0);
-    equirectangularToCubemapShader->setMat4("projection", captureProjection);
+    equirectangularToCubemapShader.Activate();
+    equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+    equirectangularToCubemapShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
@@ -46,7 +46,7 @@ void ImageBasedRenderer::renderCubeMap()
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 
     for (unsigned int i = 0; i < 6; ++i) {
-        equirectangularToCubemapShader->setMat4("view", captureViews[i]);
+        equirectangularToCubemapShader.setMat4("view", captureViews[i]);
         glFramebufferTexture2D(
             GL_FRAMEBUFFER,
             GL_COLOR_ATTACHMENT0,
@@ -85,16 +85,16 @@ void ImageBasedRenderer::renderIrradianceMap()
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
-    irradianceShader->Activate();
-    irradianceShader->setInt("environmentMap", 0);
-    irradianceShader->setMat4("projection", captureProjection);
+    irradianceShader.Activate();
+    irradianceShader.setInt("environmentMap", 0);
+    irradianceShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
 
     glViewport(0, 0, 32, 32); // don't forget to configure the viewport to the capture dimensions.
     for (unsigned int i = 0; i < 6; ++i)
     {
-        irradianceShader->setMat4("view", captureViews[i]);
+        irradianceShader.setMat4("view", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceMap, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -122,9 +122,9 @@ void ImageBasedRenderer::setupPrefilterMap()
 
 void ImageBasedRenderer::renderPrefilterMap()
 {
-    prefilterShader->Activate();
-    prefilterShader->setInt("environmentMap", 0);
-    prefilterShader->setMat4("projection", captureProjection);
+    prefilterShader.Activate();
+    prefilterShader.setInt("environmentMap", 0);
+    prefilterShader.setMat4("projection", captureProjection);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemapTexture);
 
@@ -140,10 +140,10 @@ void ImageBasedRenderer::renderPrefilterMap()
         glViewport(0, 0, mipWidth, mipHeight);
 
         float roughness = (float)mip / (float)(maxMipLevels - 1);
-        prefilterShader->setFloat("roughness", roughness);
+        prefilterShader.setFloat("roughness", roughness);
         for (unsigned int i = 0; i < 6; ++i)
         {
-            prefilterShader->setMat4("view", captureViews[i]);
+            prefilterShader.setMat4("view", captureViews[i]);
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -176,7 +176,7 @@ void ImageBasedRenderer::renderBRDF()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
 
     glViewport(0, 0, 512, 512);
-    brdfShader->Activate();
+    brdfShader.Activate();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Utils::OpenGL::Draw::drawQuad();
 
@@ -185,11 +185,11 @@ void ImageBasedRenderer::renderBRDF()
 
 ImageBasedRenderer::ImageBasedRenderer()
 {
-    equirectangularToCubemapShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/equireRectToCubemap.frag"));
-    irradianceShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/irradianceConvolution.frag"));
-    backgroundShader.reset(new Shader("Shaders/background.vert", "Shaders/background.frag"));
-    prefilterShader.reset(new Shader("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag"));
-    brdfShader.reset(new Shader("Shaders/brdf.vert", "Shaders/brdf.frag"));
+    equirectangularToCubemapShader.Init("Shaders/cubemap-hdr.vert", "Shaders/equireRectToCubemap.frag");
+    irradianceShader.Init("Shaders/cubemap-hdr.vert", "Shaders/irradianceConvolution.frag");
+    backgroundShader.Init("Shaders/background.vert", "Shaders/background.frag");
+    prefilterShader.Init("Shaders/cubemap-hdr.vert", "Shaders/prefilter.frag");
+    brdfShader.Init("Shaders/brdf.vert", "Shaders/brdf.frag");
 }
 
 void ImageBasedRenderer::init(const std::string& path) {
@@ -230,6 +230,7 @@ void ImageBasedRenderer::bindLUT()
 void ImageBasedRenderer::onTextureReload(const std::string& path)
 {
     //std::cout << "reloading...\n";
+    glDeleteTextures(1, &hdrTexture);
     Utils::OpenGL::loadHDRTexture(path.c_str(), hdrTexture);
 
     renderCubeMap();
@@ -237,4 +238,12 @@ void ImageBasedRenderer::onTextureReload(const std::string& path)
     renderPrefilterMap();
     renderBRDF();
     //std::cout << "reloaded\n";
+}
+
+void ImageBasedRenderer::free()
+{
+    glDeleteTextures(1, &hdrTexture);
+    glDeleteTextures(1, &irradianceMap);
+    glDeleteTextures(1, &prefilterMap);
+    glDeleteTextures(1, &brdfLUTTexture);
 }

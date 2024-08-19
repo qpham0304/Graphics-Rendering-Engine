@@ -14,7 +14,6 @@
 
 int main()
 {
-	try {
 		auto demo0 = DemoPBR::run;
 		auto demo1 = AreaLightDemo::run;
 		auto demo2 = DeferredRender::run;
@@ -47,15 +46,16 @@ int main()
 	#ifdef USE_EDITOR
 		Application& app = Application::getInstance();
 		app.run();
+
 	#else
+	try {
 		AppWindow::init(PLATFORM_OPENGL);
 		AppWindow::start("Rendering  Engine");
 		AppWindow::renderScene(list[8]);
 		AppWindow::end();
-	#endif
-
 	}
 	catch (const std::runtime_error& e) {
-		std::cerr << "Exception: " << e.what() << std::endl;
+		std::cerr << "Exception caught by main: " << e.what() << std::endl;
 	}
+	#endif
 }

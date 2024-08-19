@@ -178,6 +178,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\core\layers\OpenGL\ShadowLayer.cpp" />
     <ClCompile Include="src\core\components\CubeMapComponent.cpp" />
     <ClCompile Include="src\core\components\CameraComponent.cpp" />
     <ClCompile Include="src\core\components\MComponent.cpp" />
@@ -219,7 +220,7 @@
     <ClCompile Include="src\graphics\utils\Utils.cpp" />
     <ClCompile Include="src\core\features\AppWindow.cpp" />
     <ClCompile Include="src\gui\widgets\EntityControlWidget.cpp" />
-    <ClCompile Include="src\apps\sanbox\main.cpp" />
+    <ClCompile Include="src\apps\sandbox\main.cpp" />
     <ClCompile Include="src\gui\widgets\MenuWidget.cpp" />
     <ClCompile Include="src\gui\widgets\MainViewWidget.cpp" />
     <ClCompile Include="src\gui\widgets\ConsoleLogWidget.cpp" />
@@ -227,7 +228,7 @@
     <ClCompile Include="src\gui\widgets\RightSidebarWidget.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\FrameBuffer.cpp" />
     <ClCompile Include="src\core\components\legacy\Component.cpp" />
-    <ClCompile Include="src\core\components\legacy\SkyboxComponent.cpp" />
+    <ClCompile Include="src\graphics\core\OpenGL\SkyboxRenderer.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Animation.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Animator.cpp" />
     <ClCompile Include="src\graphics\core\OpenGL\Bone.cpp" />
@@ -262,6 +263,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\Downloads\entt.hpp" />
+    <ClInclude Include="src\core\layers\ShadowLayer.h" />
     <ClInclude Include="src\core\components\CubeMapComponent.h" />
     <ClInclude Include="Libraries\include\glad\glad.h" />
     <ClInclude Include="src\core\components\CameraComponent.h" />
@@ -275,7 +277,7 @@
     <ClInclude Include="src\core\components\legacy\GridComponent.h" />
     <ClInclude Include="src\core\components\legacy\LightComponent.h" />
     <ClInclude Include="src\core\components\ModelComponent.h" />
-    <ClInclude Include="src\core\components\legacy\SkyboxComponent.h" />
+    <ClInclude Include="src\graphics\renderer\SkyboxRenderer.h" />
     <ClInclude Include="src\core\layers\AppLayer.h" />
     <ClInclude Include="src\core\layers\LayerManager.h" />
     <ClInclude Include="src\core\layers\EditorLayer.h" />

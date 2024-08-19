@@ -186,8 +186,13 @@ void LeftSidebarWidget::AddItemButton(const std::string&& label) {
     }
 }
 
-void LeftSidebarWidget::LightTab()  //TODO: crash if selected light get removed from map due to null pointer
+void LeftSidebarWidget::LightTab()
 {
+    SceneManager& sceneManager = sceneManager.getInstance();
+    Scene* scene = sceneManager.getActiveScene();
+    std::vector<Entity> selectedEntities = scene->getSelectedEntities();
+    selectedEntity = &selectedEntities[0];
+
     ImGui::Begin("Properties");
     if (selectedEntity && selectedEntity->hasComponent<MLightComponent>()) {
         TransformComponent& transform = selectedEntity->getComponent<TransformComponent>();
@@ -223,7 +228,7 @@ void LeftSidebarWidget::EntityTab() {
                 }
             }
 
-            std::string addModelTex = "Add Model Async(broken)";
+            std::string addModelTex = "Add Model Async(unavailable on current platform)";
 
             if (selectedEntity == &entity) {
                 node_flags |= ImGuiTreeNodeFlags_Selected;
@@ -298,13 +303,15 @@ void LeftSidebarWidget::EntityTab() {
                     entity.onCameraComponentAdded();    // have entity subscribe to a component added event
                 }
 
-                if (ImGui::MenuItem("Add Animation")) {
-                    entity.addComponent<AnimationComponent>();
+                ImGui::BeginDisabled(!entity.hasComponent<ModelComponent>());
+                if (ImGui::MenuItem("Load Animation")) {
+                    std::string path = Utils::fileDialog();
+                    if (!path.empty()) {
+                        AnimationLoadEvent event(path, entity);
+                        EventManager::getInstance().Publish(event);
+                    }
                 }
-
-                if (ImGui::MenuItem("Add Animator")) {
-                    entity.addComponent<AnimatorComponent>();
-                }
+                ImGui::EndDisabled();
 
                 if (ImGui::MenuItem("Delete Entity")) {
                     scene->removeEntity(uuid);
@@ -357,8 +364,9 @@ void LeftSidebarWidget::EntityTab() {
 
             // currently support single entity selection
             if (ImGui::IsItemClicked()) {
-                selectedEntity = &entity;
                 scene->selectEntities({ entity });
+                Entity ent = scene->getSelectedEntities()[0];
+                selectedEntity = &ent;
             }
 
             ImGui::PopID();
@@ -432,10 +440,14 @@ LeftSidebarWidget::LeftSidebarWidget() {
 
 void LeftSidebarWidget::render()
 {
+    Scene* scene = SceneManager::getInstance().getActiveScene();
+
     ImGui::BeginGroup();
-    ErrorModal("Error loading Model");
-    EntityTab();
-    LightTab();
-    ModelsTab();
+    if (scene) {
+        ErrorModal("Error loading Model");
+        EntityTab();
+        LightTab();
+        ModelsTab();
+    }
     ImGui::EndGroup();
 }

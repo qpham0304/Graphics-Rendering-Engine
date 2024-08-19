@@ -6,7 +6,7 @@
 #include <camera.h>
 #include <algorithm>
 
-class SkyboxComponent
+class SkyboxRenderer
 {
 private:
 	void setup();
@@ -25,13 +25,15 @@ private:
 public:
 	GLuint VAO;
 
-	SkyboxComponent();
-	SkyboxComponent(const char* path);
+	SkyboxRenderer();
+	SkyboxRenderer(const char* path);
+	~SkyboxRenderer();
 
 	void setUniform();
 	void updateTexture(const unsigned int& ID);
 	unsigned int getTextureID();
 	void render(Camera& camera);
 	void render(Camera& camera, const unsigned int&);
+	void free();
 };
 

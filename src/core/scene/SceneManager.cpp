@@ -135,45 +135,32 @@ bool SceneManager::removeModel(const std::string& path)
 	return false;
 }
 
-//bool SceneManager::addAnimation(const std::string& path)
-//{
-//	std::scoped_lock<std::mutex> lock(animationsLock);
-//	if (animations.find(path) == animations.end()) {
-//		animations[path] = std::make_shared<Animation>(path);
-//		return true;
-//	}
-//	return false;
-//}
-//
-//bool SceneManager::removeAnimation(const std::string& path)
-//{
-//	std::scoped_lock<std::mutex> lock(animationsLock);
-//	if (animations.find(path) != animations.end()) {
-//		animations.erase(path);
-//		return true;
-//	}
-//	return false;
-//}
-//
-//bool SceneManager::addAnimator(const std::string& path)
-//{
-//	std::scoped_lock<std::mutex> lock(animatorsLock);
-//	if (animators.find(path) == animators.end()) {
-//		animators[path] = std::make_shared<Animator>(path);
-//		return true;
-//	}
-//	return false;
-//}
-//
-//bool SceneManager::removeAnimator(const std::string& path)
-//{
-//	std::scoped_lock<std::mutex> lock(animatorsLock);
-//	if (animators.find(path) != animators.end()) {
-//		animators.erase(path);
-//		return true;
-//	}
-//	return false;
-//}
+std::string SceneManager::addAnimation(const std::string& path, Model* model)
+{
+	try {
+		std::string uuid = Utils::uuid::get_uuid();
+		std::scoped_lock<std::mutex> lock(animationsLock);
+		if (animations.find(uuid) == animations.end()) {
+			animations[uuid] = std::make_shared<Animation>(path, model);
+			return uuid;
+		}
+		
+	}
+	catch (std::runtime_error) {
+		return "";
+	}
+
+}
+
+bool SceneManager::removeAnimation(const std::string& path)
+{
+	std::scoped_lock<std::mutex> lock(animationsLock);
+	if (animations.find(path) != animations.end()) {
+		animations.erase(path);
+		return true;
+	}
+	return false;
+}
 
 // old implementation
 void SceneManager::renderPBR(Light& light, UniformProperties& uniforms)

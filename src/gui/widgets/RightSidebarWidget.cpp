@@ -2,6 +2,7 @@
 #include "../../core/scene/SceneManager.h"
 #include "../../core/layers/LayerManager.h"
 #include "../../core/components/MComponent.h"
+#include "../../core/components/CubeMapComponent.h"
 
 RightSidebarWidget::RightSidebarWidget()
 {
@@ -90,40 +91,82 @@ void RightSidebarWidget::textureView()
 
 void RightSidebarWidget::environmentControl()
 {
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
+    auto list = scene.getEntitiesWith<CubeMapComponent>();
+    CubeMapComponent* cubeMap = nullptr;
+    
+    if (!list.empty() && list[0].hasComponent<CubeMapComponent>()) {
+        cubeMap = &list[0].getComponent<CubeMapComponent>();
+    }
+
     ImGui::Begin("Environment Control");
+    
+    ImVec2 wsize = ImGui::GetWindowSize();
+    int wWidth = static_cast<int>(ImGui::GetWindowWidth());
+    int wHeight = static_cast<int>(ImGui::GetWindowHeight());
+
+    if (cubeMap) {
+        if (ImGui::Button("Change Cubemap Texture", ImVec2(-1.0, 0.0))) {
+            auto list = scene.getEntitiesWith<CubeMapComponent>();
+
+            std::string path;
+            path = Utils::fileDialog();
+            if (!path.empty()) {
+
+//#define USE_THREAD
+#ifdef USE_THREAD
+                AsyncEvent event;
+                auto function = [this, cubeMap, path](AsyncEvent& event) mutable {
+                    glfwMakeContextCurrent(AppWindow::sharedWindow);            //EXPERIMENTATION
+                    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+                        std::cerr << "Failed to initialize GLAD for shared context" << std::endl;
+                        return;
+                    }
+                    if (cubeMap) {
+                        cubeMap->reloadTexture(path);
+                    }
+                    glfwMakeContextCurrent(AppWindow::window);
+                    };
+                EventManager::getInstance().Queue(event, function);
+#else
+                if (cubeMap) {
+                    cubeMap->reloadTexture(path);
+                }
+#endif
+
+            }
+
+            else {
+                cubeMap->reloadTexture();
+            }
+        }
+    
+    }
+
+    else {
+        if (ImGui::Button("+ Add Cubemap", ImVec2(-1.0, 0.0))) {
+            uint32_t cubemapID = scene.addEntity("cubemap");
+            Entity cubemapEntity = scene.getEntity(cubemapID);
+            std::string path = Utils::fileDialog();
+            cubemapEntity.addComponent<CubeMapComponent>(path);
+        }
+    }
+
+
 
     ImGui::End();
 }
 
 void RightSidebarWidget::render()
 {
+    Scene* scene = SceneManager::getInstance().getActiveScene();
+
     ImGui::BeginGroup();
-    //if (ImGui::Begin("Tab bar")) {
-    //    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
-    //    if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags))
-    //    {
-    //        if (ImGui::BeginTabItem("Avocado"))
-    //        {
-    //            layersControl();
-    //            ImGui::EndTabItem();
-    //        }
-    //        if (ImGui::BeginTabItem("Broccoli"))
-    //        {
-    //            textureView();
-    //            ImGui::EndTabItem();
-    //        }
-    //        if (ImGui::BeginTabItem("Cucumber"))
-    //        {
-    //            environmentControl();
-    //            ImGui::EndTabItem();
-    //        }
-    //        ImGui::EndTabBar();
-    //    }
-    //    ImGui::End();
-    //}
-    layersControl();
-    textureView();
-    environmentControl();
+    if (scene) {
+        layersControl();
+        textureView();
+        environmentControl();
+    }
     ImGui::EndGroup();
 
 }

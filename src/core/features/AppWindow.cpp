@@ -304,8 +304,9 @@ void AppWindow::renderObjectsScene(FrameBuffer& framebuffer, DepthMap& depthMap,
 	float dt = currentTime - lf;
 	lf = currentTime;
 	if (animate_enable && !id.empty()) {
-		if (SceneManager::getComponent(id) != nullptr)
+		if (SceneManager::getComponent(id) != nullptr) {
 			SceneManager::getComponent(id)->updateAnimation(dt);
+		}
 	}
 
 	//glStencilFunc(GL_ALWAYS, 1, 0xFF);
@@ -324,7 +325,7 @@ int AppWindow::renderScene()
 	Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5f, -0.2f, -1.0f));
 	SceneManager::cameraController = &camera;
 	
-	SkyboxComponent skybox("Textures/skybox");
+	SkyboxRenderer skybox("Textures/skybox");
 	skybox.setUniform();
 
 	glm::vec3 translate(5.0f, 0.0f, 2.0f);

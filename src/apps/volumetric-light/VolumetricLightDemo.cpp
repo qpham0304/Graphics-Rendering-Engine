@@ -6,7 +6,7 @@ int VolumetricLightDemo::show_demo() {
     float height = AppWindow::height;
 
     Camera camera(width, height, glm::vec3(-6.5f, 3.5f, 8.5f), glm::vec3(0.5, -0.2, -1.0f));
-    SkyboxComponent skybox;
+    SkyboxRenderer skybox;
 
     bool guiOn = true;
     ImGuiController guiController;

@@ -20,7 +20,7 @@ int SSAO_Demo::show_demo()
 
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
 
-    //SkyboxComponent skybox("Textures/night-skybox");
+    //SkyboxRenderer skybox("Textures/night-skybox");
     SceneManager::addComponent("Models/backpack/backpack.obj");
     std::vector<Component*> components;
     for (const auto& pair : SceneManager::components) {

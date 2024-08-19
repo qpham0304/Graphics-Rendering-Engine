@@ -88,6 +88,7 @@ struct ModelComponent {
 public:
 	std::string path = "None";
 	std::weak_ptr<Model> model;
+
 	ModelComponent() = default;
 	ModelComponent(std::string&& path, std::shared_ptr<Model> model) : path(path), model(model) {};
 	ModelComponent(std::string&& path) : path(path) {};
@@ -100,28 +101,49 @@ public:
 
 struct AnimationComponent {
 public:
-	std::string path;
+	std::string path = "None";
 	std::weak_ptr<Animation> animation;
+	Animator animator;
+
 	AnimationComponent() = default;
+	AnimationComponent(std::string&& path, std::shared_ptr<Animation> animation) : path(path), animation(animation) {
+		if (animation) {
+			animator.Init(animation.get());
+		}
+	};
 	AnimationComponent(std::string&& path) : path(path) {};
+
+	void reset() {
+		path = "None";
+		animation.reset();
+	}
 };
 
-struct AnimatorComponent {
-public:
-	std::string path;
-	std::weak_ptr<Animator> animation;
-	AnimatorComponent() = default;
-	AnimatorComponent(std::string&& path) : path(path) {};
-};
+//struct AnimatorComponent {
+//public:
+//	std::string path;
+//	std::weak_ptr<Animator> animation;
+//	AnimatorComponent() = default;
+//	AnimatorComponent(std::string&& path) : path(path) {};
+//};
 
 struct MLightComponent {
 public:
 	glm::vec3 color = glm::vec3(1.0);
 	glm::vec3 position = glm::vec3(0.0);
 	float radius;
-	
 
 	MLightComponent() = default;
 	MLightComponent(glm::vec3&& color, glm::vec3&& position) : color(color), position(position) {};
 	MLightComponent(const glm::vec3& color, const glm::vec3& position) : color(color), position(position) {};
+};
+
+struct LayerTagComponent {
+public:
+	std::string layerName = "";
+
+	LayerTagComponent () = default;
+	LayerTagComponent (const std::string& layerName) : layerName(layerName) {
+
+	};
 };

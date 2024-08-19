@@ -144,11 +144,11 @@ void ParticleGeometry::render(Shader& shader, Camera& camera, int& numRender, fl
             if (!pause) {
                 float velocity = speed * camera.getDeltaTime();
                 //flyDirections[i].x -= weights[i] * velocity;
-                //flyDirections[i].y -= weights[i] * velocity;
+                flyDirections[i].y -= weights[i] * velocity;
                 //flyDirections[i].z -= weights[i] * velocity;
 
-                if(!randomDirs.empty()) // randomdirs to generate pattern
-                    flyDirections[i] += randomDirs[i] * velocity;
+                //if(!randomDirs.empty()) // randomdirs to generate pattern
+                //    flyDirections[i] += randomDirs[i] * velocity;
             }
             if (flyDirections[i].y <= lowerBound || flyDirections[i].y >= upperBound) {
                 flyDirections[i].x = 0.0;

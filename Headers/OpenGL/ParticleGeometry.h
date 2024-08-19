@@ -57,9 +57,6 @@ private:
 	unsigned int instanceVBO;
 	bool firstInit = true;
 
-	float randomFloat(float min, float max);
-	glm::mat4 createRandomTransform(glm::vec3 ranges = glm::vec3(100.0, 0.0, 100.0));
-
 public:
 	std::vector<glm::mat4> matrixModels;	// temporary leave public
 	std::vector<glm::mat4> tempMatricies;

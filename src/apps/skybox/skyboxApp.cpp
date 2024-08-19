@@ -5,7 +5,7 @@
 #include <vector>
 #include "model.h"
 #include <skybox.h>
-#include "../../core/components/s/SkyboxComponent.h"
+#include "../../graphics/renderer/SkyboxRenderer.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -228,7 +228,7 @@ int main() {
 	shader.Activate();
 	shader.setInt("texture1", 0);
 
-	SkyboxComponent skybox;
+	SkyboxRenderer skybox;
 	skybox.setUniform();
 
 

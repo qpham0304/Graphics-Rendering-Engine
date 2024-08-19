@@ -9,8 +9,8 @@
 #include <future>
 #include <mutex>
 #include <thread>
+#include "../src/graphics/renderer/SkyboxRenderer.h"
 #include "../components/legacy/Component.h"
-#include "../components/legacy/SkyboxComponent.h"
 #include "../components/legacy/LightComponent.h"
 #include "Scene.h"
 
@@ -32,7 +32,6 @@ public:
 	static std::mutex mtx;
 	std::unordered_map<std::string, std::shared_ptr<Model>> models;
 	std::unordered_map<std::string, std::shared_ptr<Animation>> animations;
-	std::unordered_map<std::string, std::shared_ptr<Animator>> animators;
 
 	Texture defaultAlbedo;
 	Texture defaultNormal;
@@ -60,10 +59,8 @@ public:
 	std::string addModel(const std::string& path);
 	std::string addModelFromMeshes(std::vector<Mesh>& meshes);
 	bool removeModel(const std::string& path);
-	bool addAnimation(const std::string& path);
+	std::string addAnimation(const std::string& path, Model* model);
 	bool removeAnimation(const std::string& path);
-	bool addAnimator(const std::string& path);
-	bool removeAnimator(const std::string& path);
 
 	
 	//TODO: refactor these static functions into a new project or remove them completely

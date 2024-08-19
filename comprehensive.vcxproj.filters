@@ -120,7 +120,7 @@
     <ClCompile Include="src\gui\widgets\MenuWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\apps\sanbox\main.cpp">
+    <ClCompile Include="src\apps\sandbox\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\scene\SceneManager.cpp">
@@ -225,7 +225,7 @@
     <ClCompile Include="src\core\components\legacy\Component.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\core\components\legacy\SkyboxComponent.cpp">
+    <ClCompile Include="src\graphics\core\OpenGL\SkyboxRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\features\Profiler.cpp">
@@ -268,6 +268,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\core\components\CubeMapComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\layers\OpenGL\ShadowLayer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -482,7 +485,7 @@
     <ClInclude Include="src\core\components\ModelComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\core\components\legacy\SkyboxComponent.h">
+    <ClInclude Include="src\graphics\renderer\SkyboxRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\core\components\headers\ModelComponent.h">
@@ -540,6 +543,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\core\components\CubeMapComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\core\layers\ShadowLayer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

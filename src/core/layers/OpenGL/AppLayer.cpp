@@ -17,7 +17,7 @@ AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(
 		glm::vec3(-6.5f, 3.5f, 8.5f), 
 		glm::vec3(0.5, -0.2, -1.0f)
 	);
-	skybox.reset(new SkyboxComponent());
+	skybox.reset(new SkyboxRenderer());
 }
 
 AppLayer::~AppLayer()

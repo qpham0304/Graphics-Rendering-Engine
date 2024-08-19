@@ -24,7 +24,7 @@ int SSR_demo::show_demo()
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     //Shader planeShader("Shaders/deferredShading/deferredShading.vert", "Shaders/deferredShading/reflectionPlane.frag");
 
-    SkyboxComponent skybox;
+    SkyboxRenderer skybox;
     DeferredRenderer deferredRenderer(width, height);
 
     Texture cubeTex("Textures/squish.png", "albedoMap");

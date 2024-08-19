@@ -60,7 +60,7 @@ private:
 	glm::mat4 inProjection;
 
 public:
-	glm::mat4 mvp;	// TODO: arealight demo is coupling this, fix when have time
+	glm::mat4 mvp;	// TODO: area light demo is coupling this, fix then move to private
 
 	Camera();
 	Camera(unsigned int width, unsigned int height, glm::vec3 position, glm::vec3 orientation);

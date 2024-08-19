@@ -13,17 +13,18 @@ private:
 	unsigned int cubeVBO = 0;
 	unsigned int sphereVAO = 0;
 	unsigned int indexCount = 0;
+	float lf = 0.0f;
 
 	float speed = 0.001f;
 	bool pause = true;
 	bool reset = false;
 	bool isPopulating = false;
-	glm::vec3 spawnArea = glm::vec3(100.0, 10.0, 100.0);
+	glm::vec3 spawnArea = glm::vec3(30.0, 10.0, 30.0);
 	glm::vec3 direction = glm::vec3(0.0, 0.0, 0.0);
-	unsigned int numInstances = 100000;
+	unsigned int numInstances = 20000 * 5;
 	int numRender = numInstances;
 	float heightLimit = 100.0f;
-	glm::vec2 randomRange = glm::vec2(2.0, 5.0);
+	glm::vec2 randomRange = glm::vec2(3.0, 5.0);
 
 	glm::vec3 particleSize = glm::vec3(0.1, 0.1, 0.1);
 	std::vector<glm::mat4> matrixModels;
@@ -31,9 +32,15 @@ private:
 	ParticleControl particleControl = ParticleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
 	ParticleGeometry particleRenderer;
 	
-	Shader lightShader;
+	Shader particleShader;
+	Shader pbrShader;
 
-	std::unique_ptr<Shader> pbrShader;
+	unsigned int gBuffer;
+	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV;
+
+	void setupBuffers();
+	void bindBuffers();
+	void renderPrePass();
 
 public:
 	DeferredIBLDemo(const std::string& name);

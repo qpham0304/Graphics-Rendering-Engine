@@ -5,10 +5,7 @@ Skybox::Skybox(std::vector<std::string> faces) {
     ID = loadCubeMap(faces);
 }
 
-Skybox::~Skybox()
-{
-    Delete();
-}
+Skybox::~Skybox() = default;
 
 unsigned int Skybox::loadCubeMap(std::vector<std::string> faces)
 {
@@ -55,7 +52,7 @@ unsigned Skybox::textureID()
     return ID;
 }
 
-void Skybox::Delete()
+void Skybox::free()
 {
     glDeleteTextures(1, &ID);
 }

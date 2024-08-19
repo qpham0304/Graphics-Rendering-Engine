@@ -20,7 +20,7 @@ int SSR_view_demo::show_demo()
 
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
 
-    SkyboxComponent skybox;
+    SkyboxRenderer skybox;
     
     FrameBuffer colorPassFBO(width, height);
     FrameBuffer ssrSceneFBO(width, height);

@@ -18,7 +18,7 @@ int DeferredRender::show_demo() {
     Shader bloomShader("Shaders/bloom/bloom.vert", "Shaders/bloom/bloom.frag");
     Shader postProcessShader("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
 
-    SkyboxComponent skybox("Textures/night-skybox");
+    SkyboxRenderer skybox("Textures/night-skybox");
     SceneManager::addComponent("Models/backpack/backpack.obj");
     std::vector<Component*> components;
     for (const auto& pair : SceneManager::components) {
@@ -165,7 +165,7 @@ int bloomTest() {
     Shader modelShader("Shaders/models.vert", "Shaders/model.frag");
     Shader bloomShader("Shaders/bloom/bloom.vert", "Shaders/bloom/bloom.frag");
 
-    SkyboxComponent skybox("Textures/night-skybox");
+    SkyboxRenderer skybox("Textures/night-skybox");
     Model backpack("Models/backpack/backpack.obj");
 
     const unsigned int NR_LIGHTS = 32;

@@ -104,7 +104,7 @@ int ParticleDemo::show_demo()
 
     glm::vec3 particleSize(0.1, 0.1, 0.1);
 
-    SkyboxComponent skybox;
+    SkyboxRenderer skybox;
     FrameBuffer applicationFBO(width, height, GL_RGBA16F);
 
 

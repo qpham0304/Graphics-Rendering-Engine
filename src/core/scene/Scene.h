@@ -19,8 +19,6 @@ private:
 public:
 	std::unordered_map<uint32_t, Entity> entities;
 	LayerManager layerManager;
-	ImageBasedRenderer imageBasedRenderer;
-
 
 	bool isEnabled;
 
@@ -53,10 +51,11 @@ public:
 	template<typename... Components>
 	std::vector<Entity> getEntitiesWith() {
 		auto view = getEnttEntities<Components...>();
-		std::vector<Entity> entitiesList;
+		std::vector<Entity> entitiesList = {};
 		for (auto& entity : view) {
 			entitiesList.push_back(entities[(uint32_t)entity]);
 		}
+
 		return entitiesList;
 	}
 
@@ -64,6 +63,7 @@ public:
 	bool addShader(const std::string& name, Shader& shader);
 	bool addShader(const std::string& name, const std::string& vertPath, const std::string& fragPath);
 	std::shared_ptr<Shader> getShader(const std::string& name);
+	bool removeShader(const std::string& name);
 
 	void onStart();
 	void onStop();

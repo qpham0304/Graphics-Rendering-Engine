@@ -99,9 +99,9 @@ void BloomLayer::OnUpdate()
 		fbo->Bind();
         quadShader.Activate();
         glDisable(GL_DEPTH_TEST);
-        //glActiveTexture(GL_TEXTURE0);
-        //glBindTexture(GL_TEXTURE_2D, fbo->texture);
         glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, fbo->texture);
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, bloomRenderer.BloomTexture());
         Utils::OpenGL::Draw::drawQuad();
 		fbo->Unbind();

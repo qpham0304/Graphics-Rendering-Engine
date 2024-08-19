@@ -11,7 +11,9 @@
 class Animator
 {
 public:
+	Animator() = default;
 	Animator(Animation* animation);
+	void Init(Animation* animation);
 	void UpdateAnimation(float dt);
 	void PlayAnimation(Animation* pAnimation);
 	void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);

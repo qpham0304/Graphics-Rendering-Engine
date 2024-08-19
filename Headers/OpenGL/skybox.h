@@ -15,10 +15,10 @@ public:
 	void init(std::vector<std::string> faces);
 	void updateTexture(const unsigned int& id);
 	unsigned int textureID();
+	void free();
 
 private:
 	unsigned int ID;
 	unsigned int loadCubeMap(std::vector<std::string> faces);
-	void Delete();
 };
 

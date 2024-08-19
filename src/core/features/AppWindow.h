@@ -13,7 +13,7 @@
 #include "../../gui/GuiController.h"
 #include "../../graphics/utils/Utils.h"
 #include "../../core/components/legacy/Component.h"
-#include "../../core/components/legacy/SkyboxComponent.h"
+#include "../../graphics/renderer/SkyboxRenderer.h"
 #include "../../core/components/legacy/LightComponent.h"
 
 enum Platform {

@@ -1,6 +1,6 @@
-#include "SkyboxComponent.h"
+#include "../../renderer/SkyboxRenderer.h"
 
-void SkyboxComponent::setup()
+void SkyboxRenderer::setup()
 {
 	const float skyboxVertices[] = {
 		// positions          
@@ -58,7 +58,7 @@ void SkyboxComponent::setup()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 }
 
-SkyboxComponent::SkyboxComponent()
+SkyboxRenderer::SkyboxRenderer()
 {
 	skybox.init(faces);
 	shaderProgram.Init("Shaders/skybox.vert", "Shaders/skybox.frag");
@@ -67,7 +67,7 @@ SkyboxComponent::SkyboxComponent()
 }
 
 // receive path to the skybox folder and process all six files at once
-SkyboxComponent::SkyboxComponent(const char* path)
+SkyboxRenderer::SkyboxRenderer(const char* path)
 {
 
 	auto replacePath = [path](std::string& str) {
@@ -84,25 +84,26 @@ SkyboxComponent::SkyboxComponent(const char* path)
 	setup();
 }
 
-void SkyboxComponent::setUniform()
+SkyboxRenderer::~SkyboxRenderer() = default;
+
+void SkyboxRenderer::setUniform()
 {
 	shaderProgram.Activate();
 	glUniform1i(glGetUniformLocation(shaderProgram.ID, "skybox"), 0);
 	shaderProgram.setMat4("matrix", glm::mat4(1.0f));
 }
 
-void SkyboxComponent::updateTexture(const unsigned int& id)
+void SkyboxRenderer::updateTexture(const unsigned int& id)
 {
 	skybox.updateTexture(id);
-
 }
 
-unsigned int SkyboxComponent::getTextureID()
+unsigned int SkyboxRenderer::getTextureID()
 {
 	return skybox.textureID();
 }
 
-void SkyboxComponent::render(Camera& camera)
+void SkyboxRenderer::render(Camera& camera)
 {
 	glm::mat4 projection = camera.getProjectionMatrix();
 	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.getViewMatrix()));	 // remove translation from the view matrix
@@ -122,7 +123,7 @@ void SkyboxComponent::render(Camera& camera)
 	glDepthFunc(GL_LESS);
 }
 
-void SkyboxComponent::render(Camera& camera, const unsigned int& ID)
+void SkyboxRenderer::render(Camera& camera, const unsigned int& ID)
 {
 	glm::mat4 projection = camera.getProjectionMatrix();
 	glm::mat4 viewMatrix = glm::mat4(glm::mat3(camera.getViewMatrix()));	 // remove translation from the view matrix
@@ -140,4 +141,11 @@ void SkyboxComponent::render(Camera& camera, const unsigned int& ID)
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glBindVertexArray(0);
 	glDepthFunc(GL_LESS); // set depth function back to default
+}
+
+void SkyboxRenderer::free()
+{
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteProgram(shaderProgram.ID);
+	skybox.free();
 }

@@ -41,7 +41,7 @@ int BasicRayTracing::show_demo()
     Shader lightShader("Shaders/light.vert", "Shaders/light.frag");
     Shader renderScene("Shaders/postProcess/renderQuad.vert", "Shaders/postProcess/renderQuad.frag");
 
-    SkyboxComponent skybox;
+    SkyboxRenderer skybox;
 
     FrameBuffer rayTracingFBO(width, height);
     FrameBuffer colorSceneFBO(width, height);

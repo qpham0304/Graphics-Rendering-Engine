@@ -12,7 +12,7 @@ enum class EventType
 	WindowClose, WindowResize, WindowFocus, WindowLostFocus, WindowMoved, WindowUpdate,
 	KeyPressed, KeyReleased, KeyTyped,
 	MousePressed, MouseReleased, MouseMoved, MouseScrolled,
-	AsyncEvent, ModelLoadEvent
+	AsyncEvent, ModelLoadEvent, AnimationLoadEvent
 };
 
 class Event
@@ -231,5 +231,30 @@ public:
 
 	std::string ToString() const override {
 		return "ModelLoadEvent";
+	}
+};
+
+class AnimationLoadEvent : public Event
+{
+public:
+	std::string path = "None";
+	Entity entity;
+
+	AnimationLoadEvent() = default;
+	AnimationLoadEvent(const std::string path, const Entity entity) : path(path), entity(entity)
+	{
+
+	};
+
+	EventType GetEventType() const override {
+		return EventType::AnimationLoadEvent;
+	}
+
+	const char* GetName() const override {
+		return "AnimationLoadEvent";
+	};
+
+	std::string ToString() const override {
+		return "AnimationLoadEvent";
 	}
 };

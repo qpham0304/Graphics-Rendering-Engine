@@ -111,8 +111,15 @@ void Model::loadModel(std::string path)
 {
     auto start = std::chrono::high_resolution_clock::now();
     Assimp::Importer import;
-    unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_GlobalScale
-        | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_SplitByBoneCount;
+    unsigned int flags = aiProcess_Triangulate 
+        | aiProcess_GenSmoothNormals 
+        | aiProcess_GlobalScale
+        | aiProcess_FlipUVs 
+        | aiProcess_CalcTangentSpace 
+        | aiProcess_SplitByBoneCount
+        | aiProcess_LimitBoneWeights
+        | aiProcess_JoinIdenticalVertices
+        | aiProcess_ValidateDataStructure;
     const aiScene * scene = import.ReadFile(path, flags);
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
@@ -267,8 +274,11 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
 
         if (loaded_textures.find(path.data()) != loaded_textures.end()) {
             textures.push_back(loaded_textures[path.data()]);
-            if (typeName == "roughnessMap") // roughnessMap uses the same file as metallicMap which will cause wrong type as map only store one path
+            if (typeName == "roughnessMap") {
+                // since cache map only stores one path
+                // gltf's roughnessMap with two components metallic and roughness will cause wrong type on insertion
                 textures[textures.size() - 1].type = "roughnesMap";
+            }
             break;
         }
 
@@ -281,23 +291,28 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType 
             loadDefaultTexture("Textures/default/32x32/albedo.png", "albedoMap");
             textures.push_back(loaded_textures["Textures/default/32x32/albedo.png"]);
         }
+
         else if (typeName == "normalMap") {
             loadDefaultTexture("Textures/default/32x32/normal.png", "normalMap");
             textures.push_back(loaded_textures["Textures/default/32x32/normal.png"]);
         }
+
         else if (typeName == "metallicMap") {
             loadDefaultTexture("Textures/default/32x32/metallic.png", "metallicMap");
             textures.push_back(loaded_textures["Textures/default/32x32/metallic.png"]);
         }
+
         else if (typeName == "roughnessMap") {
             loadDefaultTexture("Textures/default/32x32/roughness.png", "roughnessMap");
             textures.push_back(loaded_textures["Textures/default/32x32/roughness.png"]);
             textures[textures.size() - 1].type = "roughnesMap";
         }
+
         else if (typeName == "aoMap") {
             loadDefaultTexture("Textures/default/32x32/ao.png", "aoMap");
             textures.push_back(loaded_textures["Textures/default/32x32/ao.png"]);
         }
+
         else if (typeName == "emissiveMap") {
             loadDefaultTexture("Textures/default/32x32/emissive.png", "emissiveMap");
             textures.push_back(loaded_textures["Textures/default/32x32/emissive.png"]);
@@ -317,8 +332,7 @@ int& Model::GetBoneCount() {
 
 void Model::SetVertexBoneDataToDefault(Vertex& vertex)
 {
-    for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
-    {
+    for (int i = 0; i < MAX_BONE_INFLUENCE; i++) {
         vertex.m_BoneIDs[i] = -1;
         vertex.m_Weights[i] = 0.0f;
     }
@@ -326,10 +340,8 @@ void Model::SetVertexBoneDataToDefault(Vertex& vertex)
 
 void Model::SetVertexBoneData(Vertex& vertex, int boneID, float weight)
 {
-    for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
-    {
-        if (vertex.m_BoneIDs[i] < 0)
-        {
+    for (int i = 0; i < MAX_BONE_INFLUENCE; ++i) {
+        if (vertex.m_BoneIDs[i] < 0) {
             vertex.m_Weights[i] = weight;
             vertex.m_BoneIDs[i] = boneID;
             break;
@@ -343,13 +355,10 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
     auto& boneInfoMap = m_BoneInfoMap;
     int& boneCount = m_BoneCounter;
 
-    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
-    {
-
+    for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex) {
         int boneID = -1;
         std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
-        if (boneInfoMap.find(boneName) == boneInfoMap.end())
-        {
+        if (boneInfoMap.find(boneName) == boneInfoMap.end()) {
             BoneInfo newBoneInfo;
             newBoneInfo.id = boneCount;
             newBoneInfo.offset = AssimpGLMHelpers::ConvertMatrixToGLMFormat(mesh->mBones[boneIndex]->mOffsetMatrix);
@@ -357,16 +366,16 @@ void Model::ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* 
             boneID = boneCount;
             boneCount++;
         }
-        else
-        {
+
+        else {
             boneID = boneInfoMap[boneName].id;
         }
+
         assert(boneID != -1);
         auto weights = mesh->mBones[boneIndex]->mWeights;
         int numWeights = mesh->mBones[boneIndex]->mNumWeights;
 
-        for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
-        {
+        for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex) {
             int vertexId = weights[weightIndex].mVertexId;
             float weight = weights[weightIndex].mWeight;
             assert(vertexId <= vertices.size());

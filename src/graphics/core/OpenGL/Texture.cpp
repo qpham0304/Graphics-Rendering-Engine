@@ -12,14 +12,17 @@ void Texture::loadTexture(const char* path, bool flip)
 		std::cout << "Texture load failed: " << path << std::endl;
 		stbi_image_free(data);
 	}
+
 	else {
 		GLenum format = 0;
 		if (nrComponents == 1) {
 			format = GL_RED;
 		}
+
 		else if (nrComponents == 3) {
 			format = GL_RGB;
 		}
+
 		else if (nrComponents == 4) {
 			format = GL_RGBA;
 		}

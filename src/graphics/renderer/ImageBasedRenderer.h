@@ -12,11 +12,11 @@ private:
 	unsigned int captureFBO, captureRBO;
 	std::string texturePath;
 
-	std::unique_ptr<Shader> equirectangularToCubemapShader;
-	std::unique_ptr<Shader> irradianceShader;
-	std::unique_ptr<Shader> backgroundShader;
-	std::unique_ptr<Shader> prefilterShader;
-	std::unique_ptr<Shader> brdfShader;
+	Shader equirectangularToCubemapShader;
+	Shader irradianceShader;
+	Shader backgroundShader;
+	Shader prefilterShader;
+	Shader brdfShader;
 
 	void setupCubeMap();
 	void renderCubeMap();
@@ -29,12 +29,14 @@ private:
 
 public:
 	ImageBasedRenderer();
+	~ImageBasedRenderer() = default;
 
 	void init(const std::string& path);
 	void bindIrradianceMap();
 	void bindPrefilterMap();
 	void bindLUT();
 	void onTextureReload(const std::string& path);
+	void free();
 
 	unsigned int envCubemapTexture;
 	unsigned int hdrTexture;

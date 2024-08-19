@@ -6,7 +6,7 @@
 
 Scene::Scene(const std::string name) : sceneName(name), isEnabled(true)
 {
-	imageBasedRenderer.init("Textures/hdr/industrial_sunset_02_puresky_1k.hdr");
+
 }
 
 bool Scene::addLayer(Layer* layer)
@@ -37,6 +37,15 @@ uint32_t Scene::addEntity(const std::string& name)
 bool Scene::removeEntity(const uint32_t& uuid)
 {
 	if (entities.find(uuid) != entities.end()) {
+		int index = 0;
+		for (auto& entity : selectedEntities) {
+			if (uuid == entity.getID()) {
+				selectedEntities.erase(selectedEntities.begin() + index);
+			}
+			index++;
+		}
+		
+		registry.destroy(static_cast<entt::entity>(uuid));
 		entities.erase(uuid);
 		return true;
 	}
@@ -77,11 +86,11 @@ bool Scene::addShader(const std::string& name, Shader& shader)
 
 bool Scene::addShader(const std::string& name, const std::string& vertPath, const std::string& fragPath)
 {
-	if (shaders.find(name) == shaders.end()) {
+	//if (shaders.find(name) == shaders.end()) {
 		shaders[name] = std::make_shared<Shader>(vertPath.c_str(), fragPath.c_str());
 		return true;
-	}
-	return false;
+	//}
+	//return false;
 }
 
 std::shared_ptr<Shader> Scene::getShader(const std::string& name)
@@ -90,6 +99,15 @@ std::shared_ptr<Shader> Scene::getShader(const std::string& name)
 		return shaders[name];
 	}
 	return nullptr;
+}
+
+bool Scene::removeShader(const std::string& name)
+{
+	if (shaders.find(name) != shaders.end()) {
+		shaders.erase(name);
+		return true;
+	}
+	return false;
 }
 
 void Scene::onUpdate(const float& deltaTime)

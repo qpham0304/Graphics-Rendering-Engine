@@ -3,9 +3,7 @@
 #include <Animator.h>
 #include <FrameBuffer.h>
 #include "camera.h"
-#include "../../core/components/headers/SkyboxComponent.h"
-#include "../../core/components/s/SkyboxComponent.h"
-#include "../../core/components/s/PlaneComponent.h"
+#include "../src/graphics/renderer/SkyboxRenderer.h"
 #include "../../gui/ImGuiController.h"
 #include <DepthMap.h>
 
@@ -150,7 +148,7 @@ int main() {
 	Animation aru_animation("Models/aru/aru.gltf", &aruModel);
 	Animator aru_animator(&aru_animation);
 
-	SkyboxComponent skybox;
+	SkyboxRenderer skybox;
 	skybox.setUniform();
 
 
