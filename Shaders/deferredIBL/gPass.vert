@@ -10,6 +10,7 @@ layout (location = 7) in vec4 weights;
 
 out vec2 uv;
 out vec3 normal;
+out vec3 fragPos;
 
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
@@ -23,8 +24,10 @@ uniform bool hasAnimation = false;
 
 void main() {
     uv = aTexCoords;
-    invertedTexCoords ? uv.y *= -1 : uv.y; // only use this to flip texture horizontally
-    normal = mat3(modelViewNormal) * (invertedNormals ? -aNormal : aNormal);
+    invertedTexCoords ? uv.y *= -1 : uv.y; // use this to flip texture horizontally
+    
+    int invertNormal = invertedNormals ? -1 : 1;
+    normal = mat3(modelViewNormal) * aNormal * invertNormal; //view space normal
     
     vec4 totalPosition = vec4(0.0f);
     for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++) {
@@ -45,6 +48,7 @@ void main() {
     
     int condition = int(hasAnimation);
     totalPosition = condition * totalPosition + (1 - condition) * vec4(aPos, 1.0f);
-
+    fragPos = totalPosition.xyz;
+    
     gl_Position = mvp * totalPosition;
 }

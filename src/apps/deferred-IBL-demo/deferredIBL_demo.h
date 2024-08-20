@@ -35,11 +35,13 @@ private:
 	Shader particleShader;
 	Shader pbrShader;
 
+	FrameBuffer lightPassFBO;
+
 	unsigned int gBuffer;
 	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV;
 
 	void setupBuffers();
-	void bindBuffers();
+	void renderColorPass();
 	void renderPrePass();
 
 public:

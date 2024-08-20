@@ -12,10 +12,14 @@ static glm::vec3 lightPositions[] = {
     glm::vec3(-10.0f, 5.0f, -10.0f),
 };
 static glm::vec4 lightColors[] = {
-    glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
-    glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
-    glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
-    glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
+    //glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
+    //glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
+    //glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
+    //glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
 };
 
 void DeferredIBLDemo::setupBuffers()
@@ -84,8 +88,61 @@ void DeferredIBLDemo::setupBuffers()
     }
 }
 
-void DeferredIBLDemo::bindBuffers()
+void DeferredIBLDemo::renderColorPass()
 {
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
+    
+    scene.addShader("colorPassShader", "Shaders/deferredIBL/colorPass.vert", "Shaders/deferredIBL/colorPass.frag");
+    scene.getShader("colorPassShader")->Activate();
+    scene.getShader("colorPassShader")->setInt("gDepth", 0);
+    scene.getShader("colorPassShader")->setInt("gNormal", 1);
+    scene.getShader("colorPassShader")->setInt("gAlbedo", 2);
+    scene.getShader("colorPassShader")->setInt("gMetalRoughness", 3);
+    scene.getShader("colorPassShader")->setInt("gEmissive", 4);
+    scene.getShader("colorPassShader")->setInt("gDUV", 5);
+    scene.getShader("colorPassShader")->setInt("irradianceMap", 6);
+    scene.getShader("colorPassShader")->setInt("prefilterMap", 7);
+    scene.getShader("colorPassShader")->setInt("brdfLUT", 8);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gDepth);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, gAlbedo);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, gMetalRoughness);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, gEmissive);
+    //glActiveTexture(GL_TEXTURE5);
+    //glBindTexture(GL_TEXTURE_2D, gDUV);
+    
+    auto list = scene.getEntitiesWith<CubeMapComponent>();
+    CubeMapComponent* cubeMap = nullptr;
+    if (!list.empty() && list[0].hasComponent<CubeMapComponent>()) {
+        cubeMap = &list[0].getComponent<CubeMapComponent>();
+        cubeMap->bindIBL(); // slot 6, 7, 8
+    }
+
+    //scene.getShader("colorPassShader")->setMat4("view", camera.getViewMatrix());
+    //scene.getShader("colorPassShader")->setMat4("projection", camera.getProjectionMatrix());
+    scene.getShader("colorPassShader")->setMat4("invProjection", glm::inverse(camera.getProjectionMatrix()));
+    scene.getShader("colorPassShader")->setMat4("inverseView", glm::inverse(camera.getViewMatrix()));
+    scene.getShader("colorPassShader")->setBool("gamma", true);
+    scene.getShader("colorPassShader")->setVec3("camPos", camera.getPosition());
+    //scene.getShader("colorPassShader")->setInt("width", AppWindow::width);
+    //scene.getShader("colorPassShader")->setInt("height", AppWindow::height);
+
+    for (int i = 0; i < 4; i++) {
+        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(i) + "].color", lightPositions[i]);
+        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(i) + "].position", lightColors[i]);
+    }
+
+    lightPassFBO.Bind();
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    Utils::OpenGL::Draw::drawQuad();
+    lightPassFBO.Unbind();
 
 }
 
@@ -122,15 +179,18 @@ void DeferredIBLDemo::renderPrePass()
         ModelComponent model = entity.getComponent<ModelComponent>();
         glm::mat4& modelMatrix = entity.getComponent<TransformComponent>().getModelMatrix();
         glm::mat4 modelViewNormal = glm::transpose(glm::inverse(camera.getViewMatrix() * modelMatrix));
-        scene.getShader("gPassShader")->setFloat("reflectiveMap", 0.0);
+        
+        scene.getShader("gPassShader")->setFloat("reflectiveMap", 1.0);
         scene.getShader("gPassShader")->setBool("invertedNormals", false);
-        scene.getShader("gPassShader")->setBool("invertedTexCoords", true);
+        scene.getShader("gPassShader")->setBool("invertedTexCoords", false);
         scene.getShader("gPassShader")->setMat4("model", modelMatrix);
         scene.getShader("gPassShader")->setMat4("modelViewNormal", modelViewNormal);
         scene.getShader("gPassShader")->setMat4("mvp", camera.getMVP() * modelMatrix);
+        scene.getShader("gPassShader")->setMat4("inverseViewMat", camera.getInViewMatrix());
 
         bool hasAnimation = entity.hasComponent<AnimationComponent>();
         scene.getShader("gPassShader")->setBool("hasAnimation", hasAnimation);
+
         if (hasAnimation) {
             AnimationComponent& animationComponent = entity.getComponent<AnimationComponent>();
             auto transformBoneMatricies = animationComponent.animator.GetFinalBoneMatrices();
@@ -151,8 +211,9 @@ void DeferredIBLDemo::renderPrePass()
 DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
 {
     //particleRenderer.init(particleControl);
-    particleShader.Init("Shaders/particle.vert", "Shaders/particle.frag");
     pbrShader.Init("Shaders/default-2.vert", "Shaders/default-2.frag");
+    particleShader.Init("Shaders/particle.vert", "Shaders/particle.frag");
+    lightPassFBO.Init(AppWindow::width, AppWindow::height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
 }
 
 void DeferredIBLDemo::OnAttach()
@@ -384,6 +445,7 @@ void DeferredIBLDemo::OnGuiUpdate()
             particleRenderer.reset();
         }
 
+
         renderPrePass();
         ImGui::Text("gAlbedo");
         ImGui::Image((ImTextureID)gAlbedo, wsize, ImVec2(0, 1), ImVec2(1, 0));
@@ -397,6 +459,10 @@ void DeferredIBLDemo::OnGuiUpdate()
         ImGui::Image((ImTextureID)gDUV, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("gDepth");
         ImGui::Image((ImTextureID)gDepth, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+        renderColorPass();
+        ImGui::Text("Color pass");
+        ImGui::Image((ImTextureID)lightPassFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::End();
     }
 }
