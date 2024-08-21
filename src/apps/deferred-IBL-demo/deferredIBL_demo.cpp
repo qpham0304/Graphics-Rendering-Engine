@@ -12,14 +12,14 @@ static glm::vec3 lightPositions[] = {
     glm::vec3(-10.0f, 5.0f, -10.0f),
 };
 static glm::vec4 lightColors[] = {
-    //glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
-    //glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
-    //glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
-    //glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
-    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
-    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
+    glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
+    glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
+    glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
+    //glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    //glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    //glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    //glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
 };
 
 void DeferredIBLDemo::setupBuffers()
@@ -133,9 +133,12 @@ void DeferredIBLDemo::renderColorPass()
     //scene.getShader("colorPassShader")->setInt("width", AppWindow::width);
     //scene.getShader("colorPassShader")->setInt("height", AppWindow::height);
 
-    for (int i = 0; i < 4; i++) {
-        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(i) + "].color", lightPositions[i]);
-        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(i) + "].position", lightColors[i]);
+
+    std::vector<Entity> lights = scene.getEntitiesWith<MLightComponent, TransformComponent>();
+    int index = 0;
+    for (auto& entity : lights) {
+        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(index) + "].color", lightColors[index]);
+        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(index) + "].position", lightPositions[index]);
     }
 
     lightPassFBO.Bind();

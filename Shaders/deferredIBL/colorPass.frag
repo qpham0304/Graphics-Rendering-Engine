@@ -102,29 +102,44 @@ vec4 calcLighting() {
 	F0 = mix(F0, albedo, metallic);
 	
 	vec3 Lo = vec3(0.0);
+    vec3 lighting = vec3(0.0);
 	for(int i = 0; i < MAX_NUM_LIGHTS; i++) {
-		vec3 L = normalize(lights[i].position - worldSpacePosition);
-		vec3 H = normalize(V + L);
+		// vec3 L = normalize(lights[i].position - worldSpacePosition);
+		// vec3 H = normalize(V + L);
 
-		float distance = length(lights[i].position - worldSpacePosition);
-		float attenuation = 1.0 / (distance * distance);
-		vec3 radiance = lights[i].color * attenuation;
+		// float distance = length(lights[i].position - worldSpacePosition);
+		// float attenuation = 1.0 / (distance * distance);
+		// vec3 radiance = lights[i].color * attenuation;
 		
-		//BRDF
-		vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
-		float NDF = DistributionGGX(N, H, roughness);       
-		float G   = GeometrySmith(N, V, L, roughness);
+		// //BRDF
+		// vec3 F  = fresnelSchlick(max(dot(H, V), 0.0), F0);
+		// float NDF = DistributionGGX(N, H, roughness);       
+		// float G   = GeometrySmith(N, V, L, roughness);
 
-		vec3 numerator    = NDF * G * F;
-		float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0)  + 0.0001; // 0.0001 to prevent zero division
-		vec3 specular     = numerator / denominator; 
+		// vec3 numerator    = NDF * G * F;
+		// float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0)  + 0.0001; // 0.0001 to prevent zero division
+		// vec3 specular     = numerator / denominator; 
 
-		vec3 kS = F;
-		vec3 kD = vec3(1.0) - kS;
-		kD *= 1.0 - metallic;	
+		// vec3 kS = F;
+		// vec3 kD = vec3(1.0) - kS;
+		// kD *= 1.0 - metallic;
 
-		float NdotL = max(dot(N, L), 0.0);
-		Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+		// float NdotL = max(dot(N, L), 0.0);
+		// Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+
+        float distance = length(lights[i].position - viewSpacePosition);
+        vec3 lightDir = normalize(lights[i].position - viewSpacePosition);
+        vec3 view = normalize(-viewSpacePosition);
+        vec3 halfwayDir = normalize(lightDir + view);  
+
+        vec3 diffuse = max(dot(N, lightDir), 0.0) * albedo * lights[i].color;
+        float spec = pow(max(dot(N, halfwayDir), 0.0), 16.0);
+        vec3 specular = lights[i].color * spec * metallic;
+        // attenuation
+        // float attenuation = 1.0 / (1.0 + lights[i].Linear * distance + lights[i].Quadratic * distance * distance);
+        float attenuation = 0.01;
+        lighting += (diffuse + specular) * attenuation;
+        Lo = lighting;
 	}
     
     vec3 F = fresnelSchlickRoughness(max(dot(N, -V), 0.0), F0, roughness);
