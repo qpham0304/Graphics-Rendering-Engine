@@ -37,6 +37,7 @@ DeferredRenderer::DeferredRenderer(const int width, const int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedoSpec, 0);
 
+
     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
 
@@ -46,7 +47,21 @@ DeferredRenderer::DeferredRenderer(const int width, const int height)
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
+
+
+    glGenTextures(1, &gDepth);
+    glBindTexture(GL_TEXTURE_2D, gDepth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0,
+        GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, gDepth, 0);
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+
 }
 
 void DeferredRenderer::renderGeometry(Camera& camera, std::vector<Component*>& components)
@@ -104,7 +119,8 @@ void DeferredRenderer::renderColor(Camera& camera, std::vector<Light>& lights)
     colorShader->setInt("gPosition", 0);
     colorShader->setInt("gNormal", 1);
     colorShader->setInt("gAlbedoSpec", 2);
-    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gPosition);
     glActiveTexture(GL_TEXTURE1);
@@ -154,4 +170,9 @@ unsigned int DeferredRenderer::getGColorspec()
 unsigned int DeferredRenderer::getGAlbedoSpec()
 {
     return gAlbedoSpec;
+}
+
+unsigned int DeferredRenderer::getGDepth()
+{
+    return gDepth;
 }

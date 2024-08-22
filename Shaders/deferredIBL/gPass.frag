@@ -4,6 +4,7 @@ layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gMetalRoughness;
 layout (location = 3) out vec4 gEmissive;
 layout (location = 4) out vec4 gDUV;
+layout (location = 5) out vec3 gPosition;
 
 in vec2 uv;
 in vec3 fragPos;
@@ -53,4 +54,5 @@ void main() {
 
     gEmissive = texture(emissiveMap, uv);
     gDUV = texture(duvMap, uv);
+    gPosition = fragPos;
 }  

@@ -29,7 +29,14 @@ private:
 	glm::vec3 particleSize = glm::vec3(0.1, 0.1, 0.1);
 	std::vector<glm::mat4> matrixModels;
 
-	ParticleControl particleControl = ParticleControl(randomRange, spawnArea, heightLimit, -heightLimit, numInstances, particleSize);
+	ParticleControl particleControl = ParticleControl(
+		randomRange, 
+		spawnArea, 
+		heightLimit, 
+		-heightLimit, 
+		numInstances, 
+		particleSize
+	);
 	ParticleGeometry particleRenderer;
 	
 	Shader particleShader;
@@ -37,11 +44,26 @@ private:
 	FrameBuffer lightPassFBO;
 
 	unsigned int gBuffer;
-	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV;
+	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV, gPosition;
+
+	Shader ssaoShader;
+	Shader blurShader;
+
+	std::default_random_engine generator;
+	std::vector<glm::vec3> ssaoKernel;
+	unsigned int ssaoFBO;
+	unsigned int ssaoTexture;
+	unsigned int noiseTexture;
+	unsigned int ssaoBlurFBO;
+	unsigned int ssaoBlurTexture;
+
 
 	void setupBuffers();
 	void renderPrePass();
 	void renderDeferredPass();
+
+	void setupSSAO();
+	void renderSSAO();
 
 	void setupForwardPass();
 	void renderForwardPass();

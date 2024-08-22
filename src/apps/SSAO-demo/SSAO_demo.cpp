@@ -65,7 +65,7 @@ int SSAO_Demo::show_demo()
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
-   
+
     unsigned int ssaoBlurFBO;
     glGenFramebuffers(1, &ssaoBlurFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
@@ -80,6 +80,8 @@ int SSAO_Demo::show_demo()
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 
     // generate sample kernel
     std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
@@ -109,7 +111,8 @@ int SSAO_Demo::show_demo()
             0.0f); // rotate around z-axis (in tangent space)
         ssaoNoise.push_back(noise);
     }
-    unsigned int noiseTexture; glGenTextures(1, &noiseTexture); 
+    unsigned int noiseTexture; 
+    glGenTextures(1, &noiseTexture); 
     glBindTexture(GL_TEXTURE_2D, noiseTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -125,6 +128,7 @@ int SSAO_Demo::show_demo()
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
     glEnable(GL_DEPTH_TEST);
+    glfwSwapInterval(1);
     while (!glfwWindowShouldClose(AppWindow::window)) {
         camera.onUpdate();
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -136,6 +140,9 @@ int SSAO_Demo::show_demo()
         ssaoShader.setInt("gNormal", 1);
         ssaoShader.setInt("texNoise", 2);
         ssaoShader.setVec2("noiseScale", glm::vec2(width / 4.0f, height / 4.0f));   // tile noise texture over screen based
+        ssaoShader.setInt("gDepth", 3);
+        ssaoShader.setMat4("invProjection", camera.getInProjectionMatrix());
+        ssaoShader.setMat4("invView", camera.getInViewMatrix());
 
         frameCounter++;
         if (deltaTime >= 1 / 2) {
@@ -169,6 +176,7 @@ int SSAO_Demo::show_demo()
         
         //ssao pass
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         ssaoShader.Activate();
         for (unsigned int i = 0; i < 64; ++i) {
             ssaoShader.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
@@ -182,6 +190,8 @@ int SSAO_Demo::show_demo()
         glBindTexture(GL_TEXTURE_2D, deferredRenderer.getGNormal());
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, noiseTexture);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, deferredRenderer.getGDepth());
         Utils::OpenGL::Draw::drawQuad();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -233,6 +243,7 @@ int SSAO_Demo::show_demo()
                 ImGui::Image((ImTextureID)noiseTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::Image((ImTextureID)ssaoTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::Image((ImTextureID)ssaoBlurTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::Image((ImTextureID)deferredRenderer.getGDepth(), wsize, ImVec2(0, 1), ImVec2(1, 0));
                 ImGui::EndChild();
                 ImGui::End();
             }

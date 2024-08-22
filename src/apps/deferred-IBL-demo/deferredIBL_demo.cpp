@@ -20,6 +20,11 @@ static glm::vec4 lightColors[] = {
     glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
 };
 
+static float customLerp(float a, float b, float f)
+{
+    return a + f * (b - a);
+}
+
 void DeferredIBLDemo::setupBuffers()
 {
     int width = AppWindow::width;
@@ -63,6 +68,15 @@ void DeferredIBLDemo::setupBuffers()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, GL_TEXTURE_2D, gDUV, 0);
 
+    glGenTextures(1, &gPosition);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, GL_TEXTURE_2D, gPosition, 0);
+
     glGenTextures(1, &gDepth);
     glBindTexture(GL_TEXTURE_2D, gDepth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, 
@@ -72,14 +86,15 @@ void DeferredIBLDemo::setupBuffers()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, gDepth, 0);
 
-    GLenum drawBuffers1[5] = { 
+    GLenum drawBuffers[6] = { 
         GL_COLOR_ATTACHMENT0, 
         GL_COLOR_ATTACHMENT1, 
         GL_COLOR_ATTACHMENT2, 
         GL_COLOR_ATTACHMENT3,
-        GL_COLOR_ATTACHMENT4
+        GL_COLOR_ATTACHMENT4,
+        GL_COLOR_ATTACHMENT5
     };
-    glDrawBuffers(4, drawBuffers1);
+    glDrawBuffers(6, drawBuffers);
     
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << std::hex << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
@@ -101,6 +116,7 @@ void DeferredIBLDemo::renderDeferredPass()
     scene.getShader("colorPassShader")->setInt("irradianceMap", 6);
     scene.getShader("colorPassShader")->setInt("prefilterMap", 7);
     scene.getShader("colorPassShader")->setInt("brdfLUT", 8);
+    scene.getShader("colorPassShader")->setInt("ssaoTex", 9);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gDepth);
@@ -112,8 +128,8 @@ void DeferredIBLDemo::renderDeferredPass()
     glBindTexture(GL_TEXTURE_2D, gMetalRoughness);
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, gEmissive);
-    //glActiveTexture(GL_TEXTURE5);
-    //glBindTexture(GL_TEXTURE_2D, gDUV);
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, gDUV);
     
     auto list = scene.getEntitiesWith<CubeMapComponent>();
     CubeMapComponent* cubeMap = nullptr;
@@ -121,6 +137,9 @@ void DeferredIBLDemo::renderDeferredPass()
         cubeMap = &list[0].getComponent<CubeMapComponent>();
         cubeMap->bindIBL(); // slot 6, 7, 8
     }
+
+    glActiveTexture(GL_TEXTURE9);
+    glBindTexture(GL_TEXTURE_2D, ssaoBlurTexture);
 
     scene.getShader("colorPassShader")->setMat4("viewMatrix", camera.getViewMatrix());
     scene.getShader("colorPassShader")->setMat4("invProjection", camera.getInProjectionMatrix());
@@ -150,6 +169,123 @@ void DeferredIBLDemo::renderDeferredPass()
     lightPassFBO.Unbind();
 
 }
+
+void DeferredIBLDemo::setupSSAO()
+{
+    glGenFramebuffers(1, &ssaoFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+    glGenTextures(1, &ssaoTexture);
+    glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, AppWindow::width, AppWindow::height, 0, GL_RED, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "SSAO Framebuffer not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glGenFramebuffers(1, &ssaoBlurFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+    glGenTextures(1, &ssaoBlurTexture);
+    glBindTexture(GL_TEXTURE_2D, ssaoBlurTexture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, AppWindow::width, AppWindow::height, 0, GL_RED, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoBlurTexture, 0);
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
+    // generate sample kernel
+    for (unsigned int i = 0; i < 64; ++i) {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator));    // 0 to 1 only for z since we want half a sphere not an entire one
+        sample = glm::normalize(sample);
+        sample *= randomFloats(generator);
+        float scale = float(i) / 64.0f;
+
+        // samples are distributed randomly so we want to add larger weight on occlusions close to the fragment
+        // scale samples s.t. they're more aligned to center of kernel
+        scale = customLerp(0.1f, 1.0f, scale * scale);
+        sample *= scale;
+        ssaoKernel.push_back(sample);
+    }
+
+    // generate noise texture for random rotation which reduce ssaoKernel random sample
+    std::vector<glm::vec3> ssaoNoise;
+    for (unsigned int i = 0; i < 16; i++) {
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            0.0f); // rotate around z-axis (in tangent space)
+        ssaoNoise.push_back(noise);
+    }
+    glGenTextures(1, &noiseTexture);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void DeferredIBLDemo::renderSSAO()
+{
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
+    ssaoShader.Activate();
+    ssaoShader.setInt("gDepth", 0);
+    ssaoShader.setInt("gNormal", 1);
+    ssaoShader.setInt("texNoise", 2);
+    ssaoShader.setInt("gPosition", 3);
+    ssaoShader.setVec2(
+        "noiseScale", 
+        glm::vec2(AppWindow::width / 4.0f, AppWindow::height / 4.0f)
+    );     // tile noise texture over screen based
+
+    for (unsigned int i = 0; i < 64; ++i) {
+        ssaoShader.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
+    }
+
+    ssaoShader.setMat4("invProjection", camera.getInProjectionMatrix());
+    ssaoShader.setMat4("invView", camera.getInViewMatrix());
+    ssaoShader.setMat4("projection", camera.getProjectionMatrix());
+    ssaoShader.setMat4("view", camera.getViewMatrix());
+    
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gDepth);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, gNormal);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, noiseTexture);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, gPosition);
+    Utils::OpenGL::Draw::drawQuad();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
+    blurShader.Activate();
+    blurShader.setInt("ssaoInput", 0);
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, ssaoTexture);
+    Utils::OpenGL::Draw::drawQuad();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+ 
+
 
 void DeferredIBLDemo::setupForwardPass()
 {
@@ -348,6 +484,9 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     pbrShader.Init("Shaders/default-2.vert", "Shaders/default-2.frag");
     particleShader.Init("Shaders/particle.vert", "Shaders/particle.frag");
     lightPassFBO.Init(AppWindow::width, AppWindow::height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+    ssaoShader.Init("Shaders/ssao/ssao.vert", "Shaders/ssao/ssao_depth.frag");
+    blurShader.Init("Shaders/ssao/ssao.vert", "Shaders/ssao/blur.frag");
+
 }
 
 void DeferredIBLDemo::OnAttach()
@@ -355,6 +494,7 @@ void DeferredIBLDemo::OnAttach()
     AppLayer::OnAttach();
 
     setupBuffers();
+    setupSSAO();
 
     SceneManager::cameraController = &camera;
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
@@ -438,8 +578,9 @@ void DeferredIBLDemo::OnUpdate()
     renderForwardPass();
 
 
-    //renderPrePass();
-    //renderDeferredPass();
+    renderPrePass();
+    renderDeferredPass();
+    renderSSAO();
 }
 
 void DeferredIBLDemo::OnGuiUpdate()
@@ -465,6 +606,11 @@ void DeferredIBLDemo::OnGuiUpdate()
             particleRenderer.reset();
         }
 
+        ImGui::Text("SSAO");
+        ImGui::Image((ImTextureID)ssaoTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Text("Blured SSAO");
+        ImGui::Image((ImTextureID)ssaoBlurTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
         ImGui::Text("gAlbedo");
         ImGui::Image((ImTextureID)gAlbedo, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("gNormal");
@@ -477,6 +623,8 @@ void DeferredIBLDemo::OnGuiUpdate()
         ImGui::Image((ImTextureID)gDUV, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("gDepth");
         ImGui::Image((ImTextureID)gDepth, wsize, ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::Text("gPosition");
+        ImGui::Image((ImTextureID)gPosition, wsize, ImVec2(0, 1), ImVec2(1, 0));
 
         ImGui::End();
 

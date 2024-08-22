@@ -23,6 +23,8 @@ uniform sampler2D gDUV;
 uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
+uniform sampler2D ssaoTex;
+
 uniform Light lights[MAX_NUM_LIGHTS];
 uniform mat4 inverseView;
 uniform mat4 invProjection;
@@ -100,11 +102,13 @@ vec4 calcLighting() {
     float roughness = texture(gMetalRoughness, uv).g;
     float ao = texture(gAlbedo, uv).a;
 	vec3 emissive = texture(gEmissive, uv).rgb;
+    float SSAO = texture(ssaoTex, uv).r;
 
 	float depth = texture(gDepth, uv).r * 2.0 - 1.0;
     // depth = linearizeDepth(depth);
     // depth = logDepth(depth, 0.5, 5.0);
 	vec3 viewSpacePosition = getViewSpacePosition(depth);
+    vec3 view = normalize(-viewSpacePosition);
     vec3 worldSpacePosition = mat3(inverseView) * viewSpacePosition;
 
     vec3 N = mat3(inverseView) * normal;;
@@ -117,7 +121,6 @@ vec4 calcLighting() {
 	vec3 Lo = vec3(0.0);
 	for(int i = 0; i < MAX_NUM_LIGHTS; i++) {
         vec3 lightPosViewSpace = vec3(viewMatrix * vec4(lights[i].position, 1.0));
-        vec3 view = (-viewSpacePosition);
         
 		vec3 L = normalize(lightPosViewSpace - viewSpacePosition);
 		float distance = length(lightPosViewSpace - viewSpacePosition);
@@ -168,7 +171,7 @@ vec4 calcLighting() {
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-	vec3 ambient = (kD * diffuse + specular) * ao;
+	vec3 ambient = (kD * diffuse + specular) * ao * SSAO;
 	
 	vec3 color = ambient + Lo + emissive; 
 	color = color / (color + vec3(1.0));					// HDR tone mapping

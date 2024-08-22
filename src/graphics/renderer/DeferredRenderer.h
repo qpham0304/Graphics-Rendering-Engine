@@ -7,13 +7,13 @@
 class DeferredRenderer
 {
 private:
-
 	unsigned int gBuffer;
 	unsigned int gPosition;
 	unsigned int gNormal;
 	unsigned int gColorSpec;
 	unsigned int gAlbedoSpec;
 	unsigned int rboDepth;
+    unsigned int gDepth;
 	int width;
 	int height;
 
@@ -31,5 +31,6 @@ public:
 	unsigned int getGNormal();
 	unsigned int getGColorspec();
 	unsigned int getGAlbedoSpec();
+	unsigned int getGDepth();
 };
 
