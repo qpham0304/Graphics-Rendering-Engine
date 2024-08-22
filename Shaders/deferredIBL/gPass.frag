@@ -45,10 +45,10 @@ void main() {
     gNormal.rgb = normalize(N);
     gNormal.a = 1.0;
     
-    gMetalRoughness.r = texture(roughnessMap, uv).r;
+    gMetalRoughness.r = texture(metallicMap, uv).r;
     gMetalRoughness.g = texture(roughnessMap, uv).g;
     gMetalRoughness.b = texture(metallicMap, uv).b;
-    gMetalRoughness.a = texture(roughnessMap, uv).a;
+    gMetalRoughness.a = texture(roughnessMap, uv).r;
     // gMetalRoughness = texture(roughnessMap, uv);
 
     gEmissive = texture(emissiveMap, uv);

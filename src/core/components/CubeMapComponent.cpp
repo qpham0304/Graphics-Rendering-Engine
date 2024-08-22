@@ -15,7 +15,7 @@ CubeMapComponent::~CubeMapComponent()
 
 void CubeMapComponent::render(Camera& camera)
 {
-	skyboxRenderer.render(camera);
+	skyboxRenderer.render(camera, imagebasedRenderer.envCubemapTexture);
 	//skyboxRenderer.render(camera, imagebasedRenderer.prefilterMap);
 	//skyboxRenderer.render(camera, imagebasedRenderer.irradianceMap);
 }

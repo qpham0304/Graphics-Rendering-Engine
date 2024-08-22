@@ -33,7 +33,6 @@ private:
 	ParticleGeometry particleRenderer;
 	
 	Shader particleShader;
-	Shader pbrShader;
 
 	FrameBuffer lightPassFBO;
 
@@ -41,8 +40,11 @@ private:
 	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV;
 
 	void setupBuffers();
-	void renderColorPass();
 	void renderPrePass();
+	void renderDeferredPass();
+
+	void setupForwardPass();
+	void renderForwardPass();
 
 public:
 	DeferredIBLDemo(const std::string& name);
