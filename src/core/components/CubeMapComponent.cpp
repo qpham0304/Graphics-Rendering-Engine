@@ -1,5 +1,6 @@
 #include "CubeMapComponent.h"
 #include "../src/graphics/utils/Utils.h"
+#include <imgui.h>
 
 CubeMapComponent::CubeMapComponent(const std::string& path)
 {
@@ -15,9 +16,10 @@ CubeMapComponent::~CubeMapComponent()
 
 void CubeMapComponent::render(Camera& camera)
 {
-	skyboxRenderer.render(camera, imagebasedRenderer.envCubemapTexture);
+	skyboxRenderer.render(camera);
 	//skyboxRenderer.render(camera, imagebasedRenderer.prefilterMap);
 	//skyboxRenderer.render(camera, imagebasedRenderer.irradianceMap);
+
 }
 
 void CubeMapComponent::bindIBL()

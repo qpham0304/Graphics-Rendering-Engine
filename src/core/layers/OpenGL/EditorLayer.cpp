@@ -5,7 +5,6 @@
 #include "../../../graphics/utils/Utils.h"
 #include "../../src/apps/particle-demo/ParticleDemo.h"
 #include "../../src/apps/deferred-IBL-demo/deferredIBL_demo.h"
-#include "../../src/apps/volumetric-light/VolumetricLightDemo.h"
 #include "../../src/events/EventManager.h"
 #include "../../layers/AppLayer.h"
 #include "../../layers/BloomLayer.h"

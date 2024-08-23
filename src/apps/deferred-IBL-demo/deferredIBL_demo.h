@@ -46,7 +46,6 @@ private:
 	unsigned int gBuffer;
 	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV, gPosition;
 
-	Shader ssaoShader;
 	Shader blurShader;
 
 	std::default_random_engine generator;

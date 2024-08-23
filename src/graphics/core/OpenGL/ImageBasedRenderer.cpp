@@ -230,9 +230,8 @@ void ImageBasedRenderer::bindLUT()
 void ImageBasedRenderer::onTextureReload(const std::string& path)
 {
     //std::cout << "reloading...\n";
-    //glDeleteTextures(1, &hdrTexture);
+    glDeleteTextures(1, &hdrTexture);
     Utils::OpenGL::loadHDRTexture(path.c_str(), hdrTexture);
-
     renderCubeMap();
     renderIrradianceMap();
     renderPrefilterMap();

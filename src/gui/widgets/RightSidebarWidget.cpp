@@ -106,6 +106,7 @@ void RightSidebarWidget::environmentControl()
     int wHeight = static_cast<int>(ImGui::GetWindowHeight());
 
     if (cubeMap) {
+
         if (ImGui::Button("Change Cubemap Texture", ImVec2(-1.0, 0.0))) {
             auto list = scene.getEntitiesWith<CubeMapComponent>();
 

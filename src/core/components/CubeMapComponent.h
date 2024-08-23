@@ -10,10 +10,10 @@ private:
 	// aka: six textures are loaded without being used
 	// legacy code's skybox is referencing them so remove it when have chance later
 	
+public:
 	SkyboxRenderer skyboxRenderer;
 	ImageBasedRenderer imagebasedRenderer;
 
-public:
 	CubeMapComponent(const std::string& path);
 	~CubeMapComponent();
 

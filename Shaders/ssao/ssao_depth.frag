@@ -14,7 +14,7 @@ uniform mat4 invProjection;
 
 int kernelSize = 64;
 float radius = 0.5;
-float bias = 0.15;
+float bias = 0.005;
 
 uniform mat4 projection;
 uniform mat4 view;
@@ -28,10 +28,10 @@ vec3 getViewSpacePosition(float z) {
 
 void main()
 {
-    vec3 fragPos = (view * vec4((texture(gPosition, uv)).xyz, 1.0)).xyz; // convert to view space;
-	// float depth = texture(gDepth, uv).r * 2.0 - 1.0;
-	// vec3 viewSpacePosition = getViewSpacePosition(depth);
-    // vec3 fragPos = viewSpacePosition;
+    // vec3 fragPos = (view * vec4((texture(gPosition, uv)).xyz, 1.0)).xyz; // convert to view space;
+	float depth = texture(gDepth, uv).r * 2.0 - 1.0;
+	vec3 viewSpacePosition = getViewSpacePosition(depth);
+    vec3 fragPos = viewSpacePosition;
 
     vec3 normal = normalize(texture(gNormal, uv).rgb);
     vec3 randomVec = normalize(texture(texNoise, uv * noiseScale).xyz);
@@ -53,12 +53,12 @@ void main()
         offset.xyz = offset.xyz * 0.5 + 0.5; // transform to range 0.0 - 1.0
         
         // gPosition is calculated in world space so convert it to view space
-        vec4 gPosView = view * vec4(texture(gPosition, offset.xy).xyz, 1.0f); 
-        float sampleDepth = gPosView.z;
+        // vec4 gPosView = view * vec4(texture(gPosition, offset.xy).xyz, 1.0f); 
+        // float sampleDepth = gPosView.z;
 
-	    // float d = texture(gDepth, offset.xy).r * 2.0 - 1.0;
-	    // vec3 vp = getViewSpacePosition(d);
-        // float sampleDepth = vp.z;
+	    float d = texture(gDepth, offset.xy).r * 2.0 - 1.0;
+	    vec3 vp = getViewSpacePosition(d);
+        float sampleDepth = vp.z;
         
         // range check & accumulate
         float rangeCheck = smoothstep(0.0, 1.0, radius / abs(fragPos.z - sampleDepth));
