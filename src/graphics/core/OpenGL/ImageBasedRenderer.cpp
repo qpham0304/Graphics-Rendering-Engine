@@ -239,6 +239,16 @@ void ImageBasedRenderer::onTextureReload(const std::string& path)
     //std::cout << "reloaded\n";
 }
 
+void ImageBasedRenderer::onTextureReload(const unsigned int& textureID)
+{
+    //glDeleteTextures(1, &hdrTexture);
+    hdrTexture = textureID;
+    renderCubeMap();
+    renderIrradianceMap();
+    renderPrefilterMap();
+    renderBRDF();
+}
+
 void ImageBasedRenderer::free()
 {
     glDeleteTextures(1, &hdrTexture);

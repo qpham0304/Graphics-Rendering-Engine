@@ -35,6 +35,12 @@ void CubeMapComponent::reloadTexture(const std::string& path)
     skyboxRenderer.updateTexture(imagebasedRenderer.envCubemapTexture);
 }
 
+void CubeMapComponent::reloadTexture(const unsigned int& textureID)
+{
+    imagebasedRenderer.onTextureReload(textureID);
+    skyboxRenderer.updateTexture(imagebasedRenderer.envCubemapTexture);
+}
+
 unsigned int CubeMapComponent::envMap()
 {
     return imagebasedRenderer.envCubemapTexture;

@@ -13,8 +13,8 @@ uniform vec2 noiseScale;
 uniform mat4 invProjection;
 
 int kernelSize = 64;
-float radius = 0.5;
-float bias = 0.005;
+float radius = 1.05;
+float bias = 0.105;
 
 uniform mat4 projection;
 uniform mat4 view;

@@ -174,6 +174,7 @@ vec4 calcLighting() {
 	vec3 ambient = (kD * diffuse + specular) * ao * SSAO;
 	
 	vec3 color = ambient + Lo + emissive; 
+    color *= SSAO;
 	color = color / (color + vec3(1.0));					// HDR tone mapping
 	color = gamma ? pow(color, vec3(1.0 / 2.2)) : color;		// Gamma correction
 	

@@ -47,7 +47,6 @@ vec2 generateProjectedPosition(vec3 pos){
 	return samplePosition.xy;
 }
 
-
 vec3 getCurrentViewPos(float z, vec2 coord) {
     vec2 posCanonical  = coord * 2 - 1.0; //position in Canonical View Volume
 	vec4 posView = invProjection * vec4(posCanonical, z , 1.0);
@@ -163,29 +162,35 @@ vec3 SSR(vec3 position, vec3 reflection) {
 		screenPosition = generateProjectedPosition(marchingPosition);
 		depthFromScreen = abs(generatePositionFromDepth(screenPosition, texture(depthMap, screenPosition).x).z);
 		delta = abs(marchingPosition.z) - depthFromScreen;
-		if (abs(delta) < distanceBias) {
+		
+        if (abs(delta) < distanceBias) {
 			vec3 color = vec3(1);
 			if(debugDraw)
 				color = vec3( 0.5+ sign(delta)/2,0.3,0.5- sign(delta)/2);
 			return texture(colorBuffer, screenPosition).xyz * color;
 		}
+
 		if (isBinarySearchEnabled && delta > 0) {
 			break;
 		}
+
 		if (isAdaptiveStepEnabled){
 			float directionSign = sign(abs(marchingPosition.z) - depthFromScreen);
 			//this is sort of adapting step, should prevent lining reflection by doing sort of iterative converging
 			//some implementation doing it by binary search, but I found this idea more cheaty and way easier to implement
 			step = step * (1.0 - rayStep * max(directionSign, 0.0));
 			marchingPosition += step * (-directionSign);
-		}
-		else {
+		} 
+        
+        else {
 			marchingPosition += step;
 		}
+
         if (isExponentialStepEnabled){
 			step *= 1.05;
 		}
     }
+    
     if(isBinarySearchEnabled){
 		for(int i = 0; i < maxSteps; i++){
 			step *= 0.5;
@@ -211,7 +216,6 @@ float random (vec2 uv) {
 	return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453123); //simple random function
 }
 
-// /*
 void main() {
     vec4 viewSpaceNormal = texture(gNormal, uv);
     // vec4 worldSpaceNormal = invView * viewSpaceNormal;
@@ -221,48 +225,65 @@ void main() {
 	vec3 viewSpacePosition = generatePositionFromDepth(uv, texture(depthMap, uv).x);
     // vec3 worldSpacePosition = mat3(invView) * viewSpacePosition;
 
-    float Metallic = normalize(viewSpaceNormal.a); //reflection mask in alpha channel
-    if(Metallic == 0.0) {
-        FragColor = texture(colorBuffer, uv);
-        return;
+    float roughness = texture(gSpecular, uv).g;
+    float metallic = texture(gSpecular, uv).b;
+    vec3 albedo = texture(gAlbedo, uv).rgb;
+    
+    vec3 reflectedDir = normalize(reflect(viewSpacePosition, viewSpaceNormal.xyz)); // Reflection vector
+    if(false) {
+        float sampleCount = 4.0f;
+        vec3 firstBasis = normalize(cross(vec3(0.0f, 0.0f, 1.0f), reflectedDir));
+        vec3 secondBasis = normalize(cross(reflectedDir, firstBasis));
+        vec4 resultingColor = vec4(0.f);
+        
+        for (int i = 0; i < sampleCount; i++) {
+            vec2 coeffs = vec2(random(uv + vec2(0.0, i)) + random(uv + vec2(i, 0.0))) * 0.02;
+            vec3 reflectionDirectionRandomized = reflectedDir + firstBasis * coeffs.x + secondBasis * coeffs.y;
+            vec3 tempColor = SSR(viewSpacePosition, normalize(reflectionDirectionRandomized));
+            if (tempColor != vec3(0.0f)) {
+                resultingColor += vec4(tempColor, 1.0f);
+            }
+        }
+
+        if (resultingColor.w == 0){
+            FragColor = texture(colorBuffer, uv);
+        } 
+        
+        else {
+            resultingColor /= resultingColor.w;
+            FragColor = vec4(resultingColor.xyz, 1.0f);
+        }
     }
+
+    else {
+        vec4 sceneColor = texture(colorBuffer, uv);
+        vec4 ssr = vec4(SSR(viewSpacePosition, normalize(reflectedDir)), 1.0f);
+        if (metallic <= 0.7 || roughness >= 0.2){
+            ssr = sceneColor;
+        }
+
+        if(ssr.xyz == vec3(0.0, 0.0, 0.0)){     // no reflection and no geometry
+            ssr = sceneColor;
+        }
+
+        FragColor = mix(ssr, sceneColor, 0.1);
+    }
+
+
+
+    // if(Metallic == 0.0) {
+    //     FragColor = texture(colorBuffer, uv);
+    //     return;
+    // }
 
     // vec4 gSpec = texture(gSpecular, uv);
     // if(gSpec.a > 0.0) {
     //     return;
     // }
 
-    vec3 albedo = texture(gAlbedo, uv).rgb;
-    vec3 reflectedDir = normalize(reflect(viewSpacePosition, viewSpaceNormal.xyz)); // Reflection vector
-    if(false) {
-        float sampleCount = 4;
-        vec3 firstBasis = normalize(cross(vec3(0.f, 0.f, 1.f), reflectedDir));
-        vec3 secondBasis = normalize(cross(reflectedDir, firstBasis));
-        vec4 resultingColor = vec4(0.f);
-        for (int i = 0; i < sampleCount; i++) {
-            vec2 coeffs = vec2(random(uv + vec2(0, i)) + random(uv + vec2(i, 0))) * 0.02;
-            vec3 reflectionDirectionRandomized = reflectedDir + firstBasis * coeffs.x + secondBasis * coeffs.y;
-            vec3 tempColor = SSR(viewSpacePosition, normalize(reflectionDirectionRandomized));
-            if (tempColor != vec3(0.f)) {
-                resultingColor += vec4(tempColor, 1.f);
-            }
-        }
-        if (resultingColor.w == 0){
-            FragColor = texture(colorBuffer, uv);
-        } else {
-            resultingColor /= resultingColor.w;
-            FragColor = vec4(resultingColor.xyz, 1.f);
-        }
-    }
-
-    else {
-        FragColor = vec4(SSR(viewSpacePosition, normalize(reflectedDir)), 1.f);
-        if (FragColor.xyz == vec3(0.f)){
-            FragColor = texture(colorBuffer, uv);
-        }
-    }
-
-
+    // float Metallic = normalize(roughness); //reflection mask in alpha channel
+    // vec3 albedo = texture(gAlbedo, uv).rgb;
+    // vec3 reflectedDir = normalize(reflect(viewSpacePosition, viewSpaceNormal.xyz)); // Reflection vector
     // vec3 hitPos = viewSpacePosition;
     // float dDepth;
     // vec2 coords = rayCast(reflectedDir * max(-viewSpacePosition.z, minRayStep), hitPos, dDepth);
@@ -282,9 +303,7 @@ void main() {
     //     FragColor = vec4(0,0,0,1);
     //     return;
     // }
-    // float dDepth = 0.0f;
     // vec3 viewPosition = viewSpacePosition;
-    // vec4 coords = RayMarch(reflectedDir * max(minRayStep, -viewSpacePosition.z), viewPosition, dDepth);
     // vec2 dCoords = smoothstep(0.2, 0.6, abs(vec2(0.5) - coords.xy));
     
     // const float fallOffExponent = 3.0;
@@ -292,6 +311,7 @@ void main() {
     // float ReflectionMultiplier = pow(Metallic, fallOffExponent) * screenEdgefactor * -reflectedDir.z;
     // vec3 SSR = texture(colorBuffer, coords.xy).rgb;  
 
+    // vec3 albedo = texture(gAlbedo, uv).rgb;
     // vec3 F0 = vec3(0.04); 
     // F0 = mix(F0, albedo, Metallic);
     // vec3 Fresnel = fresnelSchlick(max(dot(normalize(viewSpaceNormal.xyz), normalize(viewSpacePosition)), 0.0), F0);
@@ -299,7 +319,6 @@ void main() {
     // FragColor = vec4(SSR, 1.0);
 }
 
-// */
 
 // bool rayIsOutofScreen(vec2 ray){
 // 	return (ray.x > 1 || ray.y > 1 || ray.x < 0 || ray.y < 0) ? true : false;

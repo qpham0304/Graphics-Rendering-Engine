@@ -20,6 +20,7 @@ public:
 	void render(Camera& camera);
 	void bindIBL();
 	void reloadTexture(const std::string& path = "Textures/default/metallic.png");
+	void reloadTexture(const unsigned int& textureID);
 	unsigned int envMap();
 	unsigned int irradianceMap();
 	unsigned int prefilterMap();

@@ -46,7 +46,7 @@ private:
 	unsigned int gBuffer;
 	unsigned int gDepth, gNormal, gAlbedo, gMetalRoughness, gEmissive, gDUV, gPosition;
 
-	Shader blurShader;
+	Shader pbrShader;
 
 	std::default_random_engine generator;
 	std::vector<glm::vec3> ssaoKernel;
@@ -57,12 +57,25 @@ private:
 	unsigned int ssaoBlurTexture;
 
 
+	FrameBuffer transmittanceLUT;
+	FrameBuffer multipleScatteredLUT;
+	FrameBuffer skyViewLUT;
+	FrameBuffer atmosphereScene;
+
+	FrameBuffer ssrSceneFBO;
+
+
 	void setupBuffers();
 	void renderPrePass();
 	void renderDeferredPass();
+	void setupSkyView();
+	void renderSkyView();
 
 	void setupSSAO();
 	void renderSSAO();
+
+	void setupSSR();
+	void renderSSR();
 
 	void setupForwardPass();
 	void renderForwardPass();

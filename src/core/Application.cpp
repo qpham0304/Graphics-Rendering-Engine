@@ -46,7 +46,7 @@ void Application::run() {
 
 	glfwSetWindowUserPointer(AppWindow::window, this);
 
-	//glfwSwapInterval(1);
+	glfwSwapInterval(1);
 	//glfwSwapInterval(0);
 	while (isRunning) {
 		eventManager.OnUpdate();

@@ -36,6 +36,7 @@ public:
 	void bindPrefilterMap();
 	void bindLUT();
 	void onTextureReload(const std::string& path);
+	void onTextureReload(const unsigned int& textureID);
 	void free();
 
 	unsigned int envCubemapTexture;
