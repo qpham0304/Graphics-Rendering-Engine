@@ -6,16 +6,16 @@
 #include "../../core/components/CubeMapComponent.h"
 
 static glm::vec3 lightPositions[] = {
-    glm::vec3(0.0,  1.0f, 0.0),
-    glm::vec3(10.0f,  1.0f, -10.0f),
-    glm::vec3(-10.0f, 5.0f, 10.0f),
-    glm::vec3(-10.0f, 5.0f, -10.0f),
+    glm::vec3(20.00f,  20.0f, 0.0),
+    //glm::vec3(10.0f,  1.0f, -10.0f),
+    //glm::vec3(-10.0f, 5.0f, 10.0f),
+    //glm::vec3(-10.0f, 5.0f, -10.0f),
 };
 static glm::vec4 lightColors[] = {
     glm::vec4(900.0f, 500.0f, 500.0f, 1.0f),
-    glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
-    glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
-    glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
+    //glm::vec4(300.0f, 500.0f, 300.0f, 1.0f),
+    //glm::vec4(900.0f, 400.0f, 300.0f, 1.0f),
+    //glm::vec4(500.0f, 300.0f, 500.0f, 1.0f)
 };
 
 static float customLerp(float a, float b, float f)
@@ -103,6 +103,7 @@ void DeferredIBLDemo::renderDeferredPass()
     scene.getShader("colorPassShader")->setInt("prefilterMap", 7);
     scene.getShader("colorPassShader")->setInt("brdfLUT", 8);
     scene.getShader("colorPassShader")->setInt("ssaoTex", 9);
+    scene.getShader("colorPassShader")->setInt("sunDepthMap", 10);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gDepth);
@@ -126,12 +127,13 @@ void DeferredIBLDemo::renderDeferredPass()
 
     glActiveTexture(GL_TEXTURE9);
     glBindTexture(GL_TEXTURE_2D, ssaoBlurTexture);
+    glActiveTexture(GL_TEXTURE10);
+    glBindTexture(GL_TEXTURE_2D, depthMap.texture);
 
     scene.getShader("colorPassShader")->setMat4("viewMatrix", camera.getViewMatrix());
     scene.getShader("colorPassShader")->setMat4("invProjection", camera.getInProjectionMatrix());
     scene.getShader("colorPassShader")->setMat4("inverseView", camera.getInViewMatrix());
     scene.getShader("colorPassShader")->setBool("gamma", true);
-    scene.getShader("colorPassShader")->setVec3("camPos", camera.getPosition());
 
 
     std::vector<Entity> lights = scene.getEntitiesWith<MLightComponent, TransformComponent>();
@@ -141,8 +143,23 @@ void DeferredIBLDemo::renderDeferredPass()
         TransformComponent& transform = entity.getComponent<TransformComponent>();
         glm::vec3 lightIntensity = light.color * (transform.scaleVec * transform.scaleVec);
 
+        if (light.type == DIRECTION_LIGHT) {
+            scene.getShader("colorPassShader")->setVec3("sunPos", light.position);
+        }
+
+        else if (light.type == POINT_LIGHT) {
+            scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(index) + "].position", light.position);
+        }
+
+        else if (light.type == SPOT_LIGHT) {
+
+        }
+
+        else if (light.type == AREA_LIGHT) {
+
+        }
+
         scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(index) + "].color", lightIntensity);
-        scene.getShader("colorPassShader")->setVec3("lights[" + std::to_string(index) + "].position", light.position);
 
         glm::mat4& model = transform.getModelMatrix();
         light.position = transform.translateVec;
@@ -397,6 +414,68 @@ void DeferredIBLDemo::renderSSR()
 
     ssrSceneFBO.Unbind();
 }
+
+void DeferredIBLDemo::setupShadow()
+{
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
+    //scene.addShader("shadowShader", "Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
+}
+
+void DeferredIBLDemo::renderShadow()
+{
+    Scene& scene = *SceneManager::getInstance().getActiveScene();
+    auto entities = scene.getEntitiesWith<ModelComponent, TransformComponent>();
+    auto lightEntities = scene.getEntitiesWith<MLightComponent>();
+    auto& light = lightEntities[0].getComponent<MLightComponent>();
+
+    glm::mat4 lightOrtho = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    glm::mat4 lightPerspective = glm::perspective(glm::radians(90.0f), (float)AppWindow::width / AppWindow::height, 0.1f, 100.0f);
+    
+    glm::mat4 lightView = glm::lookAt(light.position, glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 lightMVP = lightOrtho * lightView;
+
+    Shader shadowShader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag");
+
+    depthMap.Bind();
+    glViewport(0, 0, AppWindow::width, AppWindow::height);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    //glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // RGBA
+    //glEnable(GL_DEPTH_TEST);
+
+    shadowShader.Activate();
+    //shadowShader.setMat4("mvp", cameraComponents[0].getComponent<CameraComponent>().camera.getMVP());
+    shadowShader.setMat4("mvp", lightMVP);
+    
+    for (auto entity : entities) {
+        ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
+        TransformComponent& transform = entity.getComponent<TransformComponent>();
+        
+        const glm::mat4& normalMatrix = transform.getModelMatrix();
+        std::shared_ptr<Model> model = modelComponent.model.lock();
+
+        bool hasAnimation = entity.hasComponent<AnimationComponent>();
+
+        if (hasAnimation) {
+            AnimationComponent& animationComponent = entity.getComponent<AnimationComponent>();
+            auto transformBoneMatricies = animationComponent.animator.GetFinalBoneMatrices();
+
+            for (int i = 0; i < transformBoneMatricies.size(); ++i) {
+                shadowShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transformBoneMatricies[i]);
+            }
+        }
+
+        if (model != nullptr) {
+            shadowShader.setBool("hasAnimation", hasAnimation);
+            shadowShader.setMat4("matrix", transform.getModelMatrix());
+            model->Draw(shadowShader);
+        }
+
+        else {
+            modelComponent.reset();
+        }
+    }
+    depthMap.Unbind();
+}
  
 
 
@@ -520,7 +599,6 @@ void DeferredIBLDemo::renderForwardPass()
         index++;
     }
 
-    //particleRenderer.render(particleShader, *SceneManager::cameraController, numRender, speed, pause);
 
     if (cubeMap) {
         //cubeMap->reloadTexture(atmosphereScene.texture);
@@ -545,8 +623,12 @@ void DeferredIBLDemo::renderPrePass()
     scene.getShader("gPassShader")->setInt("duvMap", 6);
 
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
+    glViewport(0, 0, AppWindow::width, AppWindow::height);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+
+
     scene.getShader("gPassShader")->Activate();
     glm::mat4 model = glm::mat4(1.0);
     model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
@@ -584,10 +666,17 @@ void DeferredIBLDemo::renderPrePass()
                     transformBoneMatricies[i]
                 );
             }
+
+
+            float currentTime = static_cast<float>(glfwGetTime());
+            float dt = currentTime - lf;
+            lf = currentTime;
+            animationComponent.animator.UpdateAnimation(dt);
         }
 
         model.model.lock()->Draw(*scene.getShader("gPassShader"));
     }
+    //particleRenderer.render(particleShader, *SceneManager::cameraController, numRender, speed, pause);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -598,6 +687,7 @@ DeferredIBLDemo::DeferredIBLDemo(const std::string& name) : AppLayer(name)
     pbrShader.Init("Shaders/default-2.vert", "Shaders/default-2.frag");
     particleShader.Init("Shaders/particle.vert", "Shaders/particle.frag");
     lightPassFBO.Init(AppWindow::width, AppWindow::height, GL_RGBA32F, GL_RGBA, GL_FLOAT, nullptr);
+    depthMap.Init(AppWindow::width, AppWindow::height);
 }
 
 void DeferredIBLDemo::OnAttach()
@@ -608,6 +698,7 @@ void DeferredIBLDemo::OnAttach()
     setupSSAO();
     setupSkyView();
     setupSSR();
+    setupShadow();
 
     SceneManager::cameraController = &camera;
     LayerManager::addFrameBuffer("DeferredIBLDemo", applicationFBO);
@@ -644,7 +735,7 @@ void DeferredIBLDemo::OnAttach()
         Entity& cameraEntity = scene.entities[cameraEntityID];
         TransformComponent& cameraTransform = cameraEntity.getComponent<TransformComponent>();
         cameraTransform.translate(glm::vec3(-6.5f, 3.5f, 8.5f));
-        cameraEntity.addComponent<CameraComponent>(
+        auto& cameraComponent = cameraEntity.addComponent<CameraComponent>(
             AppWindow::width,
             AppWindow::height,
             cameraTransform.translateVec,
@@ -655,7 +746,18 @@ void DeferredIBLDemo::OnAttach()
         cameraEntity.onCameraComponentAdded();
         cameraTransform.translate(glm::vec3(-6.5f, 3.5f, 8.5f));
 
-        for (int i = 0; i < 4; i++) {
+        // direction light
+        uint32_t sunLightID = scene.addEntity("light " + std::to_string(0));
+        Entity sunLightEntity = scene.getEntity(sunLightID);
+        auto& lightComponent = sunLightEntity.addComponent<MLightComponent>();
+        lightComponent.color = lightColors[0];
+        lightComponent.position = sunLightEntity.getComponent<TransformComponent>().translateVec;
+        lightComponent.type = DIRECTION_LIGHT;
+        sunLightEntity.getComponent<NameComponent>().name = "Sun light";
+        sunLightEntity.getComponent<TransformComponent>().translate(lightPositions[0]);
+        
+        // point lights
+        for (int i = 1; i < 4; i++) {
             uint32_t lightID = scene.addEntity("light " + std::to_string(i));
             Entity lightEntity = scene.getEntity(lightID);
             auto& lightComponent = lightEntity.addComponent<MLightComponent>();
@@ -687,24 +789,21 @@ void DeferredIBLDemo::OnUpdate()
 {
     AppLayer::OnUpdate();
 
-    renderForwardPass();
+    renderShadow();
+    //renderForwardPass();
     renderPrePass();
-    renderSSAO();
+    //renderSSAO();
     renderSSR();
     renderDeferredPass();
-    renderSkyView();
+    //renderSkyView();
 }
 
 void DeferredIBLDemo::OnGuiUpdate()
 {
-    AppLayer::OnGuiUpdate();
-
     Scene& scene = *SceneManager::getInstance().getActiveScene();
 
     if (ImGui::Begin("control")) {
         ImVec2 wsize = ImGui::GetWindowSize();
-        int wWidth = static_cast<int>(ImGui::GetWindowWidth());
-        int wHeight = static_cast<int>(ImGui::GetWindowHeight());
 
         ImGui::DragFloat("Falling speed", &speed, 0.01, -10.0, 10.0);
         ImGui::DragInt("Num Instances", &numRender, particleControl.numInstances / 100.0, 0, particleControl.numInstances, 0, true);
@@ -717,9 +816,9 @@ void DeferredIBLDemo::OnGuiUpdate()
         if (ImGui::Button("Reset")) {
             particleRenderer.reset();
         }
-        
-        ImGui::Text("SSR texture");
-        ImGui::Image((ImTextureID)ssrSceneFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+
+        ImGui::Text("shadow texture");
+        ImGui::Image((ImTextureID)depthMap.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("atmostphere sky");
         ImGui::Image((ImTextureID)atmosphereScene.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
         ImGui::Text("SSAO");
@@ -742,14 +841,9 @@ void DeferredIBLDemo::OnGuiUpdate()
 
         ImGui::End();
 
-
-        if (ImGui::Begin("color pass")) {
-            ImGui::BeginChild("deferred render");
-            ImGui::Image((ImTextureID)lightPassFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-            ImGui::EndChild();
-            ImGui::End();
-        }
     }
+    
+    AppLayer::renderApplication(ssrSceneFBO.texture);
 }
 
 void DeferredIBLDemo::OnEvent(Event& event)

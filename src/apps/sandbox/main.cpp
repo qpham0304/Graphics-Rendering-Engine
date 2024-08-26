@@ -29,7 +29,7 @@ int main()
 		list.push_back(demo0);
 		list.push_back(demo1);	
 		list.push_back(demo2);
-		list.push_back(demo3);
+		list.push_back(demo3);	// broken
 		list.push_back(demo4);
 		list.push_back(demo5);	// broken
 		list.push_back(demo6);	// broken
@@ -51,7 +51,7 @@ int main()
 	try {
 		AppWindow::init(PLATFORM_OPENGL);
 		AppWindow::start("Rendering  Engine");
-		AppWindow::renderScene(list[6]);
+		AppWindow::renderScene(list[3]);
 		AppWindow::end();
 	}
 	catch (const std::runtime_error& e) {

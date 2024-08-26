@@ -25,6 +25,7 @@ public:
 	DepthMap();
 	DepthMap(unsigned int width, unsigned int height);
 
+	void Init(unsigned int width, unsigned int height);
 	void Bind();
 	void Unbind();
 	void Delete();

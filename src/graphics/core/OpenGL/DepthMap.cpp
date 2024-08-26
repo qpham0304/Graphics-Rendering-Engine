@@ -36,6 +36,12 @@ DepthMap::DepthMap(unsigned int width, unsigned int height)
 	setup(width, height);
 }
 
+void DepthMap::Init(unsigned int width, unsigned int height)
+{
+	Delete();
+	setup(width, height);
+}
+
 void DepthMap::Bind() {
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 }

@@ -255,8 +255,10 @@ void AppWindow::renderShadowScene(DepthMap& shadowMap, Shader& shadowMapShader, 
 		glFrontFace(GL_CCW);
 		glCullFace(GL_FRONT);
 	}
-	else
+	else {
 		glDisable(GL_CULL_FACE);
+	}
+
 	SceneManager::renderShadow(shadowMapShader, light);
 
 	shadowMap.Unbind();

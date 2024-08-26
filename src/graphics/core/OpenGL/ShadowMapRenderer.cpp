@@ -23,6 +23,12 @@ void ShadowMapRenderer::renderShadow(Light& light, std::vector<Model>& models, s
 
 }
 
+void ShadowMapRenderer::init(unsigned int width, unsigned int height)
+{
+	depthMap.reset(new DepthMap(width, height));
+	shader.reset(new Shader("Shaders/shadowMap.vert", "Shaders/shadowMap.frag"));
+}
+
 unsigned int ShadowMapRenderer::depthTexture()
 {
 	return depthMap->texture;

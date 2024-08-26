@@ -4,6 +4,7 @@ struct Light {
     vec3 position;
 	vec3 color;
 	int radius;
+    int type;
 };
 
 const int MAX_NUM_LIGHTS = 100;
@@ -24,13 +25,17 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 uniform sampler2D ssaoTex;
+uniform sampler2D sunDepthMap;
 
 uniform Light lights[MAX_NUM_LIGHTS];
 uniform mat4 inverseView;
 uniform mat4 invProjection;
 uniform bool gamma;
-uniform vec3 camPos;
 uniform mat4 viewMatrix;
+uniform bool ssaoOn = false;
+uniform mat4 sunlightMV;
+uniform vec3 sunPos;
+uniform int sampleRadius;
 
 //------------------------//
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
@@ -93,6 +98,32 @@ float logDepth(float depth, float steepness, float offset) {
 	return (1 / (1 + exp(-steepness * (zVal - offset))));
 }
 
+float calcShadow(vec3 fragPos, vec3 normal) {
+    vec4 fragPosLight = sunlightMV * vec4(fragPos, 1.0);
+	vec3 projCoords = fragPosLight.xyz / fragPosLight.w;
+	projCoords = projCoords * 0.5 + 0.5;
+	float closestDepth = texture(sunDepthMap, projCoords.xy).r;   
+	float currentDepth = projCoords.z;  
+	float bias = max(0.05 * (1.0 - dot(normal, normalize(sunPos - fragPos))), 0.005); 
+	
+	float shadow = 0.0;
+	//shadow = (currentDepth > closestDepth + bias ) ? 1.0 : 0.0; 
+	
+	// sample area for soft shadow
+	vec2 pixelSize = 1.0 / textureSize(sunDepthMap, 0);
+	for(int y = -sampleRadius; y <= sampleRadius; y++) {
+		for(int x = -sampleRadius; x <= sampleRadius; x++) {
+		    float closestDepth = texture(sunDepthMap, projCoords.xy + vec2(x, y) * pixelSize).r;
+			if (currentDepth > closestDepth + bias) {
+				shadow += 1.0f;     
+            }
+		}    
+	}
+	// Get average shadow
+	shadow /= pow((sampleRadius * 2 + 1), 2);
+
+	return shadow;
+}
 
 vec4 calcLighting() {
     float depthMap = texture(gDepth, uv).r;
@@ -171,13 +202,19 @@ vec4 calcLighting() {
     vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
     vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-	vec3 ambient = (kD * diffuse + specular) * ao * SSAO;
+	vec3 ambient = (kD * diffuse + specular) * ao;
 	
 	vec3 color = ambient + Lo + emissive; 
-    color *= SSAO;
+
+    int ssaoCondition = int(ssaoOn);
+    color = ssaoCondition * SSAO * color + (1 - ssaoCondition) * color;
+
+
 	color = color / (color + vec3(1.0));					// HDR tone mapping
 	color = gamma ? pow(color, vec3(1.0 / 2.2)) : color;		// Gamma correction
 	
+    float shadow = calcShadow(worldSpacePosition, N);
+
 	return vec4(color, 1.0f);
 }
 

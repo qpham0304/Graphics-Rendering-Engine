@@ -1,6 +1,44 @@
 #include "../AppLayer.h"
 #include "../../scene/SceneManager.h"
 
+void AppLayer::renderControl()
+{
+	if (ImGui::Begin("control")) {
+
+		ImGui::End();
+	}
+}
+
+void AppLayer::renderApplication(const int& fboTexture)
+{
+	if (ImGui::Begin("Application window")) {
+		ImGui::BeginChild("Child");	// spand fullscreen so it won't scroll on resize
+		ImVec2 wsize = ImGui::GetWindowSize();
+		int wWidth = static_cast<int>(ImGui::GetWindowWidth());
+		int wHeight = static_cast<int>(ImGui::GetWindowHeight());
+		if (fboTexture == -1) {
+			ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+		else {
+			ImGui::Image((ImTextureID)fboTexture, wsize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+		//(ImGui::IsItemHovered() && ImGui::IsWindowFocused()) ? isActive = true : false;
+		if (camera.getViewWidth() != wWidth || camera.getViewHeight() != wHeight) {
+			camera.updateViewResize(wWidth, wHeight);
+		}
+
+		if (ImGui::IsItemHovered() && ImGui::IsWindowFocused()) {
+			camera.processKeyboard(AppWindow::window);
+			isActive = true;
+		}
+		else {
+			isActive = false;
+		}
+		ImGui::EndChild();
+		ImGui::End();
+	}
+}
+
 AppLayer::AppLayer(const std::string& name) : Layer(name), isActive(false), VAO(0), VBO(0)
 {
 	applicationFBO.Init(
@@ -61,32 +99,8 @@ void AppLayer::OnUpdate()
 void AppLayer::OnGuiUpdate()
 {
 	//ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-	if (ImGui::Begin("control")) {
-
-		ImGui::End();
-	}
-
-	if (ImGui::Begin("Application window")) {
-		ImGui::BeginChild("Child");	// spand fullscreen so it won't scroll on resize
-		ImVec2 wsize = ImGui::GetWindowSize();
-		int wWidth = static_cast<int>(ImGui::GetWindowWidth());
-		int wHeight = static_cast<int>(ImGui::GetWindowHeight());
-		ImGui::Image((ImTextureID)applicationFBO.texture, wsize, ImVec2(0, 1), ImVec2(1, 0));
-		//(ImGui::IsItemHovered() && ImGui::IsWindowFocused()) ? isActive = true : false;
-		if (camera.getViewWidth() != wWidth || camera.getViewHeight() != wHeight) {
-			camera.updateViewResize(wWidth, wHeight);
-		}
-		
-		if (ImGui::IsItemHovered() && ImGui::IsWindowFocused()) {
-			camera.processKeyboard(AppWindow::window);
-			isActive = true;
-		}
-		else {
-			isActive = false;
-		}
-		ImGui::EndChild();
-		ImGui::End();
-	}
+	renderControl();
+	renderApplication();
 	//ImGui::PopStyleVar();
 }
 

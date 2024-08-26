@@ -126,16 +126,20 @@ public:
 //	AnimatorComponent() = default;
 //	AnimatorComponent(std::string&& path) : path(path) {};
 //};
+enum LightType { POINT_LIGHT, DIRECTION_LIGHT, SPOT_LIGHT, AREA_LIGHT };
 
 struct MLightComponent {
+
 public:
 	glm::vec3 color = glm::vec3(1.0);
 	glm::vec3 position = glm::vec3(0.0);
 	float radius;
+	LightType type = POINT_LIGHT;
 
 	MLightComponent() = default;
 	MLightComponent(glm::vec3&& color, glm::vec3&& position) : color(color), position(position) {};
-	MLightComponent(const glm::vec3& color, const glm::vec3& position) : color(color), position(position) {};
+	MLightComponent(const glm::vec3& color, const glm::vec3& position, LightType type = POINT_LIGHT) 
+		: color(color), position(position), type(type) {};
 };
 
 struct LayerTagComponent {

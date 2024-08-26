@@ -2,6 +2,7 @@
 
 #include "../../core/layers/AppLayer.h"
 #include "ParticleGeometry.h"
+#include "../../graphics/renderer/ShadowMapRenderer.h"
 
 class DeferredIBLDemo : public AppLayer
 {
@@ -21,7 +22,7 @@ private:
 	bool isPopulating = false;
 	glm::vec3 spawnArea = glm::vec3(30.0, 10.0, 30.0);
 	glm::vec3 direction = glm::vec3(0.0, 0.0, 0.0);
-	unsigned int numInstances = 20000 * 5;
+	unsigned int numInstances = 100000;
 	int numRender = numInstances;
 	float heightLimit = 100.0f;
 	glm::vec2 randomRange = glm::vec2(3.0, 5.0);
@@ -64,6 +65,7 @@ private:
 
 	FrameBuffer ssrSceneFBO;
 
+	DepthMap depthMap;
 
 	void setupBuffers();
 	void renderPrePass();
@@ -76,6 +78,9 @@ private:
 
 	void setupSSR();
 	void renderSSR();
+
+	void setupShadow();
+	void renderShadow();
 
 	void setupForwardPass();
 	void renderForwardPass();

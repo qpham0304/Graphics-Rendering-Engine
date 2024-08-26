@@ -18,6 +18,9 @@ protected:
 	unsigned int VAO, VBO;
 	bool isActive;
 
+	void renderControl();
+	void renderApplication(const int& fboTexture = -1);
+
 public:
 	AppLayer(const std::string& name);
 	~AppLayer();

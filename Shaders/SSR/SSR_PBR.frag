@@ -164,9 +164,11 @@ vec3 SSR(vec3 position, vec3 reflection) {
 		delta = abs(marchingPosition.z) - depthFromScreen;
 		
         if (abs(delta) < distanceBias) {
-			vec3 color = vec3(1);
-			if(debugDraw)
+			vec3 color = vec3(1.0);
+			if(debugDraw) {
 				color = vec3( 0.5+ sign(delta)/2,0.3,0.5- sign(delta)/2);
+            }
+                
 			return texture(colorBuffer, screenPosition).xyz * color;
 		}
 
@@ -201,9 +203,19 @@ vec3 SSR(vec3 position, vec3 reflection) {
 			delta = abs(marchingPosition.z) - depthFromScreen;
 			
 			if (abs(delta) < distanceBias) {
-                vec3 color = vec3(1);
-                if(debugDraw)
-                    color = vec3(0.5 + sign(delta)/2,0.3,0.5 - sign(delta)/2);
+                vec3 color = vec3(1.0);
+                if(debugDraw) {
+                    color = vec3(0.5 + sign(delta)/2, 0.3, 0.5 - sign(delta)/2);
+                }
+
+
+                // float metallic = texture(gSpecular, uv).b;
+                // const float fallOffExponent = 3.0;
+                // float screenEdgefactor = clamp(1.0 - (screenPosition.x + screenPosition.y), 0.0, 1.0);
+                // float ReflectionMultiplier = pow(metallic, fallOffExponent) * screenEdgefactor * -reflection.z;
+                // vec3 SSR = texture(colorBuffer, screenPosition.xy).rgb * color;
+
+				// return SSR;
 				return texture(colorBuffer, screenPosition).xyz * color;
 			}
 		}
@@ -230,7 +242,8 @@ void main() {
     vec3 albedo = texture(gAlbedo, uv).rgb;
     
     vec3 reflectedDir = normalize(reflect(viewSpacePosition, viewSpaceNormal.xyz)); // Reflection vector
-    if(false) {
+    bool addNoise = false;
+    if(addNoise) {
         float sampleCount = 4.0f;
         vec3 firstBasis = normalize(cross(vec3(0.0f, 0.0f, 1.0f), reflectedDir));
         vec3 secondBasis = normalize(cross(reflectedDir, firstBasis));
@@ -260,13 +273,22 @@ void main() {
         vec4 ssr = vec4(SSR(viewSpacePosition, normalize(reflectedDir)), 1.0f);
         if (metallic <= 0.7 || roughness >= 0.2){
             ssr = sceneColor;
+        } 
+        
+        else {
+            ssr *= vec4(0.75, 0.9, 0.9, 1.0);
         }
 
         if(ssr.xyz == vec3(0.0, 0.0, 0.0)){     // no reflection and no geometry
             ssr = sceneColor;
         }
 
-        FragColor = mix(ssr, sceneColor, 0.1);
+        vec3 F0 = vec3(0.04); 
+        F0 = mix(F0, albedo, metallic);
+        vec3 fresnel = fresnelSchlick(max(dot(normalize(viewSpaceNormal.xyz), normalize(viewSpacePosition)), 0.0), F0);
+        // ssr *= vec4(fresnel, 1.0);
+
+        FragColor = mix(ssr, sceneColor, 0.2);
     }
 
 
