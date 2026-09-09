@@ -443,10 +443,10 @@ void SharedFunctionsLua::physics(sol::state &luaState)
 {
     PhysicsManager* physicsManager = &ServiceLocator::GetService<PhysicsManager>("PhysicsManager");
 
-    luaState["addForce"] = [&] (uint32_t id, glm::vec3 force) { 
+    luaState["addForce"] = [physicsManager] (uint32_t id, glm::vec3 force) { 
         physicsManager->addForce(id, force); 
     };
-    luaState["rayCastClosest"] = [&] (glm::vec3 position) -> uint32_t { 
+    luaState["rayCastClosest"] = [physicsManager] (glm::vec3 position) -> uint32_t { 
         return physicsManager->rayCastClosest(position); 
     };    
     luaState["addImpulse"] = [physicsManager] (uint32_t id, glm::vec3 impulse) { 

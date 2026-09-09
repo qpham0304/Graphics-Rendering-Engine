@@ -8,7 +8,7 @@
 #include "core/entities/Entity.h"
 #include "core/components/MComponent.h"
 
-#define REFELECT_TYPE(ClassName, ...) \
+#define REFLECT_TYPE(ClassName, ...) \
     static const char* GetStaticType() { return #ClassName; } \
     template <typename Visitor> \
     static void VisitFields(Visitor&& visitor) { \

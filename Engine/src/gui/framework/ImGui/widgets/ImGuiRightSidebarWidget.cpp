@@ -385,6 +385,7 @@ void ImGuiRightSidebarWidget::_componentsControl()
     _modelControl(entity);
     _meshControl(entity);
     _spriteControl(entity);
+    _animationControl(entity);
     _scriptControl(entity);
     _colliderControl(entity);
 
@@ -665,7 +666,7 @@ void ImGuiRightSidebarWidget::_spriteControl(const Entity& entity)
     auto& sprite = entity.getComponent<SpriteComponent>();
 
     // Create a 2-column table. ImGuiTableFlags_SizingFixedFit makes the left column fit the text.
-    if (ImGui::CollapsingHeader("Sprite Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader("Sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
         textInput(&sprite.path, "path");
         textInput(&sprite.targetRenderer, "renderer");
         
@@ -698,11 +699,13 @@ void ImGuiRightSidebarWidget::_spriteControl(const Entity& entity)
             ImGui::TableNextColumn(); ImGui::Text("frameIndex:");
             ImGui::TableNextColumn(); 
             ImGui::SetNextItemWidth(-FLT_MIN);
-            if(ImGui::DragInt("##frameIndex", &sprite.frameIndex, 0.1f, 1.0f, 24.0f)) {
-                glm::vec2 uvScale = {1.0 / sprite.numRows, 1.0 / sprite.numCols};
-                int row = sprite.frameIndex % sprite.numRows;
-                int col = sprite.frameIndex % sprite.numCols;
-                glm::vec2 uvOffset = {uvScale.x * row, uvScale.y * col};
+            int maxFrames = (sprite.numRows * sprite.numCols) - 1;
+            if (ImGui::DragInt("##frameIndex", &sprite.frameIndex, 0.1f, 0, maxFrames)) {
+                glm::vec2 uvScale = {1.0 / sprite.numCols, 1.0 / sprite.numRows};
+                int currentRow = sprite.frameIndex / sprite.numCols;   // row represents y while col represents x 
+                int currentCol = sprite.frameIndex % sprite.numCols;   // i.e pixel 1, 2 =  arr[2][1] NOT [arr1][2]
+                int flippedRow = (sprite.numRows - 1) - currentRow;    // uv offset sampling need to be flipped also
+                glm::vec2 uvOffset = {uvScale.x * currentCol, uvScale.y * flippedRow};
 
                 ModelComponent& modelComponent = entity.getComponent<ModelComponent>();
                 Model* model = modelManager->getModel(modelComponent.modelID);
@@ -719,28 +722,45 @@ void ImGuiRightSidebarWidget::_spriteControl(const Entity& entity)
             ImGui::SetNextItemWidth(-FLT_MIN);
             ImGui::ColorEdit4("##color", &sprite.color[0]);
 
-
-            if(entity.hasComponent<AnimationComponent>()) {
-                auto& animation = entity.getComponent<AnimationComponent>();
-            }
-
-            if(entity.hasComponent<RelationshipComponent>()) {
-                auto& relationship = entity.getComponent<RelationshipComponent>();
-                auto& children = relationship.children;
-                // m_logger->error("error has relationship Component");
-                // for(auto& child : children) {
-                //     ImGui::TableNextRow();
-                //     ImGui::TableNextColumn(); ImGui::Text("color:");
-                //     ImGui::TableNextColumn(); 
-                //     ImGui::SetNextItemWidth(-FLT_MIN);
-
-                //     Entity entity(scene. child)
-                //     if(child.has)
-                //     ImGui::Text()
-                // }
-            }
-
             ImGui::EndTable();
+        }
+    }
+}
+
+void ImGuiRightSidebarWidget::_animationControl(const Entity &entity)
+{
+    //TODO: only support sprite animation now, later add option for 3D skin animation and so on
+    if(!entity.hasComponent<AnimationComponent>()) {
+        return;
+    }
+
+    if (ImGui::CollapsingHeader("Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
+        int maxFrameCount = 0;
+        if(entity.hasComponent<SpriteComponent>()) {
+            auto& sprite = entity.getComponent<SpriteComponent>();
+            maxFrameCount = sprite.numRows * sprite.numCols - 1;
+        }
+
+        auto& animation = entity.getComponent<AnimationComponent>();
+        ImGui::SliderInt("Frame count", &animation.frameCount, 1, maxFrameCount);
+        ImGui::DragFloat("Frame duration", &animation.frameDuration, 0.0001, 0.0001, 0.001);
+        ImGui::DragFloat("Frame delay", &animation.frameDelay, 0.000, 0.01, 1.0);
+
+
+        if(entity.hasComponent<RelationshipComponent>()) {
+            auto& relationship = entity.getComponent<RelationshipComponent>();
+            auto& children = relationship.children;
+            // m_logger->error("error has relationship Component");
+            // for(auto& child : children) {
+            //     ImGui::TableNextRow();
+            //     ImGui::TableNextColumn(); ImGui::Text("color:");
+            //     ImGui::TableNextColumn(); 
+            //     ImGui::SetNextItemWidth(-FLT_MIN);
+
+            //     Entity entity(scene. child)
+            //     if(child.has)
+            //     ImGui::Text()
+            // }
         }
     }
 }

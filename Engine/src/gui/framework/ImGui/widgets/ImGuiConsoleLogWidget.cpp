@@ -117,7 +117,12 @@ void ImGuiConsoleLogWidget::_renderConsole()
 			ImGui::TextColored(color, "[%s]", m_imguiLogger.getLevelString(logLevel));
 			ImGui::SameLine();
 
-			std::string originalMsg = message;
+// #ifdef DEBUG
+//			std::string originalMsg = std::format("{}: {}", message, logInfo.repeatCount);
+// #else
+// 			std::string originalMsg = message;
+// #endif
+			std::string originalMsg = std::format("{}: {}", message, logInfo.repeatCount);
 			size_t matchPos = std::string::npos;
 
 			if (searchFilter[0] != '\0') {

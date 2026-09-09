@@ -9,6 +9,8 @@ class ModelManager;
 class MaterialManager;
 class TextureManager;
 class RendererManager;
+class PhysicsManager;
+class ParticleManager;
 
 class SandBoxLayer : public Layer
 {
@@ -31,5 +33,12 @@ private:
 	MaterialManager* materialManager{ nullptr };
 	TextureManager* textureManager{ nullptr };
 	RendererManager* rendererManager{ nullptr };
+	PhysicsManager* physicsManager{ nullptr };
+	ParticleManager* particleManager{ nullptr };
+
+	void createLights();
+	void createLightProbes();
+	void createScriptableCamera();
+	void createParticle();
 	
 };

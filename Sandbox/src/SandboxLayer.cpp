@@ -1,6 +1,7 @@
 #include "SandboxLayer.h"
 #include "window/AppWindow.h"
 #include "physics/PhysicsManager.h"
+#include "particle/ParticleManager.h"
 #include "core/scene/SceneManager.h"
 #include "core/features/camera.h"
 #include "core/features/ScriptableCamera.h"
@@ -34,13 +35,10 @@ bool SandBoxLayer::init()
     textureManager = &ServiceLocator::GetService<TextureManager>("TextureManagerVulkan");
     modelManager = &ServiceLocator::GetService<ModelManager>("ModelManager");
     rendererManager = &ServiceLocator::GetService<RendererManager>("RendererManagerVulkan");
-    auto physicsManager = &ServiceLocator::GetService<PhysicsManager>("PhysicsManager");
+    physicsManager = &ServiceLocator::GetService<PhysicsManager>("PhysicsManager");
+    particleManager = &ServiceLocator::GetService<ParticleManager>("ParticleManager");
 
-    // camera = std::make_unique<Camera>();
-    // camera->init(AppWindow::getWidth(), AppWindow::getHeight(), glm::vec3(5.0), glm::vec3(-5.0));
-    // SceneManager::cameraController = camera.get();
-    camera = std::make_unique<ScriptableCamera>();
-
+    
     // Scene* scene1 = SceneManager::getInstance().addScene("Level1");
     Scene* scene2 = SceneManager::getInstance().addScene("Level2");
     // Scene* scene3 = SceneManager::getInstance().addScene("Sanbox scene");
@@ -51,7 +49,180 @@ bool SandBoxLayer::init()
 
     EventManager& eventManager = EventManager::getInstance();
     SceneManager::getInstance().setActiveScene(scene2->getName());
+
+    createScriptableCamera();
+    createLights();
+	createLightProbes();
+    createParticle();
+
+    // rendererManager->addRenderer();
+
+	return true;
+}
+
+void SandBoxLayer::onAttach(LayerManager *manager)
+{
+    Layer::onAttach(manager);
+}
+
+void SandBoxLayer::onDetach()
+{
+
+}
+
+void SandBoxLayer::onUpdate()
+{
+    if(EngineState::isPlaying()) {
+        // SceneManager::cameraController = camera.get();
+    }
+}
+
+void SandBoxLayer::onGuiUpdate()
+{
+
+}
+
+void SandBoxLayer::onEvent(Event &event)
+{
+    
+}
+
+void SandBoxLayer::createLights()
+{
     Scene* activeScene = SceneManager::getInstance().getActiveScene();
+
+    const int numLights = 10;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> posDist(-numLights, numLights);
+    std::uniform_real_distribution<float> colorDist(0.0f, 1.0f);
+
+    for (int i = 0; i < numLights; ++i) {
+        std::string entityName = "light_sphere_" + std::to_string(i);
+        Entity lightEntity = activeScene->getEntity(activeScene->addEntity(entityName));
+
+        TransformComponent& transform = lightEntity.getComponent<TransformComponent>();
+        float xPos = posDist(gen);
+        float yPos = posDist(gen);
+        float zPos = posDist(gen);
+        transform.translate(glm::vec3(xPos, yPos, zPos));
+
+        MaterialDesc materialDesc;
+        materialDesc.albedoIDs.push_back(
+            textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
+        );
+
+        materialDesc.emissiveIDs.push_back(
+            textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
+        );
+        
+        materialDesc.emissive = 5.0;    // these need to be set to have emision
+
+        float radius = 0.5;
+        Mesh mesh = EngineUtils::drawSphere(radius, 36, 36);
+        mesh.materialID = materialManager->createMaterial(materialDesc);
+
+        Model model {};
+        model.meshIDs.push_back(meshManager->loadMesh(mesh));
+        ModelComponent modelComponent;
+        modelComponent.modelID = modelManager->addModel(model);
+        lightEntity.addComponent<ModelComponent>(modelComponent);
+
+        glm::vec4 randomColor(colorDist(gen), colorDist(gen), colorDist(gen), 1.0f);
+        lightEntity.addComponent<LightComponent>(randomColor, 15.0f, 1.0f);
+
+        //TODO: body should be according to transform as well
+        // uint32_t bodyID = physicsManager->createSphereBody(
+        //     lightEntity,
+        //     mesh,
+        //     transform.translateVec,
+        //     transform.scaleVec,
+        //     radius,
+        //     static_cast<uint32_t>(ColliderType::Dynamic)
+        // );
+        // lightEntity.addComponent<ColliderComponent>(bodyID, static_cast<uint32_t>(ColliderType::Dynamic));
+    }
+}
+
+void SandBoxLayer::createLightProbes()
+{
+    const uint32_t probesPerDimension = 8;
+	float spacing = 2.0f;
+
+    Scene* activeScene = SceneManager::getInstance().getActiveScene();
+    uint32_t lightProbeEntityID = activeScene->addEntity("probe manager");
+    Entity lightProbeEntity = activeScene->getEntity(lightProbeEntityID);
+    
+    TransformComponent& transform = lightProbeEntity.getComponent<TransformComponent>();
+    transform.translate(glm::vec3(0.0f, 0.0f, 0.0f));
+
+    MaterialDesc materialDesc;
+    materialDesc.albedoIDs.push_back(
+        textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
+    );
+
+    Mesh mesh = EngineUtils::drawSphere(0.25f, 18, 18);
+    mesh.materialID = materialManager->createMaterial(materialDesc);
+
+    
+    float offset = (probesPerDimension - 1) * spacing * 0.5f;
+    auto& lightProbeComponent = lightProbeEntity.addComponent<LightProbeComponent>();
+    lightProbeComponent.probeGrid.resize(probesPerDimension * probesPerDimension * probesPerDimension);
+    lightProbeComponent.bufferSize = lightProbeComponent.probeGrid.size() * sizeof(glm::vec4);  //NOTE: assuming probe is glm::vec4
+    lightProbeComponent.probesPerDimension = probesPerDimension;
+    lightProbeComponent.spacing = spacing;
+    lightProbeComponent.gridOrigin = glm::vec4(-offset, -offset, -offset, 1.0);
+    
+    // Offset to center the grid (so 0,0,0 is the middle the volume)
+    for (uint32_t z = 0; z < probesPerDimension; z++) {
+        for (uint32_t y = 0; y < probesPerDimension; y++) {
+            for (uint32_t x = 0; x < probesPerDimension; x++) {
+                uint32_t index = x + (y * probesPerDimension) + (z * probesPerDimension * probesPerDimension);
+                
+                lightProbeComponent.probeGrid[index] = glm::vec4(
+                    (float)x * spacing - offset,
+                    (float)y * spacing - offset,
+                    (float)z * spacing - offset,
+                    1.0
+                );
+            }
+        }
+    }
+    for (uint32_t y = 0; y < probesPerDimension; y++) {
+        for (uint32_t z = 0; z < probesPerDimension; z++) {
+            for (uint32_t x = 0; x < probesPerDimension; x++) {
+                
+                // Re-map the index calculation to match this layout
+                uint32_t index = x + (z * probesPerDimension) + (y * probesPerDimension * probesPerDimension);
+                
+                lightProbeComponent.probeGrid[index] = glm::vec4(
+                    (float)x * spacing - offset,
+                    (float)y * spacing - offset,
+                    (float)z * spacing - offset,
+                    1.0
+                );
+            }
+        }
+    }
+
+
+    Model model {};
+    uint32_t meshID = meshManager->loadMesh(mesh);
+    model.meshIDs.push_back(meshID);
+    for(int i = 1; i < lightProbeComponent.probeGrid.size(); i++) {
+        model.meshIDs.push_back(meshID);
+    }
+    ModelComponent modelComponent;
+    modelComponent.modelID = modelManager->addModel(model);
+    lightProbeEntity.addComponent<ModelComponent>(modelComponent);
+}
+
+void SandBoxLayer::createScriptableCamera()
+{
+    // camera = std::make_unique<Camera>();
+    // camera->init(AppWindow::getWidth(), AppWindow::getHeight(), glm::vec3(5.0), glm::vec3(-5.0));
+    // SceneManager::cameraController = camera.get();
+    camera = std::make_unique<ScriptableCamera>();
 
     // Entity cameraEntity = activeScene->getEntity(activeScene->addEntity("Camera"));
     // TransformComponent& cameraTransform = cameraEntity.getComponent<TransformComponent>();
@@ -82,161 +253,14 @@ bool SandBoxLayer::init()
     // cameraEntity.addComponent<CameraComponent>(cameraComponent);
     
     // camera->setCamera(&cameraEntity.getComponent<CameraComponent>());
-
-    
-    
-    const int numLights = 10;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> posDist(-numLights, numLights);
-    std::uniform_real_distribution<float> colorDist(0.0f, 1.0f);
-
-    for (int i = 0; i < numLights; ++i) {
-        std::string entityName = "light_sphere_" + std::to_string(i);
-        Entity lightEntity = activeScene->getEntity(activeScene->addEntity(entityName));
-
-        TransformComponent& transform = lightEntity.getComponent<TransformComponent>();
-        float xPos = posDist(gen);
-        float yPos = posDist(gen);
-        float zPos = posDist(gen);
-        transform.translate(glm::vec3(xPos, yPos, zPos));
-
-        MaterialDesc materialDesc;
-        materialDesc.albedoIDs.push_back(
-            // textureManager->loadTexture("assets/textures/mobi-padoru.png", 1, false)
-            textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
-        );
-
-        materialDesc.emissiveIDs.push_back(
-            textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
-        );
-        // these need to be set to have emision
-        materialDesc.emissive = 5.0;
-
-        float radius = 0.5;
-        Mesh mesh = EngineUtils::drawSphere(radius, 36, 36);
-        mesh.materialID = materialManager->createMaterial(materialDesc);
-
-        Model model {};
-        model.meshIDs.push_back(meshManager->loadMesh(mesh));
-        ModelComponent modelComponent;
-        modelComponent.modelID = modelManager->addModel(model);
-        lightEntity.addComponent<ModelComponent>(modelComponent);
-
-        glm::vec4 randomColor(colorDist(gen), colorDist(gen), colorDist(gen), 1.0f);
-        lightEntity.addComponent<LightComponent>(randomColor, 15.0f, 1.0f);
-
-        //TODO: body should be according to transform as well
-        uint32_t bodyID = physicsManager->createSphereBody(
-            lightEntity,
-            mesh,
-            transform.translateVec,
-            transform.scaleVec,
-            radius,
-            static_cast<uint32_t>(ColliderType::Dynamic)
-        );
-        lightEntity.addComponent<ColliderComponent>(bodyID, static_cast<uint32_t>(ColliderType::Dynamic));
-    }
-
-    // light probe manager component
-	// const uint32_t probesPerDimension = 8;
-	// float spacing = 2.0f;
-    // uint32_t lightProbeEntityID = activeScene->addEntity("probe manager");
-    // Entity lightProbeEntity = activeScene->getEntity(lightProbeEntityID);
-    
-    // TransformComponent& transform = lightProbeEntity.getComponent<TransformComponent>();
-    // transform.translate(glm::vec3(0.0f, 0.0f, 0.0f));
-
-    // MaterialDesc materialDesc;
-    // materialDesc.albedoIDs.push_back(
-    //     // textureManager->loadTexture("assets/textures/mobi-padoru.png", 1, false)
-    //     textureManager->loadTexture("assets/textures/pbr/gold/metallic.png", 1, false)
-    // );
-
-    // Mesh mesh = EngineUtils::drawSphere(0.25f, 18, 18);
-    // mesh.materialID = materialManager->createMaterial(materialDesc);
-
-    
-    // float offset = (probesPerDimension - 1) * spacing * 0.5f;
-    // auto& lightProbeComponent = lightProbeEntity.addComponent<LightProbeComponent>();
-    // lightProbeComponent.probeGrid.resize(probesPerDimension * probesPerDimension * probesPerDimension);
-    // lightProbeComponent.bufferSize = lightProbeComponent.probeGrid.size() * sizeof(glm::vec4);  //NOTE: assuming probe is glm::vec4
-    // lightProbeComponent.probesPerDimension = probesPerDimension;
-    // lightProbeComponent.spacing = spacing;
-    // lightProbeComponent.gridOrigin = glm::vec4(-offset, -offset, -offset, 1.0);
-    
-    // Offset to center the grid (so 0,0,0 is the middle the volume)
-    // for (uint32_t z = 0; z < probesPerDimension; z++) {
-    //     for (uint32_t y = 0; y < probesPerDimension; y++) {
-    //         for (uint32_t x = 0; x < probesPerDimension; x++) {
-    //             uint32_t index = x + (y * probesPerDimension) + (z * probesPerDimension * probesPerDimension);
-                
-    //             lightProbeComponent.probeGrid[index] = glm::vec4(
-    //                 (float)x * spacing - offset,
-    //                 (float)y * spacing - offset,
-    //                 (float)z * spacing - offset,
-    //                 1.0
-    //             );
-    //         }
-    //     }
-    // }
-    // for (uint32_t y = 0; y < probesPerDimension; y++) {
-    //     for (uint32_t z = 0; z < probesPerDimension; z++) {
-    //         for (uint32_t x = 0; x < probesPerDimension; x++) {
-                
-    //             // Re-map the index calculation to match this layout
-    //             uint32_t index = x + (z * probesPerDimension) + (y * probesPerDimension * probesPerDimension);
-                
-    //             lightProbeComponent.probeGrid[index] = glm::vec4(
-    //                 (float)x * spacing - offset,
-    //                 (float)y * spacing - offset,
-    //                 (float)z * spacing - offset,
-    //                 1.0
-    //             );
-    //         }
-    //     }
-    // }
-
-
-    // Model model {};
-    // uint32_t meshID = meshManager->loadMesh(mesh);
-    // model.meshIDs.push_back(meshID);
-    // for(int i = 1; i < lightProbeComponent.probeGrid.size(); i++) {
-    //     model.meshIDs.push_back(meshID);
-    // }
-    // ModelComponent modelComponent;
-    // modelComponent.modelID = modelManager->addModel(model);
-    // lightProbeEntity.addComponent<ModelComponent>(modelComponent);
-
-    // rendererManager->addRenderer();
-
-
-	return true;
 }
 
-void SandBoxLayer::onAttach(LayerManager *manager)
+void SandBoxLayer::createParticle()
 {
-    Layer::onAttach(manager);
-}
-
-void SandBoxLayer::onDetach()
-{
-
-}
-
-void SandBoxLayer::onUpdate()
-{
-    if(EngineState::isPlaying()) {
-        // SceneManager::cameraController = camera.get();
-    }
-}
-
-void SandBoxLayer::onGuiUpdate()
-{
-
-}
-
-void SandBoxLayer::onEvent(Event &event)
-{
+    Scene* activeScene = SceneManager::getInstance().getActiveScene();
     
+    Entity particleEntity = activeScene->getEntity(activeScene->addEntity("particleEntity"));
+    particleEntity.addComponent<ParticleEmitter>();
+    ParticleEmitter& emitter = particleEntity.getComponent<ParticleEmitter>();
+    emitter.containerID = particleManager->createContainer(5000, glm::vec3(-15.0), glm::vec3(15.0));    
 }

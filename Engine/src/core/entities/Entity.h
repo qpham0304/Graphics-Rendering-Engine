@@ -1,5 +1,8 @@
 #pragma once
 #include "entt.hpp"
+#include <format>
+#include <stdexcept>
+#include <typeinfo>
 
 class Entity
 {
@@ -38,7 +41,8 @@ public:
 		if (hasComponent<T>()) {
 			return registry->get<T>(entity);
 		}
-		throw std::runtime_error("entity GetComponent(): Component does not exist");
+		std::string msg = std::format("entity getComponent(): Component: {} does not exist", typeid(T).name());
+		throw std::runtime_error(msg);
 	}
 
 	template<typename ...T>
@@ -46,14 +50,14 @@ public:
 		if (registry->all_of<T...>(entity)) {
 			return registry->get<T...>(entity);
 		}
-		throw std::runtime_error("entity GetComponent(): Component does not exist");
+		std::string msg = std::format("entity getComponents(): Component: {} does not exist", typeid(T).name());
+		throw std::runtime_error(msg);
 	}
 
 	uint32_t getID() const;
 
 	entt::registry* getRegistry();
 
-	void onCameraComponentAdded();
 	void onModelComponentAdded();
 	void onMeshComponentAdded();
 	void onSpriteComponentAdded();
@@ -61,6 +65,8 @@ public:
 	void onAnimationStateComponentAdded();
 	void onScriptComponentAdded();
 	void onColliderComponentAdded();
+	void onCameraComponentAdded();
+	void onParticleEmitterAdded();
 	
 private:
 	entt::entity entity;

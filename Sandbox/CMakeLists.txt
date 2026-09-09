@@ -49,10 +49,10 @@ endforeach()
 add_custom_target(${PROJECT_NAME}_Shaders DEPENDS ${SPIRV_BINARY_FILES})
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_Shaders)
 
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_CURRENT_SOURCE_DIR}/assets
-            ${OUTPUT_DIR}/assets
-    COMMENT "Syncing assets to build directory"
-)
+# add_custom_command(
+#     TARGET ${PROJECT_NAME} POST_BUILD
+#     COMMAND ${CMAKE_COMMAND} -E copy_directory
+#             ${CMAKE_CURRENT_SOURCE_DIR}/assets
+#             ${OUTPUT_DIR}/assets
+#     COMMENT "Syncing assets to build directory"
+# )

@@ -30,6 +30,7 @@ Serializer::Serializer()
     REGISTER_COMPONENT(ScriptComponent, "ScriptComponent", [](Entity entity) { entity.onScriptComponentAdded(); });
     REGISTER_COMPONENT(ColliderComponent, "ColliderComponent", [](Entity entity) { entity.onColliderComponentAdded(); });
     REGISTER_COMPONENT(CameraComponent, "CameraComponent", [](Entity entity) { entity.onCameraComponentAdded(); });
+    REGISTER_COMPONENT(ParticleEmitter, "ParticleEmitter", [](Entity entity) { entity.onParticleEmitterAdded(); });
     
 }
 	

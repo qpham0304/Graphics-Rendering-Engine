@@ -312,3 +312,36 @@ struct ColliderComponent {
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(ColliderComponent, shapeID, colliderType, bodyType);
 };
+
+struct ParticleEmitter {
+	ParticleEmitter() = default;
+
+	uint32_t containerID;
+
+	int emitMax{ 100 };
+	int emitCount{ 0 };
+	bool areRecycled{ false };
+	float emitAccumulator{ 0.0f };
+	float emitRate{ 1.0f };
+	float lifetimeMin{ 1.0f };
+	float lifetimeMax{ 1.0f };
+	float speedMin{ 1.0f };
+	float speedMax{ 1.0f };
+	glm::vec3 spawnPosition{ 0.0f, 0.0f, 0.0f };
+	bool resetPosition{ false };
+
+	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
+		ParticleEmitter,
+		emitMax,
+		emitCount,
+		areRecycled,
+		emitAccumulator,
+		emitRate,
+		lifetimeMin,
+		lifetimeMax,
+		speedMin,
+		speedMax,
+		spawnPosition
+	)
+};
+

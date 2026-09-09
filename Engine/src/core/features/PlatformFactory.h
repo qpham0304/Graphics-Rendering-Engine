@@ -56,6 +56,14 @@ public:
 
 	std::unique_ptr<Logger> Create(LoggerPlatform platform, std::string name);
 
+	template<typename Interface, typename... Args>
+		requires std::derived_from<Interface, Service>
+	std::unique_ptr<Interface> Create(Args&&... args) {
+		std::unique_ptr<Interface> instance = std::make_unique<Interface>(std::forward<Args>(args)...);
+		serviceLocator.Register<Interface>(instance->getServiceName(), *instance);
+		return instance;
+	}
+
 
 private:
 	template<typename Interface, typename Concrete, typename... Args>

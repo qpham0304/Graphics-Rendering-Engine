@@ -35,15 +35,11 @@ Engine::Engine(WindowConfig config)
 	rendererManager = platformFactory.Create<RendererManager>(windowConfig.renderPlatform);
 	scriptManager = platformFactory.Create<ScriptManager>(windowConfig.scriptingPlatform);
 	physicsManager = platformFactory.Create<PhysicsManager>(windowConfig.physicsFramework);
-
-	meshManager = std::make_unique<MeshManager>();
-	modelManager = std::make_unique<ModelManager>();
-	layerManager = std::make_unique<LayerManager>();
-	animationManager = std::make_unique<AnimationManager>();
-	serviceLocator.Register<MeshManager>("MeshManager", *meshManager);
-	serviceLocator.Register<ModelManager>("ModelManager", *modelManager);
-	serviceLocator.Register<LayerManager>("LayerManager", *layerManager);
-	serviceLocator.Register<AnimationManager>("AnimationManager", *animationManager);
+	meshManager = platformFactory.Create<MeshManager>();
+	modelManager = platformFactory.Create<ModelManager>();
+	layerManager = platformFactory.Create<LayerManager>();
+	animationManager = platformFactory.Create<AnimationManager>();
+	particleManager = platformFactory.Create<ParticleManager>();
 
 	//NOTE: setup order is important!
 	services.push_back(&eventManager);
@@ -58,6 +54,7 @@ Engine::Engine(WindowConfig config)
 	services.push_back(modelManager.get());
 	services.push_back(guiManager.get());
 	services.push_back(animationManager.get());
+	services.push_back(particleManager.get());
 	services.push_back(scriptManager.get());
 	services.push_back(physicsManager.get());
 	services.push_back(layerManager.get());

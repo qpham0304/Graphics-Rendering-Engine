@@ -10,6 +10,7 @@
 #include "physics/PhysicsManager.h"
 #include "scripting/ScriptManager.h"
 #include "window/AppWindow.h"
+#include "particle/ParticleContainer.h"
 
 Entity::Entity(const entt::entity& entity, entt::registry& registry)
     : entity(entity), registry(&registry)
@@ -74,6 +75,15 @@ void Entity::onCameraComponentAdded()
 
     CameraUpdateEvent cameraUpdateEvent(*this);
     EventManager::getInstance().publish(cameraUpdateEvent);
+}
+
+void Entity::onParticleEmitterAdded()
+{
+    auto particleManager = &ServiceLocator::GetService<ParticleManager>("ParticleManager");
+    
+    ParticleEmitter& emitter = getComponent<ParticleEmitter>();
+
+    
 }
 
 void Entity::onModelComponentAdded()
