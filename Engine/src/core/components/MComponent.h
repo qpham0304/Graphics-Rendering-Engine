@@ -328,6 +328,7 @@ struct ParticleEmitter {
 	float speedMin{ 1.0f };
 	float speedMax{ 1.0f };
 	glm::vec3 spawnPosition{ 0.0f, 0.0f, 0.0f };
+	glm::vec3 force{ 0.0f, 0.0f, 0.0f };
 	bool resetPosition{ false };
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
@@ -341,7 +342,8 @@ struct ParticleEmitter {
 		lifetimeMax,
 		speedMin,
 		speedMax,
-		spawnPosition
+		spawnPosition,
+		force
 	)
 };
 

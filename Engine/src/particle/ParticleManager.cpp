@@ -2,8 +2,6 @@
 #include "core/components/MComponent.h"
 #include "core/features/Random.h"
 #include "core/resources/managers/BufferManager.h"
-#include "graphics/framework/Vulkan/resources/buffers/BufferManagerVulkan.h"  //TODO: move to vulkan particle renderer
-#include "graphics/framework/Vulkan/resources/buffers/DeviceAddressBufferVulkan.h"  //TODO: move to vulkan particle renderer
 #include "core/features/ServiceLocator.h"
 
 ParticleManager::ParticleManager()
@@ -22,8 +20,6 @@ bool ParticleManager::init(WindowConfig config)
     Service::init(config);
     
     BufferManager* bufferManager = &ServiceLocator::GetService<BufferManager>("BufferManagerVulkan");
-    m_containerRefsBDA = bufferManager->createBufferDeviceAddress(MAX_CONTAINERS * sizeof(ParticleContainer::ContainerRef));
-    bufferManager->updateBufferDeviceAddress(m_containerRefsBDA, m_containerRefs.data(), MAX_CONTAINERS * sizeof(ParticleContainer::ContainerRef));
 
     return true;
 }
@@ -54,14 +50,22 @@ void ParticleManager::onUpdate()
     if(!m_toBeDestroyed.empty()) {
         for(auto& containerID : m_toBeDestroyed) {
             m_containers.erase(m_containers.begin() + containerID);
-            m_containerRefs.erase(m_containerRefs.begin() + containerID);
+            m_containerData.erase(m_containerData.begin() + containerID);
         }
     }
 }
 
-uint32_t ParticleManager::getContainerRef() const
+const ParticleManager::ContainerData& ParticleManager::getContainerData(uint32_t id) const
 {
-    return m_containerRefsBDA;
+    if(id >= m_containers.size() || id < 0) {
+        m_logger->error("particle container id: {} does not exist", id);
+    }
+    return m_containerData[id];
+}
+
+const std::vector<ParticleManager::ContainerData>& ParticleManager::getAllContainerData() const
+{
+    return m_containerData;
 }
 
 ParticleContainer ParticleManager::getContainer(uint32_t id)
@@ -75,27 +79,24 @@ ParticleContainer ParticleManager::getContainer(uint32_t id)
 uint32_t ParticleManager::createContainer(uint32_t size, glm::vec3 minSpacing, glm::vec3 maxSpacing)
 {
     //NOTE: m_ids starts at 1 which matches container's index 1 with dummy container at 0
-    m_containers.emplace_back(ParticleContainer(size));
-    ParticleContainer& container = m_containers[m_ids]; //these only have the ID
+    m_containers.push_back(ParticleContainer(size));
+    ParticleContainer& container = m_containers[m_ids];
+    size_t lifetimeSize = container.m_lifetime.size() * sizeof(double);
+    size_t positionsSize = container.m_positions.size() * sizeof(glm::vec3);
+    size_t scalesSize = container.m_scales.size() * sizeof(glm::vec3);
+    size_t velocitiesSize = container.m_velocities.size() * sizeof(glm::vec3);
+    size_t colorsSize = container.m_colors.size() * sizeof(glm::vec4);
 
-    // container.m_containerBufferRefs only have the id to the buffer not the gpu memory address pointer
-    BufferManager* tmp = &ServiceLocator::GetService<BufferManager>("BufferManagerVulkan");
-    BufferManagerVulkan* bufferManager = dynamic_cast<BufferManagerVulkan*>(tmp);
+    BufferManager* bufferManager = &ServiceLocator::GetService<BufferManager>("BufferManagerVulkan");
     
-    BufferVulkan* lifetimeBuffer = bufferManager->getBuffer(container.m_containerBufferRefs.lifetimeBufferRef);
-    BufferVulkan* positionsBuffer = bufferManager->getBuffer(container.m_containerBufferRefs.positionsBufferRef);
-    BufferVulkan* scalesBuffer = bufferManager->getBuffer(container.m_containerBufferRefs.scalesBufferRef);
-    BufferVulkan* velocitiesBuffer = bufferManager->getBuffer(container.m_containerBufferRefs.velocitiesBufferRef);
-    BufferVulkan* colorsBuffer = bufferManager->getBuffer(container.m_containerBufferRefs.colorsBufferRef);
-    
-    ParticleContainer::ContainerRef actualAddressBDA {};
-    actualAddressBDA.lifetimeBufferRef = lifetimeBuffer->getAddress();
-    actualAddressBDA.positionsBufferRef = positionsBuffer->getAddress();
-    actualAddressBDA.scalesBufferRef = scalesBuffer->getAddress();
-    actualAddressBDA.velocitiesBufferRef = velocitiesBuffer->getAddress();
-    actualAddressBDA.colorsBufferRef = colorsBuffer->getAddress();
+    m_containerData.push_back(ContainerData());
+    ContainerData& data = m_containerData[m_ids];
+    data.lifetimeBufferID = bufferManager->createBufferDeviceAddress(lifetimeSize);
+    data.positionsBufferID = bufferManager->createBufferDeviceAddress(positionsSize);
+    data.scalesBufferID = bufferManager->createBufferDeviceAddress(scalesSize);
+    data.velocitiesBufferID = bufferManager->createBufferDeviceAddress(velocitiesSize);
+    data.colorsBufferID = bufferManager->createBufferDeviceAddress(colorsSize);
 
-    m_containerRefs.emplace_back(actualAddressBDA);
 
     for(int i = 0; i < container.m_positions.size(); i++) {
         float x = Random::GenFloat(minSpacing.x, maxSpacing.x);
@@ -103,10 +104,15 @@ uint32_t ParticleManager::createContainer(uint32_t size, glm::vec3 minSpacing, g
         float z = Random::GenFloat(minSpacing.z, maxSpacing.z);
         
         container.m_positions[i] = glm::vec3(x, y ,z);
+        container.m_velocities[i] = glm::vec3(-x, -y ,-z);
     }
+    
+    bufferManager->updateBufferDeviceAddress(data.lifetimeBufferID, container.m_lifetime.data(), lifetimeSize);
+    bufferManager->updateBufferDeviceAddress(data.positionsBufferID, container.m_positions.data(), positionsSize);
+    bufferManager->updateBufferDeviceAddress(data.scalesBufferID, container.m_scales.data(), scalesSize);
+    bufferManager->updateBufferDeviceAddress(data.velocitiesBufferID, container.m_velocities.data(), velocitiesSize);
+    bufferManager->updateBufferDeviceAddress(data.colorsBufferID, container.m_colors.data(), colorsSize);
 
-    container._updateBufferReferences();
-    bufferManager->updateBufferDeviceAddress(m_containerRefsBDA, m_containerRefs.data(),  MAX_CONTAINERS * sizeof(ParticleContainer::ContainerRef));
 
     return _assignID();
 }

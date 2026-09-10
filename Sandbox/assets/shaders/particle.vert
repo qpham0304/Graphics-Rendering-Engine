@@ -42,7 +42,18 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
 } ubo;
 
 layout(set = 0, binding = 1) uniform EmitterUBO {
-    vec3 position;   // placeholder only remove
+    int emitMax;
+    int emitCount;
+    bool areRecycled;
+    float emitAccumulator;
+    float emitRate;
+    float lifetimeMin;
+    float lifetimeMax;
+    float speedMin;
+    float speedMax;
+    vec3 spawnPosition;
+    vec3 force;
+    bool resetPosition;
 } emitter;
 
 void main() {
@@ -57,10 +68,15 @@ void main() {
 
     Container c = pc.containersRef.containers[pc.containerIdx];
     Positions posBuffer = Positions(c.positionsRef);
+    vec2 offset = localOffsets[vertexInQuad] * 0.1;
     vec3 particlePos = posBuffer.positions[particleID];
 
-    vec2 offset = localOffsets[vertexInQuad] * 0.1;
-    vec4 worldPos = vec4(particlePos + vec3(offset, 0.0), 1.0);
+    // vec4 worldPos = vec4(particlePos + vec3(offset, 0.0), 1.0);
+    // gl_Position = ubo.proj * ubo.view * worldPos;
 
-    gl_Position = ubo.proj * ubo.view * worldPos;
+    // camera facing billboard
+    vec4 viewCenter = ubo.view * vec4(particlePos, 1.0);
+    vec4 viewPos = viewCenter + vec4(offset, 0.0, 0.0);
+    gl_Position = ubo.proj * viewPos;
+
 }

@@ -43,7 +43,6 @@ protected:
 	MeshManager* meshManager{ nullptr };
 	ModelManager* modelManager{ nullptr };
 	MaterialManager* materialManager{ nullptr };
-    BufferManager* bufferManager{ nullptr };
 	GuiManager* guiManager{ nullptr };
 
 	bool isActive{ false };

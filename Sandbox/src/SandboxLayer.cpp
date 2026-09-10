@@ -262,5 +262,6 @@ void SandBoxLayer::createParticle()
     Entity particleEntity = activeScene->getEntity(activeScene->addEntity("particleEntity"));
     particleEntity.addComponent<ParticleEmitter>();
     ParticleEmitter& emitter = particleEntity.getComponent<ParticleEmitter>();
-    emitter.containerID = particleManager->createContainer(500000, glm::vec3(-15.0), glm::vec3(15.0));    
+    emitter.force = glm::vec3(5.0);
+    emitter.containerID = particleManager->createContainer(5000, glm::vec3(-1.0), glm::vec3(1.0));    
 }

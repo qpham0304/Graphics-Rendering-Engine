@@ -36,8 +36,11 @@ bool ParticleRendererVulkan::init(WindowConfig config)
 	RendererVulkan::init(config);
 
     particleManager = &ServiceLocator::GetService<ParticleManager>("ParticleManager");
-	uint32_t bdaID = particleManager->getContainerRef();
-    pushConstant.containersRef = bufferManagerVulkan->getBuffer(bdaID)->getAddress();
+    containersRefID = bufferManagerVulkan->createBufferDeviceAddress(MAX_CONTAINERS * sizeof(ContainerRefs));
+    bufferManagerVulkan->updateBufferDeviceAddress(containersRefID, containerRefs.data(), MAX_CONTAINERS * sizeof(ContainerRefs));
+    
+    containersRef = bufferManagerVulkan->getBuffer(containersRefID)->getAddress();
+    pushConstant.containersRef = containersRef;
 
     bufferManagerVulkan->createUniformBuffers(emitterUniformBuffersList, sizeof(EmitterUBO));
 
@@ -60,6 +63,27 @@ bool ParticleRendererVulkan::onClose()
 
 void ParticleRendererVulkan::onUpdate()
 {
+    auto* particleManager = &ServiceLocator::GetService<ParticleManager>("ParticleManager");
+    const auto& containers = particleManager->getAllContainerData();
+
+    //recreate the entire bda reference table to match the particleManager's container data
+    if(containerRefs.size() != containers.size()) {
+        m_logger->info("count repeat check");
+        containerRefs.clear();
+        containerRefs.push_back({});    // location 1 for default value and debug
+        for(int i = 1; i < containers.size(); i++) {
+            const auto& container = containers[i];
+            ContainerRefs refs{};
+            refs.lifetimeBufferRef = bufferManagerVulkan->getBuffer(container.lifetimeBufferID)->getAddress();
+            refs.positionsBufferRef = bufferManagerVulkan->getBuffer(container.positionsBufferID)->getAddress();
+            refs.scalesBufferRef = bufferManagerVulkan->getBuffer(container.scalesBufferID)->getAddress();
+            refs.velocitiesBufferRef = bufferManagerVulkan->getBuffer(container.velocitiesBufferID)->getAddress();
+            refs.colorsBufferRef = bufferManagerVulkan->getBuffer(container.colorsBufferID)->getAddress();
+            containerRefs.push_back(refs);
+        }
+        bufferManagerVulkan->updateBufferDeviceAddress(containersRefID, containerRefs.data(), MAX_CONTAINERS * sizeof(ContainerRefs));
+    }
+
 }
 
 void ParticleRendererVulkan::render(Camera &camera)
@@ -254,8 +278,8 @@ void ParticleRendererVulkan::_createPipelines()
 void ParticleRendererVulkan::_createDescriptor()
 {
     layoutID = descriptorManagerVulkan->createLayout({
-		{ 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr },
-		{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr },
+		{ 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr },
+		{ 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT | VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, nullptr },
 	});
 
 	uint32_t frameCount = VulkanUtils::numFrames();
@@ -291,26 +315,30 @@ void ParticleRendererVulkan::_computeParticle(VkCommandBuffer cmd, uint32_t curr
     auto func = std::function<void(Entity)>([&](Entity entity) -> void {
         ParticleEmitter& emitter = entity.getComponent<ParticleEmitter>();
         ParticleContainer container = particleManager->getContainer(emitter.containerID);
+        ParticleManager::ContainerData containerData = particleManager->getContainerData(emitter.containerID);
 
-        uint32_t posRef = container.m_containerBufferRefs.positionsBufferRef;
-        BufferVulkan* buffer = bufferManagerVulkan->getBuffer(posRef);
+        emitterUBO.emitMax = emitter.emitMax;
+        emitterUBO.emitCount = emitter.emitCount;
+        emitterUBO.areRecycled = emitter.areRecycled;
+        emitterUBO.emitAccumulator = emitter.emitAccumulator;
+        emitterUBO.emitRate = emitter.emitRate;
+        emitterUBO.lifetimeMin = emitter.lifetimeMin;
+        emitterUBO.lifetimeMax = emitter.lifetimeMax;
+        emitterUBO.speedMin = emitter.speedMin;
+        emitterUBO.speedMax = emitter.speedMax;
+        emitterUBO.spawnPosition = emitter.spawnPosition;
+        emitterUBO.force = emitter.force;
+        emitterUBO.resetPosition = emitter.resetPosition;
+
+        emitterUniformBuffersList[currentFrame]->update(&emitterUBO, sizeof(emitterUBO));
 
         pushConstant.containerIdx = emitter.containerID;
         pushConstant.particleCount = container.m_size;
         vkCmdPushConstants(cmd, computePipeline->pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ParticlePushConstant), &pushConstant);
 
-        VkBufferMemoryBarrier barrier = {};
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        barrier.buffer = static_cast<VkBuffer>(*buffer);
-        barrier.offset = 0;
-        barrier.size = VK_WHOLE_SIZE;
-
-        vkCmdPipelineBarrier(
-            cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
-            0, 0, nullptr, 1, &barrier, 0, nullptr);
-
+        _createBarrier(cmd, containerData.positionsBufferID);
+        _createBarrier(cmd, containerData.velocitiesBufferID);
+        
         uint32_t groupX_size = 256;
         vkCmdDispatch(cmd, (container.m_size + groupX_size - 1) / groupX_size, 1, 1);
     });
@@ -350,8 +378,8 @@ void ParticleRendererVulkan::_renderParticle(VkCommandBuffer cmd, uint32_t curre
     renderingInfo.layerCount = 1;
     renderingInfo.colorAttachmentCount = colorAttachments.size();
     renderingInfo.pColorAttachments = colorAttachments.data();
-    // renderingInfo.pDepthAttachment = &depthAttachment;
     renderingInfo.pDepthAttachment = nullptr;
+    // renderingInfo.pDepthAttachment = &depthAttachment;
 
 
     vkCmdBeginRendering(cmd, &renderingInfo);
@@ -361,6 +389,21 @@ void ParticleRendererVulkan::_renderParticle(VkCommandBuffer cmd, uint32_t curre
     auto func = std::function<void(Entity)>([&](Entity entity) -> void {
         ParticleEmitter& emitter = entity.getComponent<ParticleEmitter>();
         ParticleContainer container = particleManager->getContainer(emitter.containerID);
+        
+        emitterUBO.emitMax = emitter.emitMax;
+        emitterUBO.emitCount = emitter.emitCount;
+        emitterUBO.areRecycled = emitter.areRecycled;
+        emitterUBO.emitAccumulator = emitter.emitAccumulator;
+        emitterUBO.emitRate = emitter.emitRate;
+        emitterUBO.lifetimeMin = emitter.lifetimeMin;
+        emitterUBO.lifetimeMax = emitter.lifetimeMax;
+        emitterUBO.speedMin = emitter.speedMin;
+        emitterUBO.speedMax = emitter.speedMax;
+        emitterUBO.spawnPosition = emitter.spawnPosition;
+        emitterUBO.force = emitter.force;
+        emitterUBO.resetPosition = emitter.resetPosition;
+
+        emitterUniformBuffersList[currentFrame]->update(&emitterUBO, sizeof(emitterUBO));
 
         pushConstant.containerIdx = emitter.containerID;
         pushConstant.particleCount = container.m_size;
@@ -374,4 +417,21 @@ void ParticleRendererVulkan::_renderParticle(VkCommandBuffer cmd, uint32_t curre
     vkCmdEndRendering(cmd);
 
     outTexture->transitImage(cmd, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+}
+
+void ParticleRendererVulkan::_createBarrier(VkCommandBuffer cmd, uint32_t bufferID)
+{
+    BufferVulkan* buffer = bufferManagerVulkan->getBuffer(bufferID);
+    VkBufferMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    barrier.buffer = static_cast<VkBuffer>(*buffer);
+    barrier.offset = 0;
+    barrier.size = VK_WHOLE_SIZE;
+
+    vkCmdPipelineBarrier(
+        cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
+        0, 0, nullptr, 1, &barrier, 0, nullptr
+    );
 }

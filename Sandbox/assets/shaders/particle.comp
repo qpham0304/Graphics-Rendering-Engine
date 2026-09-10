@@ -16,6 +16,21 @@ layout(set = 0, binding = 0) uniform UniformBufferObject {
     float height;
 } ubo;
 
+layout(set = 0, binding = 1) uniform EmitterUBO {
+    int emitMax;
+    int emitCount;
+    bool areRecycled;
+    float emitAccumulator;
+    float emitRate;
+    float lifetimeMin;
+    float lifetimeMax;
+    float speedMin;
+    float speedMax;
+    vec3 spawnPosition;
+    vec3 force;
+    bool resetPosition;
+} emitter;
+
 struct Container {
     uint64_t lifetimeRef;
     uint64_t positionsRef;
@@ -53,8 +68,9 @@ void main() {
     vec3 position = posBuffer.positions[particleID];
     vec3 velocity = velBuffer.velocities[particleID];
 
+    velocity += emitter.force * pc.deltaTime;
     position += velocity * pc.deltaTime;
 
-    // Write back the updated position
     posBuffer.positions[particleID] = position;
+    // velBuffer.velocities[particleID] = velocity;
 }
