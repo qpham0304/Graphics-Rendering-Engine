@@ -1,5 +1,6 @@
 #include "ParticleRendererVulkan.h"
 
+#include <window/AppWindow.h>
 #include <particle/ParticleManager.h>
 #include <graphics/framework/Vulkan/resources/textures/TextureVulkan.h>
 #include <graphics/framework/Vulkan/resources/descriptors/DescriptorManagerVulkan.h>
@@ -74,64 +75,17 @@ void ParticleRendererVulkan::render(Camera &camera)
 		m_logger->error("No scene to render");
 	}
 
-    VkRenderingAttachmentInfo colorAttachment{};
-    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    colorAttachment.imageView = outTexture->textureImageView;
-    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    colorAttachment.clearValue = { {0.1f, 0.1f, 0.1f, 1.0f} };
-
-    std::vector<VkRenderingAttachmentInfo> colorAttachments = { colorAttachment };
-
-    // Optional depth attachment if needed for particle
-    // VkRenderingAttachmentInfo depthAttachment{};
-    // depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
-    // depthAttachment.imageView = depthTexture->textureImageView;
-    // depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    // depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    // depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    // depthAttachment.clearValue.depthStencil = {1.0f, 0};
-
-    auto ubo = rendererManagerVulkan->getUBO();
-    uint32_t width = ubo.width;
-    uint32_t height = ubo.height;
-
-    VkRenderingInfo renderingInfo{};
-    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
-    renderingInfo.renderArea = { {0, 0}, {width, height} };
-    renderingInfo.layerCount = 1;
-    renderingInfo.colorAttachmentCount = colorAttachments.size();
-    renderingInfo.pColorAttachments = colorAttachments.data();
-    // renderingInfo.pDepthAttachment = &depthAttachment;
-    renderingInfo.pDepthAttachment = nullptr;
-
-
 	VkCommandBuffer cmd = renderDeviceVulkan->commandPool.currentBuffer();
     uint32_t currentFrame = renderDeviceVulkan->getCurrentFrameIndex();
+
+    pushConstant.deltaTime = AppWindow::getDeltaTime();
+
+    renderDeviceVulkan->beginLabel(cmd, "Particle Compute Pass", {1.0, 1.0, 0.5, 1.0});
+    _computeParticle(cmd, currentFrame, scene);
+    renderDeviceVulkan->endLabel(cmd);
     
     renderDeviceVulkan->beginLabel(cmd, "Particle Render Pass", {1.0, 0.0, 1.0, 1.0});
-    vkCmdBeginRendering(cmd, &renderingInfo);
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
-    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-    
-    auto func = std::function<void(Entity)>([&](Entity entity) -> void {
-        ParticleEmitter& emitter = entity.getComponent<ParticleEmitter>();
-
-        pushConstant.containerIdx = emitter.containerID;
-
-        ParticleContainer container = particleManager->getContainer(emitter.containerID);
-
-        vkCmdPushConstants(cmd, pipeline->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ParticlePushConstant), &pushConstant);
-
-        //TODO: use drawindirect with indirect buffer for efficiency ignore for now
-        vkCmdDraw(cmd, container.m_size * 6, 1, 0, 0);
-    });
-    // vkCmdDraw(cmd, 3, 1, 0, 0);
-
-    scene->forEnitiesWith<ParticleEmitter>(func);
-    
-    vkCmdEndRendering(cmd);
+    _renderParticle(cmd, currentFrame, scene);
 	renderDeviceVulkan->endLabel(cmd);
     
 }
@@ -210,6 +164,10 @@ void ParticleRendererVulkan::_createResources()
             samplerInfo
         );
 
+        VkCommandBuffer cmd = renderDeviceVulkan->commandPool.beginSingleTimeCommand();
+        texture->transitImage(cmd, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        renderDeviceVulkan->commandPool.endSingleTimeCommand(cmd);
+
 		return texture;
     };
     
@@ -285,6 +243,12 @@ void ParticleRendererVulkan::_createPipelines()
         sizeof(pushConstant)
     );
 
+    computePipeline = std::make_unique<VulkanPipeline>(renderDeviceVulkan->device);
+    computePipeline->createComputePipeline(
+        "assets/shaders/spv/particle.comp.spv",
+        { descriptorSetLayout, bindlessLayout, materialLayout },
+        sizeof(pushConstant)
+    );
 }
 
 void ParticleRendererVulkan::_createDescriptor()
@@ -317,4 +281,97 @@ void ParticleRendererVulkan::_updateDescriptor()
 		descriptorManagerVulkan->writeUniform2(writer, emitterUniformBuffersList[i]->getDescUniformBufferInfo());
 		descriptorManagerVulkan->updateDescriptorSets(&writer.writes);
 	}
+}
+
+void ParticleRendererVulkan::_computeParticle(VkCommandBuffer cmd, uint32_t currentFrame, Scene* scene)
+{
+    computePipeline->bind(cmd, VK_PIPELINE_BIND_POINT_COMPUTE);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, computePipeline->pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+
+    auto func = std::function<void(Entity)>([&](Entity entity) -> void {
+        ParticleEmitter& emitter = entity.getComponent<ParticleEmitter>();
+        ParticleContainer container = particleManager->getContainer(emitter.containerID);
+
+        uint32_t posRef = container.m_containerBufferRefs.positionsBufferRef;
+        BufferVulkan* buffer = bufferManagerVulkan->getBuffer(posRef);
+
+        pushConstant.containerIdx = emitter.containerID;
+        pushConstant.particleCount = container.m_size;
+        vkCmdPushConstants(cmd, computePipeline->pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ParticlePushConstant), &pushConstant);
+
+        VkBufferMemoryBarrier barrier = {};
+        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.buffer = static_cast<VkBuffer>(*buffer);
+        barrier.offset = 0;
+        barrier.size = VK_WHOLE_SIZE;
+
+        vkCmdPipelineBarrier(
+            cmd, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 
+            0, 0, nullptr, 1, &barrier, 0, nullptr);
+
+        uint32_t groupX_size = 256;
+        vkCmdDispatch(cmd, (container.m_size + groupX_size - 1) / groupX_size, 1, 1);
+    });
+    scene->forEnitiesWith<ParticleEmitter>(func);
+}
+
+void ParticleRendererVulkan::_renderParticle(VkCommandBuffer cmd, uint32_t currentFrame, Scene* scene)
+{
+    outTexture->transitImage(cmd, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_GENERAL);
+
+    VkRenderingAttachmentInfo colorAttachment{};
+    colorAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    colorAttachment.imageView = outTexture->textureImageView;
+    colorAttachment.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    colorAttachment.clearValue = { {0.1f, 0.1f, 0.1f, 1.0f} };
+
+    std::vector<VkRenderingAttachmentInfo> colorAttachments = { colorAttachment };
+
+    // Optional depth attachment if needed for particle
+    // VkRenderingAttachmentInfo depthAttachment{};
+    // depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    // depthAttachment.imageView = depthTexture->textureImageView;
+    // depthAttachment.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    // depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    // depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    // depthAttachment.clearValue.depthStencil = {1.0f, 0};
+
+    auto ubo = rendererManagerVulkan->getUBO();
+    uint32_t width = ubo.width;
+    uint32_t height = ubo.height;
+
+    VkRenderingInfo renderingInfo{};
+    renderingInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
+    renderingInfo.renderArea = { {0, 0}, {width, height} };
+    renderingInfo.layerCount = 1;
+    renderingInfo.colorAttachmentCount = colorAttachments.size();
+    renderingInfo.pColorAttachments = colorAttachments.data();
+    // renderingInfo.pDepthAttachment = &depthAttachment;
+    renderingInfo.pDepthAttachment = nullptr;
+
+
+    vkCmdBeginRendering(cmd, &renderingInfo);
+    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipeline);
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+    
+    auto func = std::function<void(Entity)>([&](Entity entity) -> void {
+        ParticleEmitter& emitter = entity.getComponent<ParticleEmitter>();
+        ParticleContainer container = particleManager->getContainer(emitter.containerID);
+
+        pushConstant.containerIdx = emitter.containerID;
+        pushConstant.particleCount = container.m_size;
+        vkCmdPushConstants(cmd, pipeline->pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ParticlePushConstant), &pushConstant);
+
+        vkCmdDraw(cmd, container.m_size * 6, 1, 0, 0);  //TODO: use drawindirect with indirect buffer for efficiency ignore for now
+    });
+
+    scene->forEnitiesWith<ParticleEmitter>(func);
+    
+    vkCmdEndRendering(cmd);
+
+    outTexture->transitImage(cmd, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }

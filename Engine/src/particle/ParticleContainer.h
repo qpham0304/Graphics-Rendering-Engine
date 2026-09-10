@@ -19,6 +19,7 @@ public:
 	ParticleContainer(uint32_t size);
 	ParticleContainer(uint32_t size, uint32_t rows, uint32_t cols);
 
+    ContainerRef m_containerBufferRefs;
     uint32_t m_textureID { 0 };
     uint32_t m_size { 0 };
     uint32_t m_numRows { 1 };
@@ -29,6 +30,7 @@ public:
     std::vector<glm::vec3> m_velocities {};
     std::vector<glm::vec4> m_colors {};
 
+
 private:
     friend class ParticleManager;
 
@@ -36,6 +38,5 @@ private:
     void _createBufferReferences();
     void _updateBufferReferences();
 
-    ContainerRef m_containerBufferRefs;
 
 };

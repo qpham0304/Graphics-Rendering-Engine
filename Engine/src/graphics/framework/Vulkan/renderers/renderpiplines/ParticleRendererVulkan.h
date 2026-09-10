@@ -16,6 +16,8 @@ public:
 	struct ParticlePushConstant {
 		uint64_t containersRef;
 		uint32_t containerIdx;
+		uint32_t particleCount;
+		float deltaTime;
 	};
 
 	ParticleRendererVulkan(std::string serviceName = "ParticleRendererVulkan");
@@ -39,7 +41,11 @@ protected:
 	void _createDescriptor();
 	void _updateDescriptor();
 
+	void _computeParticle(VkCommandBuffer cmd, uint32_t currentFrame, Scene* scene);
+	void _renderParticle(VkCommandBuffer cmd, uint32_t currentFrame, Scene* scene);
+
 	std::unique_ptr<VulkanPipeline> pipeline;
+	std::unique_ptr<VulkanPipeline> computePipeline;
 	ParticlePushConstant pushConstant;
 	
 	TextureVulkan* outTexture { nullptr };

@@ -24,6 +24,8 @@ layout(buffer_reference, scalar) buffer Colors { vec4 colors[]; };
 layout(push_constant) uniform ParticleContainerRefs {
     ContainerBuffers containersRef;
     uint containerIdx; // The index for THIS draw call
+    uint particleCount;
+    float deltaTime;
 } pc;
 
 
@@ -61,7 +63,4 @@ void main() {
     vec4 worldPos = vec4(particlePos + vec3(offset, 0.0), 1.0);
 
     gl_Position = ubo.proj * ubo.view * worldPos;
-    
-    // vec2 uv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
-    // gl_Position = vec4(uv * 2.0f - 1.0f, 0.0f, 1.0f);
 }
